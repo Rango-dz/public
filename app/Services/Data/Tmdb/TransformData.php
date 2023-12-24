@@ -428,13 +428,14 @@ class TransformData
     
             // Check if the video is available at the TMDB URL
             $src = $this->hasVideoInHtml($videoUrl) ? $videoUrl : "https://www.youtube.com/watch?v=" . $video['key'];
+            $categories = $this->hasVideoInHtml($videoUrl) ? 'full' : 'trailer';
     
             return [
                 'name' => trim($video['name']),
                 'src' => $src,
                 'type' => Video::VIDEO_TYPE_EMBED,
                 'origin' => 'tmdb',
-                'category' => strtolower(Arr::get($video, 'type', 'trailer')),
+                'category' => strtolower(Arr::get($video, 'type', $categories)),
             ];
         }, $videos);
     
