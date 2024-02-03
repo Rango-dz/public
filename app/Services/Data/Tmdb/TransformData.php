@@ -465,39 +465,6 @@ class TransformData
     }
 
 
-
-    // private function getVideos(
-    //     array $tmdbTitle,
-    // ): array {
-    //     $videos = Arr::get($tmdbTitle, 'videos.results', []);
-    //     $videos = array_map(
-    //         fn($video) => [
-    //             'name' => trim($video['name']),
-    //             'src' => self::YOUTUBE_BASE_URI . $video['key'],
-    //             'type' => Video::VIDEO_TYPE_EMBED,
-    //             'origin' => 'tmdb',
-    //             'category' => strtolower(Arr::get($video, 'type', 'trailer')),
-    //         ],
-    //         $videos,
-    //     );
-
-    //     // show trailers first
-    //     usort($videos, function ($a, $b) {
-    //         if ($a['category'] === 'trailer') {
-    //             return -1;
-    //         } elseif ($b['category'] === 'trailer') {
-    //             return 1;
-    //         } else {
-    //             return 0;
-    //         }
-    //     });
-
-    //     return $videos;
-    // }
-
-
-
-
     /**
      * @param array $data
      * @return string
