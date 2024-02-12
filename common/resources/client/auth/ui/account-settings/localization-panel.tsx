@@ -7,13 +7,14 @@ import {Button} from '@common/ui/buttons/button';
 import {User} from '../../user';
 import {useValueLists} from '@common/http/value-lists';
 import {Option} from '../../../ui/forms/combobox/combobox';
-import {FormSelect, OptionGroup} from '../../../ui/forms/select/select';
+import {FormSelect} from '../../../ui/forms/select/select';
 import {useChangeLocale} from '@common/i18n/change-locale';
 import {Trans} from '@common/i18n/trans';
 import {getLocalTimeZone} from '@internationalized/date';
 import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
 import {message} from '@common/i18n/message';
 import {useTrans} from '@common/i18n/use-trans';
+import {TimezoneSelect} from '@common/auth/ui/account-settings/timezone-select';
 
 interface Props {
   user: User;
@@ -86,23 +87,11 @@ export function LocalizationPanel({user}: Props) {
             </Option>
           ))}
         </FormSelect>
-        <FormSelect
-          selectionMode="single"
-          name="timezone"
+        <TimezoneSelect
           label={<Trans message="Timezone" />}
-          showSearchField
-          searchPlaceholder={trans(message('Search timezones'))}
-        >
-          {Object.entries(timezones).map(([sectionName, sectionItems]) => (
-            <OptionGroup label={sectionName} key={sectionName}>
-              {sectionItems.map(timezone => (
-                <Option key={timezone.value} value={timezone.value}>
-                  {timezone.text}
-                </Option>
-              ))}
-            </OptionGroup>
-          ))}
-        </FormSelect>
+          name="timezone"
+          timezones={timezones}
+        />
       </Form>
     </AccountSettingsPanel>
   );

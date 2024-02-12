@@ -19,7 +19,7 @@ import {TextField} from '@common/ui/forms/input-field/text-field/text-field';
 import {SearchIcon} from '@common/icons/material/Search';
 import {ComboboxEndAdornment} from '@common/ui/forms/combobox/combobox-end-adornment';
 
-type SelectProps<T extends object> = Omit<
+export type SelectProps<T extends object> = Omit<
   BaseFieldPropsWithDom<HTMLButtonElement>,
   'value'
 > &
@@ -34,8 +34,9 @@ type SelectProps<T extends object> = Omit<
   };
 function Select<T extends object>(
   props: SelectProps<T>,
-  ref: Ref<HTMLButtonElement>
+  ref: Ref<HTMLButtonElement>,
 ) {
+  const isMobile = useIsMobileMediaQuery();
   const {
     hideCaret,
     placeholder = <Trans message="Select an option..." />,
@@ -55,21 +56,21 @@ function Select<T extends object>(
     isLoading,
     isAsync,
     valueClassName,
+    floatingWidth = isMobile ? 'auto' : 'matchTrigger',
     ...inputFieldProps
   } = props;
 
-  const isMobile = useIsMobileMediaQuery();
   const listbox = useListbox(
     {
       ...props,
       clearInputOnItemSelection: true,
       showEmptyMessage: showEmptyMessage || showSearchField,
-      floatingWidth: isMobile ? 'auto' : 'matchTrigger',
+      floatingWidth,
       selectionMode: 'single',
       role: 'listbox',
       virtualFocus: showSearchField,
     },
-    ref
+    ref,
   );
   const {
     state: {
@@ -102,7 +103,7 @@ function Select<T extends object>(
       <span
         className={clsx(
           'overflow-hidden overflow-ellipsis whitespace-nowrap',
-          valueClassName
+          valueClassName,
         )}
       >
         {selectedOption.element.props.children}
@@ -153,7 +154,7 @@ function Select<T extends object>(
       searchField={
         showSearchField && (
           <TextField
-            size="sm"
+            size={props.size === 'xs' || props.size === 'sm' ? 'xs' : 'sm'}
             placeholder={searchPlaceholder}
             startAdornment={<SearchIcon />}
             className="flex-shrink-0 px-8 pb-8 pt-4"
@@ -177,7 +178,9 @@ function Select<T extends object>(
       <Field
         fieldClassNames={fieldClassNames}
         {...fieldProps}
-        endAdornment={<ComboboxEndAdornment isLoading={isLoading} />}
+        endAdornment={
+          !hideCaret && <ComboboxEndAdornment isLoading={isLoading} />
+        }
       >
         <button
           {...inputProps}
@@ -197,7 +200,7 @@ function Select<T extends object>(
           }}
           className={clsx(
             fieldClassNames.input,
-            !fieldProps.unstyled && minWidth
+            !fieldProps.unstyled && minWidth,
           )}
         >
           {content}
@@ -208,7 +211,7 @@ function Select<T extends object>(
 }
 
 const SelectForwardRef = React.forwardRef(Select) as <T extends object>(
-  props: SelectProps<T> & {ref?: Ref<HTMLButtonElement>}
+  props: SelectProps<T> & {ref?: Ref<HTMLButtonElement>},
 ) => ReactElement;
 export {SelectForwardRef as Select};
 
@@ -235,8 +238,13 @@ export function FormSelect<T extends object>({
     name: props.name,
   };
 
+  // make sure error message is not overridden by undefined or null
+  const errorMessage = props.errorMessage || error?.message;
   return (
-    <SelectForwardRef ref={ref} {...mergeProps(formProps, props)}>
+    <SelectForwardRef
+      ref={ref}
+      {...mergeProps(formProps, props, {errorMessage})}
+    >
       {children}
     </SelectForwardRef>
   );

@@ -71,7 +71,7 @@ function AutoUpdateField() {
     channelContentConfig.autoUpdateMethods[watch('config.autoUpdateMethod')!];
   return (
     <ContentAutoUpdateField config={channelContentConfig}>
-      {!methodConfig?.localOnly && !methodConfig?.tmdbOnly && tmdb_is_setup && (
+      {!methodConfig?.provider && tmdb_is_setup && (
         <FormSelect
           selectionMode="single"
           className="mt-24 flex-auto md:mt-0"

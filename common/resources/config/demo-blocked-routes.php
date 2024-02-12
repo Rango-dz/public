@@ -65,6 +65,7 @@ return [
     ['method' => 'POST', 'origin' => 'admin', 'name' => 'users'],
     ['method' => 'DELETE', 'name' => 'users/{ids}'],
     ['method' => 'POST', 'name' => 'user-sessions/logout-other'],
+    ['method' => 'POST', 'name' => 'admin/users/impersonate/{user}'],
     [
         'method' => 'POST',
         'name' => 'auth/user/confirmed-two-factor-authentication',

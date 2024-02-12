@@ -9,7 +9,7 @@ use Common\Search\Drivers\Mysql\MysqlFullTextIndexer;
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Scout\Console\ImportCommand;
-use MeiliSearch\Client;
+use Meilisearch\Client as MeilisearchClient;
 
 class ImportRecordsIntoScout
 {
@@ -91,10 +91,12 @@ class ImportRecordsIntoScout
 
     private function configureMeilisearchIndices(array $models): void
     {
+        $client = app(MeilisearchClient::class);
+
         foreach ($models as $modelName) {
             $model = new $modelName();
             $indexName = $model->searchableAs();
-            $index = app(Client::class)->index($indexName);
+            $index = $client->index($indexName);
 
             if ($modelConfig = config("search.meilisearch.$modelName")) {
                 $index->updateSettings($modelConfig);
@@ -106,19 +108,17 @@ class ImportRecordsIntoScout
             );
             $displayedFields = $searchableFields;
             try {
-                app(Client::class)
-                    ->index($indexName)
-                    ->delete();
+                $client->index($indexName)->delete();
             } catch (Exception $e) {
                 //
             }
-            app(Client::class)
+            $client
                 ->index($indexName)
                 ->updateSearchableAttributes($searchableFields);
-            app(Client::class)
+            $client
                 ->index($indexName)
                 ->updateFilterableAttributes($model::filterableFields());
-            app(Client::class)
+            $client
                 ->index($indexName)
                 ->updateDisplayedAttributes($displayedFields);
         }

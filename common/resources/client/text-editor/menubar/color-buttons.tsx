@@ -16,7 +16,6 @@ export function ColorButtons({editor, size}: MenubarButtonProps) {
       <span className={clsx('flex-shrink-0 whitespace-nowrap')}>
         <IconButton
           size={size}
-          radius="rounded"
           color={textActive ? 'primary' : null}
           onClick={() => {
             setDialog('text');
@@ -26,7 +25,6 @@ export function ColorButtons({editor, size}: MenubarButtonProps) {
         </IconButton>
         <IconButton
           size={size}
-          radius="rounded"
           color={backgroundActive ? 'primary' : null}
           onClick={() => {
             setDialog('bg');

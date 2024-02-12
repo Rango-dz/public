@@ -8,6 +8,7 @@ import {Tag} from '@common/tags/tag';
 import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
 import {UseFormReturn} from 'react-hook-form';
+import {slugifyString} from '@common/utils/string/slugify-string';
 
 interface Response extends BackendResponse {
   tag: Tag;
@@ -28,5 +29,6 @@ export function useCreateNewTag(form: UseFormReturn<Payload>) {
 }
 
 function createNewTag(payload: Payload): Promise<Response> {
+  payload.name = slugifyString(payload.name!);
   return apiClient.post('tags', payload).then(r => r.data);
 }

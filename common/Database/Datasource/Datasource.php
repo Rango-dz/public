@@ -116,8 +116,17 @@ class Datasource
         if ($this->order !== false) {
             $order = $this->getOrder();
             if (isset($order['col'])) {
-                $methodName = 'orderBy' . ucfirst($order['col']);
-                if (method_exists($this->builder, $methodName)) {
+                $orderCol = str_replace(
+                    $this->builder->getModel()->getTable() . '.',
+                    '',
+                    $order['col'],
+                );
+                $methodName = Str::camel('orderBy' . ucfirst($orderCol));
+                $scopeMethodName = 'scope' . ucfirst($methodName);
+                if (
+                    method_exists($this->builder->getModel(), $methodName) ||
+                    method_exists($this->builder->getModel(), $scopeMethodName)
+                ) {
                     $this->builder->$methodName($order['dir']);
                 } else {
                     $this->builder->orderBy(
@@ -180,11 +189,10 @@ class Datasource
         }
     }
 
-    public function getOrder(): array
-    {
-        $defaultOrderDir = 'desc';
-        $defaultOrderCol = 'updated_at';
-
+    public function getOrder(
+        string $defaultOrderCol = 'updated_at',
+        string $defaultOrderDir = 'desc',
+    ): array {
         if (isset($this->order['col'])) {
             $orderCol = $this->order['col'];
             $orderDir = $this->order['dir'];

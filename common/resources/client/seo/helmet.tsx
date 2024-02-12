@@ -55,7 +55,7 @@ export const Helmet = memo(({children, tags}: HelmetProps) => {
 
 function mapChildrenToTags(
   children: ReactElement | ReactElement[],
-  trans: UseTransReturn['trans']
+  trans: UseTransReturn['trans'],
 ): MetaTag[] {
   return Children.map(children, child => {
     switch (child.type) {
@@ -72,7 +72,7 @@ function mapChildrenToTags(
 
 function titleTagChildrenToString(
   children: TitleMetaTagChildren,
-  trans: UseTransReturn['trans']
+  trans: UseTransReturn['trans'],
 ): string {
   if (children == null) return '';
   if (typeof children === 'string') return children;
@@ -89,7 +89,7 @@ function removeOldTags() {
   if (isSsr()) return;
   document.head
     .querySelectorAll(
-      'meta:not([data-keep]), script meta:not([data-keep]), title, link[rel="canonical"]'
+      'meta:not([data-keep]), script meta:not([data-keep]), title, link[rel="canonical"]',
     )
     .forEach(tag => {
       document.head.removeChild(tag);

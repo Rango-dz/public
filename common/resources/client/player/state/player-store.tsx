@@ -26,12 +26,12 @@ import {subscribeWithSelector} from 'zustand/middleware';
 
 export const createPlayerStore = (
   id: string | number,
-  options: PlayerStoreOptions
+  options: PlayerStoreOptions,
 ) => {
   // initialData from options should take priority over local storage data
   const initialData = deepMerge(
     getPlayerStateFromLocalStorage(id, options),
-    options.initialData || {}
+    options.initialData || {},
   );
 
   const setInLocalStorage = (key: string, value: any) => {
@@ -114,6 +114,7 @@ export const createPlayerStore = (
                 get().appendToQueue(items);
               }
             }
+
             get().playNext();
           },
           posterLoaded: ({url}) => {
@@ -266,6 +267,11 @@ export const createPlayerStore = (
               media = queue.getNext();
             }
 
+            // YouTube provider will not play the same tray unless we wait some time after playback end
+            if (get().repeat === 'one' && get().providerName === 'youtube') {
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+
             // allow user to handle playing next track
             if (options.onBeforePlayNext?.(media)) {
               return;
@@ -345,7 +351,7 @@ export const createPlayerStore = (
           },
           async overrideQueue(
             mediaItems: MediaItem[],
-            queuePointer: number = 0
+            queuePointer: number = 0,
           ): Promise<any> {
             if (!mediaItems?.length) return;
             const items = [...mediaItems];
@@ -373,12 +379,12 @@ export const createPlayerStore = (
               s.shuffledQueue = prependToArrayAtIndex(
                 s.shuffledQueue,
                 shuffledNewItems,
-                index
+                index,
               );
               s.originalQueue = prependToArrayAtIndex(
                 s.originalQueue,
                 mediaItems,
-                index
+                index,
               );
             });
             if (options.persistQueueInLocalStorage) {
@@ -388,10 +394,10 @@ export const createPlayerStore = (
           removeFromQueue: mediaItems => {
             set(s => {
               s.shuffledQueue = s.shuffledQueue.filter(
-                item => !mediaItems.find(m => isSameMedia(m, item))
+                item => !mediaItems.find(m => isSameMedia(m, item)),
               );
               s.originalQueue = s.originalQueue.filter(
-                item => !mediaItems.find(m => isSameMedia(m, item))
+                item => !mediaItems.find(m => isSameMedia(m, item)),
               );
             });
             if (options.persistQueueInLocalStorage) {
@@ -432,7 +438,7 @@ export const createPlayerStore = (
             const mediaId =
               initialData.cuedMediaId || initialData.queue?.[0]?.id;
             const mediaToCue = initialData.queue?.find(
-              media => media.id === mediaId
+              media => media.id === mediaId,
             );
             if (mediaToCue) {
               await get().cue(mediaToCue);
@@ -448,7 +454,7 @@ export const createPlayerStore = (
             listeners.forEach(l => l[event]?.({state: get(), ...payload}));
           },
         };
-      })
-    )
+      }),
+    ),
   );
 };

@@ -26,7 +26,6 @@ class Episode extends Model
         'status',
         'year',
     ];
-    protected $dates = ['release_date'];
 
     protected $casts = [
         'id' => 'integer',
@@ -42,6 +41,7 @@ class Episode extends Model
         'runtime' => 'integer',
         'rating' => 'float',
         'vote_count' => 'integer',
+        'release_date' => 'date',
     ];
 
     public $hidden = [

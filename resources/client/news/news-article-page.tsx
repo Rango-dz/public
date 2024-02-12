@@ -1,19 +1,19 @@
-import React, {Fragment} from 'react';
-import {PageMetaTags} from '@common/http/page-meta-tags';
-import {PageStatus} from '@common/http/page-status';
-import {SitePageLayout} from '@app/site-page-layout';
+import React, { Fragment } from "react";
+import { PageMetaTags } from "@common/http/page-meta-tags";
+import { PageStatus } from "@common/http/page-status";
+import { SitePageLayout } from "@app/site-page-layout";
 import {
   GetNewsArticleResponse,
-  useNewsArticle,
-} from '@app/admin/news/requests/use-news-article';
-import {NewsArticle} from '@app/titles/models/news-article';
-import {Trans} from '@common/i18n/trans';
-import {FormattedDate} from '@common/i18n/formatted-date';
-import {BulletSeparatedItems} from '@app/titles/bullet-separated-items';
-import {NewsArticleImage} from '@app/news/news-article-image';
-import {NewsArticleLink} from '@app/news/news-article-link';
-import {NewsArticleByline} from '@app/news/news-article-byline';
-import {NewsArticleSourceLink} from '@app/news/news-article-source-link';
+  useNewsArticle
+} from "@app/admin/news/requests/use-news-article";
+import { NewsArticle } from "@app/titles/models/news-article";
+import { Trans } from "@common/i18n/trans";
+import { FormattedDate } from "@common/i18n/formatted-date";
+import { BulletSeparatedItems } from "@app/titles/bullet-separated-items";
+import { NewsArticleImage } from "@app/news/news-article-image";
+import { NewsArticleLink } from "@app/news/news-article-link";
+import { NewsArticleByline } from "@app/news/news-article-byline";
+import { NewsArticleSourceLink } from "@app/news/news-article-source-link";
 
 export function NewsArticlePage() {
   const query = useNewsArticle('newsArticlePage');
@@ -36,28 +36,26 @@ interface PageContentProps {
 function PageContent({data: {article, related}}: PageContentProps) {
   return (
     <div className="container mx-auto mt-14 items-start gap-40 px-14 md:mt-40 md:px-24 lg:flex">
-      <main className="mb-24 rounded border p-16">
-        <div className="flex-auto">
-          <h1 className="mb-24 text-3xl md:text-4xl">{article.title}</h1>
-          <div className="items-start gap-16 md:flex">
-            <NewsArticleImage
-              article={article}
-              size="w-184 h-184"
-              className="max-md:mb-24"
-            />
-            <div
-              className="prose text dark:prose-invert"
-              dangerouslySetInnerHTML={{__html: article.body}}
-            />
-          </div>
-          <BulletSeparatedItems className="mt-24 text-sm text-muted">
-            <FormattedDate date={article.created_at} />
-            {article.byline ? <NewsArticleByline article={article} /> : null}
-            {article.source ? (
-              <NewsArticleSourceLink article={article} />
-            ) : null}
-          </BulletSeparatedItems>
+      <main className="mb-24 rounded border p-16 flex-auto">
+        <h1 className="mb-24 text-3xl md:text-4xl">{article.title}</h1>
+        <div className="items-start gap-16 md:flex">
+          <NewsArticleImage
+            article={article}
+            size="w-184 h-184"
+            className="max-md:mb-24"
+          />
+          <div
+            className="prose text dark:prose-invert"
+            dangerouslySetInnerHTML={{__html: article.body}}
+          />
         </div>
+        <BulletSeparatedItems className="mt-24 text-sm text-muted">
+          <FormattedDate date={article.created_at} />
+          {article.byline ? <NewsArticleByline article={article} /> : null}
+          {article.source ? (
+            <NewsArticleSourceLink article={article} />
+          ) : null}
+        </BulletSeparatedItems>
       </main>
       <OtherNews articles={related} />
     </div>

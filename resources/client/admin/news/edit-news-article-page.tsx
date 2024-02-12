@@ -68,6 +68,7 @@ function PageContent({article}: PageContentProps) {
               <ArticleEditorStickyHeader
                 editor={editor}
                 backLink="../.."
+                slugPrefix="news"
                 isLoading={updateArticle.isPending}
                 onSave={handleSave}
               />

@@ -1,26 +1,38 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Trans} from '@common/i18n/trans';
-import clsx from 'clsx';
-import {StaticPageTitle} from '@common/seo/static-page-title';
-import {DataTableHeader} from '@common/datatable/data-table-header';
-import {useBackendFilterUrlParams} from '@common/datatable/filters/backend-filter-url-params';
+import React, { useCallback, useMemo, useState } from "react";
+import { Trans } from "@common/i18n/trans";
+import clsx from "clsx";
+import { StaticPageTitle } from "@common/seo/static-page-title";
+import { DataTableHeader } from "@common/datatable/data-table-header";
+import {
+  useBackendFilterUrlParams
+} from "@common/datatable/filters/backend-filter-url-params";
 import {
   GetDatatableDataParams,
-  useDatatableData,
-} from '@common/datatable/requests/paginated-resources';
-import {FilterList} from '@common/datatable/filters/filter-list/filter-list';
-import {SelectedStateDatatableHeader} from '@common/datatable/selected-state-datatable-header';
-import {AnimatePresence} from 'framer-motion';
-import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
-import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
-import reviewsImage from './reviews.svg';
-import {FullPageLoader} from '@common/ui/progress/full-page-loader';
-import {Review} from '@app/titles/models/review';
-import {DeleteReviewsButton} from '@app/admin/reviews/delete-reviews-button';
-import {ReviewDatatableItem} from '@app/admin/reviews/review-datatable-item';
-import {ReviewsDatatableFilters} from '@app/admin/reviews/reviews-datatable-filters';
-import {ReviewListSortButton} from '@app/reviews/review-list/review-list-sort-button';
-import {Reviewable} from '@app/reviews/reviewable';
+  useDatatableData
+} from "@common/datatable/requests/paginated-resources";
+import { FilterList } from "@common/datatable/filters/filter-list/filter-list";
+import {
+  SelectedStateDatatableHeader
+} from "@common/datatable/selected-state-datatable-header";
+import { AnimatePresence } from "framer-motion";
+import {
+  DataTablePaginationFooter
+} from "@common/datatable/data-table-pagination-footer";
+import {
+  DataTableEmptyStateMessage
+} from "@common/datatable/page/data-table-emty-state-message";
+import reviewsImage from "./reviews.svg";
+import { FullPageLoader } from "@common/ui/progress/full-page-loader";
+import { Review } from "@app/titles/models/review";
+import { DeleteReviewsButton } from "@app/admin/reviews/delete-reviews-button";
+import { ReviewDatatableItem } from "@app/admin/reviews/review-datatable-item";
+import {
+  ReviewsDatatableFilters
+} from "@app/admin/reviews/reviews-datatable-filters";
+import {
+  ReviewListSortButton
+} from "@app/reviews/review-list/review-list-sort-button";
+import { Reviewable } from "@app/reviews/reviewable";
 
 interface Props {
   hideTitle?: boolean;
@@ -46,11 +58,9 @@ export function ReviewsDatatablePage({hideTitle, reviewable}: Props) {
     filters: encodedFilters,
     reviewable_type: reviewable?.model_type,
     reviewable_id: reviewable?.id,
-  });
-
-  useEffect(() => {
+  }, undefined, () => {
     setSelectedReviews([]);
-  }, [query.data]);
+  });
 
   const toggleReview = useCallback(
     (id: number) => {

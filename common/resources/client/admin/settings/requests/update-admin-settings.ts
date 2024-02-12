@@ -25,7 +25,7 @@ export function useUpdateAdminSettings(
 
   return useMutation({
     mutationFn: (props: AdminSettingsWithFiles) => {
-      // need to convert these to json, otherwise only single key from object would be sent due to diffing
+      //need to convert these to json, otherwise only single key from object would be sent due to diffing
       if (props.client?.cookie_notice?.button) {
         props.client.cookie_notice.button = JSON.stringify(
           props.client.cookie_notice.button,
@@ -39,6 +39,16 @@ export function useUpdateAdminSettings(
       if ((props.client as any)?.artistPage?.tabs) {
         (props.client as any).artistPage.tabs = JSON.stringify(
           (props.client as any).artistPage.tabs,
+        ) as any;
+      }
+      if ((props.client as any)?.title_page?.sections) {
+        (props.client as any).title_page.sections = JSON.stringify(
+          (props.client as any).title_page.sections,
+        ) as any;
+      }
+      if ((props.client as any)?.incoming_email) {
+        (props.client as any).incoming_email = JSON.stringify(
+          (props.client as any).incoming_email,
         ) as any;
       }
 

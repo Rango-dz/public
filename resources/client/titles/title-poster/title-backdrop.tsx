@@ -63,7 +63,7 @@ export function TitleBackdrop({
     className,
     size,
     'aspect-video bg-fg-base/4 object-cover',
-    !src ? 'flex items-center justify-center' : 'block'
+    !src ? 'flex items-center justify-center' : 'block',
   );
 
   let img = src ? (
@@ -80,7 +80,7 @@ export function TitleBackdrop({
           ? trans(
               message('Backdrop for :name', {
                 values: {name: item.name},
-              })
+              }),
             )
           : ''
       }
@@ -97,6 +97,7 @@ export function TitleBackdrop({
         color="white"
         variant="flat"
         className="shadow-md"
+        radius="rounded-full"
         elementType={Link}
         to={getWatchLink(primaryVideo!)}
         aria-label="Play"

@@ -18,9 +18,9 @@ export function List({children, className, padding, dataTestId}: Props) {
       <ul
         data-testid={dataTestId}
         className={clsx(
-          'text-base sm:text-sm outline-none',
+          'text-base outline-none sm:text-sm',
           className,
-          padding ?? 'py-4'
+          padding ?? 'py-4',
         )}
       >
         {children}
@@ -43,7 +43,7 @@ export const ListItem = forwardRef<HTMLDivElement, ListItemProps>(
       className,
       ...listItemProps
     },
-    ref
+    ref,
   ) => {
     const focusManager = useFocusManager();
     const isSelectable = !!onSelected;
@@ -53,19 +53,19 @@ export const ListItem = forwardRef<HTMLDivElement, ListItemProps>(
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          focusManager.focusNext();
+          focusManager?.focusNext();
           break;
         case 'ArrowUp':
           e.preventDefault();
-          focusManager.focusPrevious();
+          focusManager?.focusPrevious();
           break;
         case 'Home':
           e.preventDefault();
-          focusManager.focusFirst();
+          focusManager?.focusFirst();
           break;
         case 'End':
           e.preventDefault();
-          focusManager.focusLast();
+          focusManager?.focusLast();
           break;
         case 'Enter':
         case 'Space':
@@ -100,5 +100,5 @@ export const ListItem = forwardRef<HTMLDivElement, ListItemProps>(
         </ListItemBase>
       </li>
     );
-  }
+  },
 );

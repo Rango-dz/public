@@ -36,6 +36,7 @@ module.exports = {
       56: '3.5rem',
       60: '3.75rem',
       64: '4rem',
+      66: '4.125rem',
       68: '4.25rem',
       70: '4.375rem',
       76: '4.75rem',
@@ -146,6 +147,10 @@ module.exports = {
       'text-muted': theme('textColor.muted'),
       DEFAULT: theme('colors.divider'),
     }),
+    borderWidth: theme => ({
+      ...theme('spacing'),
+      DEFAULT: '1px',
+    }),
     textColor: theme => ({
       ...theme('colors'),
       main: theme('colors.text-main'),
@@ -173,6 +178,11 @@ module.exports = {
     }),
   },
   sharedExtend: {
+    borderRadius: {
+      button: 'var(--be-button-radius, 0.25rem)',
+      input: 'var(--be-input-radius, 0.25rem)',
+      panel: 'var(--be-panel-radius, 0.25rem)',
+    },
     flex: {
       2: '2 1 0%',
       3: '3 1 0%',

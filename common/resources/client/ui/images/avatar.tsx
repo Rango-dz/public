@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 import {Tooltip} from '@common/ui/tooltip/tooltip';
 import {AvatarPlaceholderIcon} from '@common/auth/ui/account-settings/avatar/avatar-placeholder-icon';
 
-type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | string;
 
 export interface AvatarProps extends ComponentPropsWithoutRef<any> {
   className?: string;
@@ -33,7 +33,7 @@ export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(
       lazy = true,
       ...domProps
     },
-    ref
+    ref,
   ) => {
     let renderedAvatar = src ? (
       <img
@@ -62,7 +62,7 @@ export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(
         className,
         'relative block overflow-hidden select-none flex-shrink-0',
         getSizeClassName(size),
-        circle ? 'rounded-full' : 'rounded'
+        circle ? 'rounded-full' : 'rounded',
       ),
     };
 
@@ -73,7 +73,7 @@ export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(
     ) : (
       <div {...wrapperProps}>{renderedAvatar}</div>
     );
-  }
+  },
 );
 
 function getSizeClassName(size: Size) {

@@ -1,4 +1,2 @@
 User-agent: *
-Disallow: /admin
-
-Sitemap: Sitemap: https://iwatchonline.cc/storage/sitemaps/sitemap-index.xml
+Disallow:

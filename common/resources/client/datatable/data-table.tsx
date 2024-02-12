@@ -3,7 +3,6 @@ import React, {
   ComponentProps,
   ReactElement,
   ReactNode,
-  useEffect,
   useState,
 } from 'react';
 import {TableDataItem} from '../ui/tables/types/table-data-item';
@@ -72,18 +71,19 @@ export function DataTable<T extends TableDataItem>({
   const {encodedFilters} = useBackendFilterUrlParams(filters);
   const [params, setParams] = useState<GetDatatableDataParams>({perPage: 15});
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
-  const query = useDatatableData<T>(endpoint, {
-    ...params,
-    ...queryParams,
-    [BackendFiltersUrlKey]: encodedFilters,
-  });
+  const query = useDatatableData<T>(
+    endpoint,
+    {
+      ...params,
+      ...queryParams,
+      [BackendFiltersUrlKey]: encodedFilters,
+    },
+    undefined,
+    () => setSelectedRows([]),
+  );
 
   const isFiltering = !!(params.query || params.filters || encodedFilters);
   const pagination = query.data?.pagination;
-
-  useEffect(() => {
-    setSelectedRows([]);
-  }, [query.data]);
 
   return (
     <DataTableContext.Provider
@@ -133,7 +133,7 @@ export function DataTable<T extends TableDataItem>({
 
       <div
         className={clsx(
-          'relative rounded',
+          'relative rounded-panel',
           (!isMobile || !collapseTableOnMobile) && 'border',
         )}
       >

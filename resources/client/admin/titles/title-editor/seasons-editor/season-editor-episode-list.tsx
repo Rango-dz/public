@@ -94,7 +94,7 @@ function LazyEpisodeList({data}: LazyEpisodeListProps) {
               <Trans message="Edit" />
             </Button>
             <DialogTrigger type="modal">
-              <IconButton size="xs" radius="rounded" variant="outline">
+              <IconButton size="xs" variant="outline">
                 <DeleteIcon />
               </IconButton>
               <DeleteEpisodeDialog episode={episode} />

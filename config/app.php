@@ -3,7 +3,6 @@
 use Matchish\ScoutElasticSearch\ElasticSearchServiceProvider;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -136,7 +135,6 @@ return [
     */
 
     'providers' => [
-
         /*
          * Laravel Framework Service Providers...
          */
@@ -179,7 +177,6 @@ return [
         App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Common\Auth\Fortify\FortifyServiceProvider::class,
-
     ],
 
     /*
@@ -194,7 +191,6 @@ return [
     */
 
     'aliases' => [
-
         'App' => Illuminate\Support\Facades\App::class,
         'Arr' => Illuminate\Support\Arr::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
@@ -233,7 +229,6 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
-        'Image' => Intervention\Image\Facades\Image::class,
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
     ],
 ];

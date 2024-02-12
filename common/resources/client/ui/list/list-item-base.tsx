@@ -20,6 +20,7 @@ export interface ListItemBaseProps extends ComponentPropsWithRef<'div'> {
   className?: string;
   showCheckmark?: boolean;
   elementType?: 'a' | JSXElementConstructor<any> | 'div';
+  target?: string;
   to?: To;
   href?: string;
   radius?: string;
@@ -62,7 +63,7 @@ export const ListItemBase = React.forwardRef<HTMLDivElement, ListItemBaseProps>(
 
     const iconClassName = clsx(
       'icon-sm rounded overflow-hidden flex-shrink-0',
-      !isDisabled && 'text-muted'
+      !isDisabled && 'text-muted',
     );
     const endSectionClassName = clsx(!isDisabled && 'text-muted');
 
@@ -78,8 +79,8 @@ export const ListItemBase = React.forwardRef<HTMLDivElement, ListItemBaseProps>(
         {startIcon && <div className={iconClassName}>{startIcon}</div>}
         <div
           className={clsx(
-            'mr-auto w-full',
-            capitalizeFirst && 'first-letter:capitalize'
+            'min-w-auto mr-auto w-full overflow-hidden overflow-ellipsis',
+            capitalizeFirst && 'first-letter:capitalize',
           )}
         >
           {children}
@@ -87,7 +88,7 @@ export const ListItemBase = React.forwardRef<HTMLDivElement, ListItemBaseProps>(
             <div
               className={clsx(
                 'mt-4 whitespace-normal text-xs',
-                isDisabled ? 'text-disabled' : 'text-muted'
+                isDisabled ? 'text-disabled' : 'text-muted',
               )}
             >
               {description}
@@ -101,7 +102,7 @@ export const ListItemBase = React.forwardRef<HTMLDivElement, ListItemBaseProps>(
         )}
       </Element>
     );
-  }
+  },
 );
 
 function itemClassName({
@@ -151,6 +152,6 @@ function itemClassName({
     padding,
     state,
     className,
-    radius
+    radius,
   );
 }

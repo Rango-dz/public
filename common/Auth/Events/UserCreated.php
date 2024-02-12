@@ -6,16 +6,7 @@ use App\Models\User;
 
 class UserCreated
 {
-    /**
-     * @var User
-     */
-    public $user;
-
-    /**
-     * @param User $user
-     */
-    public function __construct(User $user)
+    public function __construct(public User $user, public array $data)
     {
-        $this->user = $user;
     }
 }

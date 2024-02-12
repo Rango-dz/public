@@ -65,7 +65,7 @@ function DatePickerControl(
   props: FilterListControlProps<
     Required<AbsoluteDateRange>,
     DatePickerFilterControl
-  >
+  >,
 ) {
   const {value, filter} = props;
 
@@ -112,7 +112,7 @@ function BooleanToggleControl({
 }
 
 function SelectControl(
-  props: FilterListControlProps<Key, FilterSelectControl>
+  props: FilterListControlProps<Key, FilterSelectControl>,
 ) {
   const {filter, value} = props;
   const option = filter.control.options.find(o => o.key === value);
@@ -126,7 +126,7 @@ function SelectControl(
 }
 
 function ChipFieldControl(
-  props: FilterListControlProps<string[], FilterChipFieldControl>
+  props: FilterListControlProps<string[], FilterChipFieldControl>,
 ) {
   return (
     <FilterListItemDialogTrigger
@@ -138,7 +138,7 @@ function ChipFieldControl(
 }
 
 function MultipleValues(
-  props: FilterListControlProps<string[], FilterChipFieldControl>
+  props: FilterListControlProps<string[], FilterChipFieldControl>,
 ) {
   const {trans} = useTrans();
   const {filter, value} = props;
@@ -178,7 +178,7 @@ function InputControl(
   props: FilterListControlProps<
     string,
     FilterTextInputControl | FilterNumberInputControl
-  >
+  >,
 ) {
   const {filter, value, operator} = props;
 
@@ -207,10 +207,14 @@ function InputControl(
 }
 
 function SelectModelControl(
-  props: FilterListControlProps<string, FilterSelectModelControl>
+  props: FilterListControlProps<string, FilterSelectModelControl>,
 ) {
   const {value, filter} = props;
-  const {isLoading, data} = useNormalizedModel(filter.control.model!, value);
+  const {isLoading, data} = useNormalizedModel(
+    `normalized-models/${filter.control.model}/${value}`,
+    undefined,
+    {enabled: !!value},
+  );
 
   const skeleton = (
     <Fragment>

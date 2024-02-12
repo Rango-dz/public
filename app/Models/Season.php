@@ -18,13 +18,13 @@ class Season extends Model
 
     protected $guarded = ['id'];
     protected $appends = ['model_type'];
-    protected $dates = ['release_date'];
 
     protected $casts = [
         'id' => 'integer',
         'fully_synced' => 'boolean',
         'episodes_count' => 'integer',
         'number' => 'integer',
+        'release_date' => 'date',
     ];
 
     public function episodes(): HasMany
@@ -53,8 +53,10 @@ class Season extends Model
     {
         if ($this->needsUpdating($title)) {
             $data = app(TmdbApi::class)->getSeason($title, $this->number);
-            app(StoreSeasonData::class)->execute($title, $data);
-            $this->refresh();
+            if ($data) {
+                app(StoreSeasonData::class)->execute($title, $data);
+                $this->refresh();
+            }
         }
         return $this;
     }

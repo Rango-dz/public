@@ -1,7 +1,7 @@
 @import 'ui/progress/animation.css';
 @import 'ui/skeleton/skeleton.css';
 @import 'ui/layout/dashbboard-layout.css';
-@import 'text-editor/editor-styles.css';
+@import 'text-editor/highlight/editor-styles.css';
 @import 'admin/ads/ad-host.css';
 @import 'uploads/file-type-colors.css';
 @import 'player/player-styles.css';
@@ -12,6 +12,10 @@
   #root {
     @apply min-h-screen;
     @apply antialiased;
+  }
+
+  html {
+    font-family: var(--be-font-family, theme('fontFamily.sans'));
   }
 
   body {
@@ -122,4 +126,8 @@
   .no-page-overflow #root {
     overflow: hidden;
   }
+}
+
+.prose li > p {
+  margin: 0;
 }

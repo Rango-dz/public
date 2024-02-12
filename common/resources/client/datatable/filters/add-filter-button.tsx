@@ -47,7 +47,6 @@ export function AddFilterButton({
       size="sm"
       variant={variant}
       disabled={disabled}
-      radius="rounded"
       className={className}
     >
       {icon}

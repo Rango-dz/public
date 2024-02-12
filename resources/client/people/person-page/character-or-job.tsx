@@ -12,7 +12,11 @@ export function CharacterOrJob({credit, className}: Props) {
         credit.pivot?.character ?? <Trans message="Unknown" />
       ) : (
         <span className="capitalize">
-          {credit.pivot?.job ?? <Trans message="Unknown" />}
+          {credit.pivot?.job ? (
+            <Trans message={credit.pivot?.job} />
+          ) : (
+            <Trans message="Unknown" />
+          )}
         </span>
       )}
     </div>

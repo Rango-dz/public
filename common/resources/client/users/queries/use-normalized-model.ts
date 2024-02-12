@@ -3,39 +3,19 @@ import {NormalizedModel} from '../../datatable/filters/normalized-model';
 import {apiClient} from '../../http/query-client';
 import {BackendResponse} from '../../http/backend-response/backend-response';
 
-const buildEndpoint = (
-  modelName: string,
-  modelId: string | number,
-  prefix = 'normalized-models',
-) => {
-  const parts = [];
-  if (prefix) {
-    parts.push(prefix);
-  }
-  if (modelName) {
-    parts.push(modelName);
-  }
-  if (modelId) {
-    parts.push(modelId);
-  }
-  return parts.join('/');
-};
-
 interface Response extends BackendResponse {
   model: NormalizedModel;
 }
 
 export function useNormalizedModel(
-  model: string,
-  modelId: string | number | null,
+  endpoint: string,
   queryParams?: Record<string, string>,
-  userEndpoint?: string,
+  queryOptions?: {enabled?: boolean},
 ) {
-  const endpoint = buildEndpoint(model, modelId!, userEndpoint);
   return useQuery({
     queryKey: [endpoint, queryParams],
     queryFn: () => fetchModel(endpoint, queryParams),
-    enabled: model != null && modelId != null,
+    ...queryOptions,
   });
 }
 

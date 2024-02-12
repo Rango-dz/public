@@ -63,7 +63,7 @@ interface NameFieldProps {
 }
 function NameField({type}: NameFieldProps) {
   const [query, setQuery] = useState('');
-  const {isFetching, data} = useNormalizedModels(type, {
+  const {isFetching, data} = useNormalizedModels(`normalized-models/${type}`, {
     query,
   });
   return (

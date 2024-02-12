@@ -1,7 +1,5 @@
 import React, {Fragment} from 'react';
-import {DataTablePage} from '@common/datatable/page/data-table-page';
 import {Trans} from '@common/i18n/trans';
-import {DeleteSelectedItemsAction} from '@common/datatable/page/delete-selected-items-action';
 import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
 import playlist from './playlist.svg';
 import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
@@ -15,6 +13,8 @@ import {IconButton} from '@common/ui/buttons/icon-button';
 import {useResetChannelsToDefault} from '@common/admin/channels/requests/use-reset-channels-to-default';
 import {useDialogContext} from '@common/ui/overlays/dialog/dialog-context';
 import {RestartAltIcon} from '@common/icons/material/RestartAlt';
+import {DataTablePage} from '@common/datatable/page/data-table-page';
+import {DeleteSelectedItemsAction} from '@common/datatable/page/delete-selected-items-action';
 
 export function ChannelsDatatablePage() {
   return (
@@ -56,7 +56,6 @@ function Actions() {
           <IconButton
             variant="outline"
             color="primary"
-            radius="rounded"
             className="flex-shrink-0"
             size="sm"
           >

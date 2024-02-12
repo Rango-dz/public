@@ -3,11 +3,10 @@
 namespace App\Actions\Titles;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Image as ImageManager;
-use Intervention\Image\Constraint;
-use Intervention\Image\Image;
-use Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class StoreMediaImageOnDisk
 {
@@ -22,32 +21,23 @@ class StoreMediaImageOnDisk
     public function execute(UploadedFile $file): string
     {
         $hash = Str::random(30);
-        $img = ImageManager::make($file);
+
+        $manager = new ImageManager(new Driver());
+        $img = $manager->read($file);
+
         $extension = $file->extension() ?? 'jpeg';
 
         foreach ($this->sizes as $key => $size) {
-            $this->storeFile($img, $key, $hash, $extension, $size);
+            if ($size) {
+                $img->scale($size);
+
+                Storage::disk('public')->put(
+                    "media-images/backdrops/$hash/$key.$extension",
+                    $extension === 'png' ? $img->toPng() : $img->toJpeg(),
+                );
+            }
         }
 
         return "storage/media-images/backdrops/$hash/original.$extension";
-    }
-
-    private function storeFile(
-        Image $img,
-        string $name,
-        string $hash,
-        string $extension,
-        ?int $size,
-    ): void {
-        if ($size) {
-            $img->resize($size, null, function (Constraint $constraint) {
-                $constraint->aspectRatio();
-            });
-        }
-
-        Storage::disk('public')->put(
-            "media-images/backdrops/$hash/$name.$extension",
-            $img->encode($extension),
-        );
     }
 }

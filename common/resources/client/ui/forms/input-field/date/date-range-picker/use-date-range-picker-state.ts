@@ -166,10 +166,14 @@ export function useDateRangePickerState(
             setHighlightedRange(makeRange({start: date, end: date, timezone}));
           } else {
             const finalRange = makeRange({
-              start: startOfDay(toZoned(anchorDate!, timezone)),
-              end: endOfDay(toZoned(date, timezone)),
+              start: anchorDate!,
+              end: date,
               timezone,
             });
+            // cast to start and end of day after making range, because "makeRange"
+            // will flip start and end dates, if they are out of order
+            finalRange.start = startOfDay(finalRange.start);
+            finalRange.end = endOfDay(finalRange.end);
             setIsHighlighting(false);
             setAnchorDate(null);
             setSelectedValue?.(finalRange);

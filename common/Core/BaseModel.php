@@ -3,6 +3,7 @@
 namespace Common\Core;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class BaseModel extends Model
@@ -24,10 +25,12 @@ abstract class BaseModel extends Model
     {
         $searchableFields = [];
         $searchableRelations = [];
-
         foreach ((new static())->toSearchableArray() as $field => $value) {
             if (!in_array($field, static::filterableFields())) {
-                if (method_exists(static::class, $field)) {
+                if (
+                    method_exists(static::class, $field) &&
+                    !$this->$field() instanceof Attribute
+                ) {
                     $searchableRelations[] = $field;
                 } else {
                     $searchableFields[] = $field;

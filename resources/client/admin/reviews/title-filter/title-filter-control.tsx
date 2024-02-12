@@ -5,13 +5,14 @@ import {Avatar} from '@common/ui/images/avatar';
 import {FilterListItemDialogTrigger} from '@common/datatable/filters/filter-list/filter-list-item-dialog-trigger';
 import {FilterListControlProps} from '@common/datatable/filters/filter-list/filter-list-control';
 import {useNormalizedModel} from '@common/users/queries/use-normalized-model';
-import {TITLE_MODEL} from '@app/titles/models/title';
 
 export function TitleFilterControl(
-  props: FilterListControlProps<number, CustomFilterControl>
+  props: FilterListControlProps<number, CustomFilterControl>,
 ) {
   const {value, filter} = props;
-  const {isLoading, data} = useNormalizedModel(TITLE_MODEL, value);
+  const {isLoading, data} = useNormalizedModel(
+    `normalized-models/title/${value}`,
+  );
 
   const skeleton = (
     <Fragment>

@@ -39,7 +39,7 @@ export function TitlePoster({
 
   const imageClassName = clsx(
     'h-full w-full rounded bg-fg-base/4 object-cover',
-    !src ? 'flex items-center justify-center' : 'block'
+    !src ? 'flex items-center justify-center' : 'block',
   );
 
   const image = src ? (
@@ -83,6 +83,7 @@ export function TitlePoster({
             color="white"
             variant="flat"
             className="shadow-md"
+            radius="rounded-full"
             elementType={Link}
             to={getWatchLink(title.primary_video)}
             aria-label={`Play ${title.name}`}

@@ -14,6 +14,7 @@ export interface ChipListProps {
   radius?: ChipProps['radius'];
   color?: ChipProps['color'];
   selectable?: ChipProps['selectable'];
+  wrap?: boolean;
 }
 export function ChipList({
   className,
@@ -22,9 +23,16 @@ export function ChipList({
   color,
   radius,
   selectable,
+  wrap = true,
 }: ChipListProps) {
   return (
-    <div className={clsx(className, 'flex flex-wrap items-center gap-8')}>
+    <div
+      className={clsx(
+        'flex items-center gap-8',
+        wrap && 'flex-wrap',
+        className,
+      )}
+    >
       {Children.map(children, chip => {
         if (isValidElement<ChipProps>(chip)) {
           return cloneElement<ChipProps>(chip, {

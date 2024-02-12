@@ -21,6 +21,7 @@ interface StickyHeaderProps {
   saveButton?: ReactNode;
   backLink: string;
   isLoading?: boolean;
+  slugPrefix?: string;
 }
 export function ArticleEditorStickyHeader({
   editor,
@@ -29,6 +30,7 @@ export function ArticleEditorStickyHeader({
   saveButton,
   isLoading = false,
   backLink,
+  slugPrefix = 'pages',
 }: StickyHeaderProps) {
   const {isSticky, sentinelRef} = useStickySentinel();
   const isMobile = useIsMobileMediaQuery();
@@ -39,7 +41,7 @@ export function ArticleEditorStickyHeader({
       <div
         className={clsx(
           'sticky top-0 z-10 mb-20 bg-paper',
-          isSticky && 'shadow'
+          isSticky && 'shadow',
         )}
       >
         <div className="flex items-center justify-between gap-20 border-b px-20 py-10 text-muted sm:justify-start">
@@ -60,7 +62,7 @@ export function ArticleEditorStickyHeader({
                   <FormSlugEditor
                     name="slug"
                     showLinkIcon={false}
-                    prefix="pages"
+                    prefix={slugPrefix}
                   />
                 )}
               </div>

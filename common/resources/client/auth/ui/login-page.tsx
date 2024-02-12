@@ -100,7 +100,7 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
           }
           required
         />
-        <FormCheckbox name="remember" className="block mb-32">
+        <FormCheckbox name="remember" className="mb-32 block">
           <Trans message="Stay signed in for a month" />
         </FormCheckbox>
         <Button
@@ -138,8 +138,8 @@ function getDemoFormDefaults(siteConfig: SiteConfigContextValue) {
     };
   } else {
     return {
-      email: 'admin@admin.com',
-      password: 'admin',
+      email: siteConfig.demo.email ?? 'admin@admin.com',
+      password: siteConfig.demo.password ?? 'admin',
     };
   }
 }

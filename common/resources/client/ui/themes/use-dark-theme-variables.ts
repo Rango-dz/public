@@ -9,5 +9,5 @@ export function useDarkThemeVariables() {
     return undefined;
   }
   return data.themes.all.find(theme => theme.is_dark && theme.default_dark)
-    ?.colors;
+    ?.values;
 }

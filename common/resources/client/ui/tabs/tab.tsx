@@ -46,22 +46,22 @@ export function Tab({
     className,
     size === 'md' && `${padding} h-48`,
     size === 'sm' && `${padding} h-32`,
-    isDisabled && 'pointer-events-none'
+    isDisabled && 'pointer-events-none',
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        focusManager.focusPrevious();
+        focusManager?.focusPrevious();
         break;
       case 'ArrowRight':
-        focusManager.focusNext();
+        focusManager?.focusNext();
         break;
       case 'Home':
-        focusManager.focusFirst();
+        focusManager?.focusFirst();
         break;
       case 'End':
-        focusManager.focusLast();
+        focusManager?.focusLast();
         break;
     }
   };

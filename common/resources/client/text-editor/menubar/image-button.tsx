@@ -11,7 +11,11 @@ import {Trans} from '@common/i18n/trans';
 
 const TwoMB = 2097152;
 
-export function ImageButton({editor, size}: MenubarButtonProps) {
+interface Props extends MenubarButtonProps {
+  diskPrefix?: string;
+}
+
+export function ImageButton({editor, size, diskPrefix = 'page_media'}: Props) {
   const {selectAndUploadFile} = useActiveUpload();
 
   const handleUpload = () => {
@@ -22,7 +26,7 @@ export function ImageButton({editor, size}: MenubarButtonProps) {
         maxFileSize: TwoMB,
       },
       metadata: {
-        diskPrefix: 'page_media',
+        diskPrefix: diskPrefix,
         disk: Disk.public,
       },
       onSuccess: entry => {
@@ -38,7 +42,6 @@ export function ImageButton({editor, size}: MenubarButtonProps) {
     <Tooltip label={<Trans message="Insert image" />}>
       <IconButton
         size={size}
-        radius="rounded"
         onClick={handleUpload}
         className={clsx('flex-shrink-0')}
       >

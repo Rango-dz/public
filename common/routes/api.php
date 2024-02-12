@@ -220,7 +220,7 @@ Route::group(['prefix' => 'v1'], function () {
         Route::get('admin/reports/header', [AnalyticsController::class, 'headerReport']);
         Route::get('admin/reports/sessions', [AnalyticsController::class, 'sessionsReport']);
         Route::post('cache/flush', [CacheController::class, 'flush']);
-        Route::post('admin/users/impersonate/{id}', [ImpersonateUserController::class, 'impersonate']);
+        Route::post('admin/users/impersonate/{userId}', [ImpersonateUserController::class, 'impersonate']);
         Route::get('admin/search/models', [SearchSettingsController::class, 'getSearchableModels']);
         Route::post('admin/search/import', [SearchSettingsController::class, 'import']);
 
@@ -247,8 +247,8 @@ Route::group(['prefix' => 'v1'], function () {
     $limiter = config('fortify.limiters.login');
     Route::post('auth/login', [MobileAuthController::class, 'login'])->middleware(array_filter([
         $limiter ? 'throttle:'.$limiter : null,
-    ]));
-    Route::post('auth/register', [MobileAuthController::class, 'register']);
+    ]))->withoutMiddleware('verifyApiAccess');
+    Route::post('auth/register', [MobileAuthController::class, 'register'])->withoutMiddleware('verifyApiAccess');
     Route::get('auth/social/{provider}/callback', [SocialAuthController::class, 'loginCallback']);
     Route::post('auth/password/email', [PasswordResetLinkController::class, 'store']);
 });

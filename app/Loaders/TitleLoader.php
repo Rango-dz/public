@@ -72,7 +72,7 @@ class TitleLoader
 
     private function loadTitlePage(array $response): array
     {
-        $enabledSections = settings()->getJson('title_page.sections');
+        $enabledSections = settings('title_page.sections');
         $title = $response['title'];
         $title->load([
             'images',

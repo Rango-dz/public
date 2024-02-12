@@ -8,6 +8,7 @@ use Common\Core\Prerender\Actions\ReplacePlaceholders;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -24,7 +25,14 @@ class LoadChannelContent
             $params['order'] = Arr::get($channel->config, 'contentOrder');
         }
 
-        $this->applyRestriction($channel, $params, $parent);
+        if ($channel->shouldRestrictContent()) {
+            $this->applyRestriction($channel, $params, $parent);
+            // If restriction could not be loaded bail. This is used to cancel content loading and return 404,
+            // if, for example, loading genre channel, but specified genre does not exist.
+            if (!$channel->restriction) {
+                return new Paginator([], 15);
+            }
+        }
 
         $contentType = Arr::get($channel->config, 'contentType');
 
@@ -99,24 +107,26 @@ class LoadChannelContent
             $pagination = $datasource->paginate();
         }
 
-        $pagination->transform(function (Model $model) use ($channel, $params) {
-            $model['channelable_id'] = $model->pivot->id;
-            $model['channelable_order'] = $model->pivot->order;
-            if ($model instanceof Channel) {
-                $model->loadContent(
-                    array_merge($params, [
-                        // clear parent channel pagination params and only load 12 items per nested channel
-                        'perPage' => 12,
-                        'page' => 1,
-                        'paginate' => 'simple',
-                        // clear this so nested channel always uses sorting order set in that channel's config
-                        'order' => null,
-                    ]),
-                    $channel,
-                );
-            }
-            return $model;
-        });
+        $pagination
+            ->filter(fn($model) => $model->pivot)
+            ->transform(function (Model $model) use ($channel, $params) {
+                $model['channelable_id'] = $model->pivot->id;
+                $model['channelable_order'] = $model->pivot->order;
+                if ($model instanceof Channel) {
+                    $model->loadContent(
+                        array_merge($params, [
+                            // clear parent channel pagination params and only load 12 items per nested channel
+                            'perPage' => 12,
+                            'page' => 1,
+                            'paginate' => 'simple',
+                            // clear this so nested channel always uses sorting order set in that channel's config
+                            'order' => null,
+                        ]),
+                        $channel,
+                    );
+                }
+                return $model;
+            });
         return $pagination;
     }
 
@@ -125,19 +135,16 @@ class LoadChannelContent
         array $params = [],
         Channel $parent = null,
     ): void {
-        if (Arr::get($channel->config, 'restriction')) {
-            $urlParam = Arr::get($params, 'restriction');
-            $restriction =
-                $parent->restriction ??
-                $channel->loadRestrictionModel($urlParam);
-            if ($restriction) {
-                $channel->setAttribute('restriction', $restriction);
-                $channel->name =
-                    app(ReplacePlaceholders::class)->execute($channel->name, [
-                        'channel' => $channel,
-                    ]) ?:
-                    $channel->name;
-            }
+        $urlParam = Arr::get($params, 'restriction');
+        $restriction =
+            $parent->restriction ?? $channel->loadRestrictionModel($urlParam);
+        if ($restriction) {
+            $channel->setAttribute('restriction', $restriction);
+            $channel->name =
+                app(ReplacePlaceholders::class)->execute($channel->name, [
+                    'channel' => $channel,
+                ]) ?:
+                $channel->name;
         }
     }
 }

@@ -46,7 +46,7 @@ function SiteUrlSection() {
   const isInvalid = server.newAppUrl && server.newAppUrl !== server.app_url;
   if (isInvalid) {
     append = (
-      <div className="text-sm text-danger mt-20">
+      <div className="mt-20 text-sm text-danger">
         <Trans
           values={{
             baseUrl: server.app_url,
@@ -180,7 +180,7 @@ function SitemapSection() {
       >
         <Trans message="Generate sitemap" />
       </Button>
-      <div className="text-sm text-muted mt-14">
+      <div className="mt-14 text-sm text-muted">
         <Trans
           message="Once generated, sitemap url will be: :url"
           values={{

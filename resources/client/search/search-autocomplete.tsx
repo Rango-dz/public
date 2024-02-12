@@ -1,21 +1,21 @@
-import { SearchIcon } from "@common/icons/material/Search";
-import { message } from "@common/i18n/message";
-import { Item } from "@common/ui/forms/listbox/item";
-import { ComboBox } from "@common/ui/forms/combobox/combobox";
-import React, { useState } from "react";
-import { useTrans } from "@common/i18n/use-trans";
-import clsx from "clsx";
-import { useNavigate } from "@common/utils/hooks/use-navigate";
-import { useParams } from "react-router-dom";
-import { useSearchResults } from "@app/search/requests/use-search-results";
-import { TITLE_MODEL } from "@app/titles/models/title";
-import { getTitleLink } from "@app/titles/title-link";
-import { TitlePoster } from "@app/titles/title-poster/title-poster";
-import { PERSON_MODEL } from "@app/titles/models/person";
-import { getPersonLink } from "@app/people/person-link";
-import { PersonPoster } from "@app/people/person-poster/person-poster";
-import { KnownForCompact } from "@app/people/known-for-compact";
-import { Trans } from "@common/i18n/trans";
+import {SearchIcon} from '@common/icons/material/Search';
+import {message} from '@common/i18n/message';
+import {Item} from '@common/ui/forms/listbox/item';
+import {ComboBox} from '@common/ui/forms/combobox/combobox';
+import React, {useState} from 'react';
+import {useTrans} from '@common/i18n/use-trans';
+import clsx from 'clsx';
+import {useNavigate} from '@common/utils/hooks/use-navigate';
+import {useParams} from 'react-router-dom';
+import {useSearchResults} from '@app/search/requests/use-search-results';
+import {TITLE_MODEL} from '@app/titles/models/title';
+import {getTitleLink} from '@app/titles/title-link';
+import {TitlePoster} from '@app/titles/title-poster/title-poster';
+import {PERSON_MODEL} from '@app/titles/models/person';
+import {getPersonLink} from '@app/people/person-link';
+import {PersonPoster} from '@app/people/person-poster/person-poster';
+import {KnownForCompact} from '@app/people/known-for-compact';
+import {Trans} from '@common/i18n/trans';
 
 interface SearchAutocompleteProps {
   className?: string;
@@ -39,7 +39,7 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
       }}
       className={clsx(
         'flex max-w-580 flex-auto items-center rounded bg-chip/40 text',
-        className
+        className,
       )}
     >
       <ComboBox
@@ -55,7 +55,7 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
         isAsync
         hideEndAdornment
         placeholder={trans(
-          message('Search for movies, tv shows and people...')
+          message('Search for movies, tv shows and people...'),
         )}
         isLoading={isFetching}
         inputValue={query}
@@ -67,6 +67,7 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
         floatingMaxHeight={670}
         isOpen={isOpen}
         onOpenChange={setIsOpen}
+        autoFocusFirstItem={false}
       >
         {data?.results.map(result => {
           switch (result.model_type) {

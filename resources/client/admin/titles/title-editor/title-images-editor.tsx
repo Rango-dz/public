@@ -27,14 +27,14 @@ export function TitleImagesEditor() {
       <FileUploadProvider>
         <UploadButton />
       </FileUploadProvider>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-24 mt-24">
+      <div className="mt-24 grid grid-cols-2 gap-24 md:grid-cols-3">
         {title.images.map((image, index) => (
           <div key={image.id}>
             <TitleBackdrop src={image.url} srcSize="md" className="rounded" />
-            <div className="flex items-center justify-between gap-14 mt-6">
+            <div className="mt-6 flex items-center justify-between gap-14">
               <DeleteButton imageId={image.id} />
               <DialogTrigger type="modal">
-                <IconButton variant="outline" radius="rounded" size="xs">
+                <IconButton variant="outline" size="xs">
                   <ZoomOutMapIcon />
                 </IconButton>
                 <ImageZoomDialog

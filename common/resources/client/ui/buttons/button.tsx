@@ -21,16 +21,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       sizeClassName,
       className,
       equalWidth = false,
-      radius = 'rounded',
+      radius = 'rounded-button',
       variant = 'text',
       ...other
     },
-    ref
+    ref,
   ) => {
     const mergedClassName = clsx(
       'font-semibold',
       sizeClassName || getButtonSizeStyle(size, {equalWidth, variant}),
-      className
+      className,
     );
     return (
       <ButtonBase
@@ -47,7 +47,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {endIcon && <InlineIcon position="end" icon={endIcon} size={size} />}
       </ButtonBase>
     );
-  }
+  },
 );
 
 type InlineIconProps = {
@@ -62,7 +62,7 @@ function InlineIcon({icon, position, size}: InlineIconProps): ReactElement {
       '-ml-4 mr-8': position === 'start',
       '-mr-4 ml-8': position === 'end',
     },
-    icon.props.className
+    icon.props.className,
   );
   return React.cloneElement(icon, {className, size});
 }

@@ -23,7 +23,7 @@ interface SharedButtonStyleProps {
   display?: string;
 }
 export function getSharedButtonStyle(
-  props: SharedButtonStyleProps
+  props: SharedButtonStyleProps,
 ): (string | boolean | null | undefined)[] {
   const {
     variant,
@@ -68,6 +68,12 @@ function outline({color, border}: SharedButtonStyleProps) {
       return [
         `text-danger bg-transparent ${border} border-danger/50`,
         'hover:bg-danger/4 hover:border-danger',
+        disabled,
+      ];
+    case 'positive':
+      return [
+        `text-positive bg-transparent ${border} border-positive/50`,
+        'hover:bg-positive/4 hover:border-positive',
         disabled,
       ];
     case 'paper':

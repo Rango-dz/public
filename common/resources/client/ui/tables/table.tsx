@@ -94,13 +94,13 @@ export function Table<T extends TableDataItem>({
   const [selectedRows, onSelectionChange] = useControlledState(
     propsSelectedRows,
     propsDefaultSelectedRows || [],
-    propsOnSelectionChange
+    propsOnSelectionChange,
   );
 
   const [sortDescriptor, onSortChange] = useControlledState(
     propsSortDescriptor,
     undefined,
-    propsOnSortChange
+    propsOnSortChange,
   );
 
   const toggleRow = useCallback(
@@ -114,7 +114,7 @@ export function Table<T extends TableDataItem>({
       }
       onSelectionChange(newValues);
     },
-    [selectedRows, onSelectionChange]
+    [selectedRows, onSelectionChange],
   );
 
   const selectRow = useCallback(
@@ -128,7 +128,7 @@ export function Table<T extends TableDataItem>({
       }
       onSelectionChange(newValues);
     },
-    [selectedRows, onSelectionChange]
+    [selectedRows, onSelectionChange],
   );
 
   // add checkbox columns to config, if selection is enabled
@@ -224,7 +224,7 @@ export function Table<T extends TableDataItem>({
               e.stopPropagation();
               if (selectedRows?.length) {
                 onDelete?.(
-                  data.filter(item => selectedRows?.includes(item.id))
+                  data.filter(item => selectedRows?.includes(item.id)),
                 );
               }
             } else if (isCtrlKeyPressed(e) && e.key === 'a') {
@@ -245,7 +245,7 @@ export function Table<T extends TableDataItem>({
         aria-labelledby={ariaLabelledBy}
         className={clsx(
           className,
-          'isolate select-none text-sm outline-none focus-visible:ring-2'
+          'isolate select-none text-sm outline-none focus-visible:ring-2',
         )}
       >
         {!hideHeaderRow && <TableHeaderRow />}

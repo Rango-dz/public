@@ -14,7 +14,6 @@ export function FontStyleButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Bold" />}>
         <IconButton
           size={size}
-          radius="rounded"
           color={editor.isActive('bold') ? 'primary' : null}
           onClick={() => {
             editor.commands.focus();
@@ -27,7 +26,6 @@ export function FontStyleButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Italic" />}>
         <IconButton
           size={size}
-          radius="rounded"
           color={editor.isActive('italic') ? 'primary' : null}
           onClick={() => {
             editor.commands.focus();
@@ -40,7 +38,6 @@ export function FontStyleButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Underline" />}>
         <IconButton
           size={size}
-          radius="rounded"
           color={editor.isActive('underline') ? 'primary' : null}
           onClick={() => {
             editor.commands.focus();

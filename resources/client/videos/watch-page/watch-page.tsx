@@ -147,7 +147,7 @@ function UpgradeMessage({video}: UpgradeMessageProps) {
       <div className="blur">
         <VideoThumbnail video={video} />
       </div>
-      <div className="absolute h-max w-max rounded-lg bg-black/60 p-24 text-lg font-medium">
+      <div className="absolute h-max w-max max-w-full rounded-lg bg-black/60 p-24 text-lg font-medium">
         <div>
           <Trans message="Your current plan does not allow watching videos. Upgrade to unlock this feature." />
         </div>

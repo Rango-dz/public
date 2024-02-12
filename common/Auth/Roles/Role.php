@@ -3,6 +3,7 @@
 use App\Models\User;
 use Common\Auth\Permissions\Traits\HasPermissionsRelation;
 use Common\Core\BaseModel;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends BaseModel
 {
@@ -23,15 +24,13 @@ class Role extends BaseModel
 
     /**
      * Get default role for assigning to new users.
-     *
-     * @return Role|null
      */
-    public function getDefaultRole()
+    public function getDefaultRole(): ?Role
     {
         return $this->where('default', 1)->first();
     }
 
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_role')->withPivot(
             'created_at',

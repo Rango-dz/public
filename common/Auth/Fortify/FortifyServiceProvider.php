@@ -37,7 +37,7 @@ class FortifyServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::createUsersUsing(FortifyRegisterUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
 
@@ -55,7 +55,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where('email', $request->email)->first();
 
-            if (!CreateNewUser::emailIsValid($request->email)) {
+            if (!FortifyRegisterUser::emailIsValid($request->email)) {
                 $this->throwFailedAuthenticationException(
                     $request,
                     __('This domain is blacklisted.'),

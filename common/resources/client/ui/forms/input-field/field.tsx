@@ -3,6 +3,7 @@ import {Adornment} from './adornment';
 import {InputFieldStyle} from './get-input-field-class-names';
 import {BaseFieldProps} from './base-field-props';
 import {removeEmptyValuesFromObject} from '@common/utils/objects/remove-empty-values-from-object';
+import clsx from 'clsx';
 
 export interface FieldProps extends BaseFieldProps {
   children: ReactNode;
@@ -73,7 +74,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 function Label({
@@ -82,11 +83,13 @@ function Label({
   labelProps,
   label,
   labelSuffix,
+  labelSuffixPosition = 'spaced',
   required,
 }: Omit<FieldProps, 'children'>) {
   if (!label) {
     return null;
   }
+
   const ElementType = labelElementType || 'label';
   const labelNode = (
     <ElementType className={fieldClassNames.label} {...labelProps}>
@@ -97,9 +100,16 @@ function Label({
 
   if (labelSuffix) {
     return (
-      <div className="flex w-full items-center gap-14">
+      <div className="flex w-full items-center gap-4">
         {labelNode}
-        <div className="mb-4 ml-auto text-xs text-muted">{labelSuffix}</div>
+        <div
+          className={clsx(
+            'mb-4 text-xs text-muted',
+            labelSuffixPosition === 'spaced' ? 'ml-auto' : '',
+          )}
+        >
+          {labelSuffix}
+        </div>
       </div>
     );
   }

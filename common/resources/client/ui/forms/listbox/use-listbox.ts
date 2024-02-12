@@ -15,7 +15,7 @@ import {VirtualElement} from '@floating-ui/react-dom';
 
 export function useListbox<T>(
   props: ListboxProps & ListBoxChildren<T>,
-  ref?: Ref<HTMLElement>
+  ref?: Ref<HTMLElement>,
 ): UseListboxReturn {
   const {
     children,
@@ -23,6 +23,7 @@ export function useListbox<T>(
     role = 'listbox',
     virtualFocus,
     loopFocus = false,
+    autoFocusFirstItem = true,
     onItemSelected,
     clearInputOnItemSelection,
     blurReferenceOnItemSelection,
@@ -46,12 +47,12 @@ export function useListbox<T>(
   const [inputValue, setInputValue] = useControlledState(
     props.inputValue,
     props.defaultInputValue || '',
-    props.onInputValueChange
+    props.onInputValueChange,
   );
 
   // mostly for combobox, so can show all collection items on dropdown icon click, even if user has filtered via input
   const [activeCollection, setActiveCollection] = useState<'all' | 'filtered'>(
-    'all'
+    'all',
   );
 
   const collections = buildListboxCollection({
@@ -72,7 +73,7 @@ export function useListbox<T>(
   // plain text labels for typeahead
   const listContent: (string | null)[] = useMemo(() => {
     return [...collection.values()].map(o =>
-      o.isDisabled ? null : o.textLabel
+      o.isDisabled ? null : o.textLabel,
     );
   }, [collection]);
 
@@ -82,7 +83,7 @@ export function useListbox<T>(
   const [isOpen, setIsOpen] = useControlledState(
     props.isOpen,
     props.defaultIsOpen,
-    props.onOpenChange
+    props.onOpenChange,
   );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -137,7 +138,7 @@ export function useListbox<T>(
         items,
         newIndex,
         loopFocus,
-        fallbackOperation
+        fallbackOperation,
       );
 
       setActiveIndex(newIndex);
@@ -150,7 +151,7 @@ export function useListbox<T>(
         listItemsRef.current[newIndex]?.focus();
       }
     },
-    [collection, virtualFocus, loopFocus]
+    [collection, virtualFocus, loopFocus],
   );
 
   const onInputChange = useCallback(
@@ -166,17 +167,22 @@ export function useListbox<T>(
         selectValues('');
       }
 
-      focusItem('increment', 0);
+      if (autoFocusFirstItem && activeIndex == null) {
+        focusItem('increment', 0);
+      } else {
+        setActiveIndex(null);
+      }
     },
     [
       setInputValue,
       setIsOpen,
       setActiveCollection,
       selectValues,
-      isAsync,
       clearSelectionOnInputClear,
       focusItem,
-    ]
+      autoFocusFirstItem,
+      activeIndex,
+    ],
   );
 
   const handleItemSelection = (value: PrimitiveValue) => {
@@ -260,7 +266,7 @@ function getNonDisabledIndex(
   items: CollectionItem<unknown>[],
   newIndex: number,
   loopFocus: boolean,
-  operation: 'increment' | 'decrement'
+  operation: 'increment' | 'decrement',
 ) {
   const lastIndex = items.length - 1;
   while (items[newIndex]?.isDisabled) {
@@ -300,7 +306,7 @@ function useControlledSelection(props: ListboxProps) {
   const [stateValues, setStateValues] = useControlledState<any>(
     !selectionEnabled ? undefined : props.selectedValue,
     !selectionEnabled ? undefined : props.defaultSelectedValue,
-    !selectionEnabled ? undefined : props.onSelectionChange
+    !selectionEnabled ? undefined : props.onSelectionChange,
   );
 
   const selectedValues = useMemo(() => {
@@ -328,7 +334,7 @@ function useControlledSelection(props: ListboxProps) {
         });
       }
     },
-    [allowEmptySelection, selectedValues, selectionMode, setStateValues]
+    [allowEmptySelection, selectedValues, selectionMode, setStateValues],
   );
 
   return {

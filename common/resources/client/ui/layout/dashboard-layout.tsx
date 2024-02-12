@@ -51,7 +51,7 @@ export function DashboardLayout({
   const [leftSidenavStatus, setLeftSidenavStatus] = useControlledState(
     leftSidenav,
     isMobile ? 'closed' : defaultLeftSidenavStatus,
-    onLeftSidenavChange
+    onLeftSidenavChange,
   );
 
   const rightSidenavStatusDefault = useMemo(() => {
@@ -63,7 +63,7 @@ export function DashboardLayout({
     }
     const userSelected = getFromLocalStorage(
       `${name}.sidenav.right.position`,
-      'open'
+      'open',
     );
     if (userSelected != null) {
       return userSelected;
@@ -73,14 +73,14 @@ export function DashboardLayout({
   const [rightSidenavStatus, _setRightSidenavStatus] = useControlledState(
     rightSidenav,
     rightSidenavStatusDefault,
-    onRightSidenavChange
+    onRightSidenavChange,
   );
   const setRightSidenavStatus = useCallback(
     (status: DashboardSidenavStatus) => {
       _setRightSidenavStatus(status);
       setInLocalStorage(`${name}.sidenav.right.position`, status);
     },
-    [_setRightSidenavStatus, name]
+    [_setRightSidenavStatus, name],
   );
 
   const shouldShowUnderlay =

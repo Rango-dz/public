@@ -25,7 +25,7 @@ export interface Settings {
   logging: {
     sentry_public?: string;
   };
-  themes: {
+  themes?: {
     default_id?: number | string | null;
     user_change: boolean;
   };
@@ -46,6 +46,7 @@ export interface Settings {
     integrated: boolean;
   };
   billing: {
+    integrated: boolean;
     enable: boolean;
     accepted_cards?: string | string[];
     paypal_test_mode: boolean;
@@ -121,9 +122,6 @@ export interface Settings {
   analytics?: {
     tracking_code?: string;
     gchart_api_key?: string;
-  };
-  envato: {
-    enable: boolean;
   };
 }
 

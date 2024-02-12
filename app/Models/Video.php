@@ -105,7 +105,7 @@ class Video extends BaseModel
         if ($col === 'score') {
             $query->orderByWeightedScore();
         } elseif ($col === 'order') {
-            $query->orderBy(DB::raw('`order` = 0, `order`'), $dir);
+            $query->orderBy('order', $dir);
         } else {
             $query
                 ->orderBy(DB::raw('`category` = "trailer"'), 'desc')
@@ -115,14 +115,15 @@ class Video extends BaseModel
         return $query;
     }
 
-    public function scopeFromConfiguredCategory(Builder $builder): Builder {
+    public function scopeFromConfiguredCategory(Builder $builder): Builder
+    {
         $contentType = settings('streaming.video_panel_content');
 
         if ($contentType === 'full') {
             $builder->where('category', 'full');
         } elseif ($contentType === 'short') {
             $builder->where('category', '!=', 'full');
-        } else if ($contentType !== 'all') {
+        } elseif ($contentType !== 'all') {
             $builder->where('category', $contentType);
         }
 

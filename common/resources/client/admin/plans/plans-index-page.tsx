@@ -147,7 +147,6 @@ function Actions() {
         <IconButton
           color="primary"
           variant="outline"
-          radius="rounded"
           size="sm"
           disabled={syncPlans.isPending}
           onClick={() => {

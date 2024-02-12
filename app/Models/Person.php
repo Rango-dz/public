@@ -41,6 +41,13 @@ class Person extends BaseModel
         });
     }
 
+    public function scopeOrderByBirthDate(Builder $query, string $direction)
+    {
+        $query->orderByRaw(
+            "CASE WHEN birth_date IS NULL THEN 1 ELSE 0 END, birth_date $direction",
+        );
+    }
+
     public static function firstOrCreateFromEncodedTmdbId(
         string $encodedId,
     ): static {

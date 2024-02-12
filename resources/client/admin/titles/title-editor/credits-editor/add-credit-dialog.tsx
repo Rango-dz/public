@@ -46,7 +46,7 @@ export function AddCreditDialog({isCrew}: Props) {
           }}
         >
           <FormNormalizedModelField
-            modelType="person"
+            endpoint="normalized-models/person"
             name="person_id"
             label={<Trans message="Person" />}
             className="mb-24"

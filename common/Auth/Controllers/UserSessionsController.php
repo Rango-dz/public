@@ -10,9 +10,15 @@ use Jenssegers\Agent\Agent;
 
 class UserSessionsController extends BaseController
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index()
     {
-        $sessions = ActiveSession::where('user_id', Auth::user()->id)
+        $sessions = Auth::user()
+            ->activeSessions()
             ->orderBy('updated_at', 'desc')
             ->limit(30)
             ->get()

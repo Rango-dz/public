@@ -47,7 +47,7 @@ export function EpisodePoster({
 
   const imageClassName = clsx(
     'w-full h-full object-cover bg-fg-base/4',
-    !src ? 'flex items-center justify-center' : 'block'
+    !src ? 'flex items-center justify-center' : 'block',
   );
 
   let image = src ? (
@@ -71,6 +71,7 @@ export function EpisodePoster({
         variant="flat"
         className="absolute bottom-12 left-12 z-10 shadow-md"
         elementType={Link}
+        radius="rounded-full"
         to={getWatchLink(episode.primary_video)}
       >
         <MediaPlayIcon />

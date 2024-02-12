@@ -10,6 +10,8 @@ import {NotificationSubscriptionGroup} from './notification-subscription';
 import {toast} from '../../ui/toast/toast';
 import {Trans} from '../../i18n/trans';
 import {message} from '../../i18n/message';
+import {useSettings} from '@common/core/settings/use-settings';
+import {Navigate} from 'react-router-dom';
 
 type Selection = Record<string, ChannelSelection>;
 
@@ -17,6 +19,7 @@ type Selection = Record<string, ChannelSelection>;
 type ChannelSelection = Record<string, boolean>;
 
 export function NotificationSettingsPage() {
+  const {notif} = useSettings();
   const updateSettings = useUpdateNotificationSettings();
   const {data, isFetched} = useNotificationSubscriptions();
   const [selection, setSelection] = useState<Selection>();
@@ -42,6 +45,10 @@ export function NotificationSettingsPage() {
       setSelection(initialSelection);
     }
   }, [data, selection]);
+
+  if (!notif.subs.integrated || (data && data.subscriptions.length === 0)) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-alt">

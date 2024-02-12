@@ -7,6 +7,7 @@ use Common\Core\Middleware\EnsureFrontendRequestsAreStateful;
 use Common\Settings\Settings;
 use Common\Tags\Tag;
 use Common\Workspaces\Workspace;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 
 if (!function_exists('slugify')) {
@@ -53,6 +54,10 @@ if (!function_exists('modelTypeToNamespace')) {
         }
         if ($modelType === 'tag' && !class_exists('App\Models\Tag')) {
             return Tag::class;
+        }
+
+        if ($namespace = Relation::getMorphedModel($modelType)) {
+            return $namespace;
         }
 
         $modelName = Str::of($modelType)
@@ -128,6 +133,7 @@ if (!function_exists('urls')) {
 if (!function_exists('isApiRequest')) {
     function isApiRequest(): bool
     {
-        return request()->route() && in_array('api', request()->route()->computedMiddleware);
+        return request()->route() &&
+            in_array('api', request()->route()->computedMiddleware);
     }
 }

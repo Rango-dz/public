@@ -34,6 +34,9 @@ class Subscription extends BaseModel
         'price_id' => 'integer',
         'product_id' => 'integer',
         'quantity' => 'integer',
+        'trial_ends_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'renews_at' => 'datetime',
     ];
 
     public function getOnGracePeriodAttribute(): bool
@@ -60,13 +63,6 @@ class Subscription extends BaseModel
     {
         return $this->cancelled();
     }
-    protected $dates = [
-        'trial_ends_at',
-        'ends_at',
-        'renews_at',
-        'created_at',
-        'updated_at',
-    ];
 
     public function user(): BelongsTo
     {

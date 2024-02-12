@@ -42,6 +42,7 @@ export type ListboxProps = SelectionProps & {
   role?: 'listbox' | 'menu';
   virtualFocus?: boolean;
   loopFocus?: boolean;
+  autoFocusFirstItem?: boolean;
   autoUpdatePosition?: boolean;
   floatingWidth?: 'auto' | 'matchTrigger';
   floatingMinWidth?: string;
@@ -73,7 +74,7 @@ export interface UseListboxReturn {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   focusItem: (
     fallbackOperation: 'increment' | 'decrement',
-    newIndex: number
+    newIndex: number,
   ) => void;
 
   allowCustomValue: ListboxProps['allowCustomValue']; // for combobox

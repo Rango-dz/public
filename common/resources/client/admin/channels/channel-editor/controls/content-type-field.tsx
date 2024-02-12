@@ -9,7 +9,6 @@ interface Props {
 }
 export function ContentTypeField({config}: Props) {
   const {setValue} = useFormContext<UpdateChannelPayload>();
-  const [modelName, modelConfig] = Object.entries(config.models)[0];
   return (
     <FormSelect
       className="my-24"
@@ -17,14 +16,27 @@ export function ContentTypeField({config}: Props) {
       name="config.contentType"
       label={<Trans message="Content" />}
       onSelectionChange={newValue => {
+        // if content type is "auto update" select first model that
+        // can be auto updated, otherwise select first available model
+        let model = Object.entries(config.models)[0];
+        if (newValue === 'autoUpdate') {
+          const newModel = Object.entries(config.models).find(
+            ([, modelConfig]) => modelConfig.autoUpdateMethods?.length,
+          );
+          if (newModel) {
+            model = newModel;
+          }
+        }
+        const [modelName, modelConfig] = model;
+
         setValue('config.contentModel', modelName);
         setValue('config.restrictionModelId', undefined);
         setValue(
           'config.autoUpdateMethod',
-          newValue === 'autoUpdate' ? modelConfig.autoUpdateMethods?.[0] : ''
+          newValue === 'autoUpdate' ? modelConfig.autoUpdateMethods?.[0] : '',
         );
         setValue('config.contentOrder', modelConfig.sortMethods[0]);
-        setValue('config.restriction', '');
+        (setValue as any)('config.restriction', '');
       }}
     >
       <Option value="listAll">

@@ -212,7 +212,7 @@ const contentAutoUpdateMethods: Record<
 > = {
   [Auto.discover]: {
     label: message('Discover (TMDB only)'),
-    tmdbOnly: true,
+    provider: 'tmdb',
   },
   [Auto.mostPopular]: {
     label: message('Most popular'),
@@ -237,7 +237,7 @@ const contentAutoUpdateMethods: Record<
   },
   [Auto.latestVideos]: {
     label: message('Most recently published videos'),
-    localOnly: true,
+    provider: 'local',
   },
 };
 export const channelContentConfig: ChannelContentConfig = {

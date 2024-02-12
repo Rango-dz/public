@@ -22,9 +22,7 @@ import {SearchResponse} from '@app/search/requests/use-search-results';
 import {GetNewsArticleResponse} from '@app/admin/news/requests/use-news-article';
 import {UseWatchPageVideoResponse} from '@app/videos/requests/use-watch-page-video';
 import {FetchCustomPageResponse} from '@common/custom-page/use-custom-page';
-
-// todo: don't include title description in homepage channel, except for slider channel, skip other not needed data as well to reduce payload size
-// todo: slice description on php side, instead of client in channel slider
+import {TitlePageSections} from '@app/titles/pages/title-page/sections/title-page-sections';
 
 declare module '@common/http/value-lists' {
   interface FetchValueListsResponse {
@@ -91,7 +89,7 @@ declare module '@common/core/settings/settings' {
       default_sort: string;
       show_header_play: boolean;
       prefer_full: boolean;
-      qualities: string;
+      qualities: string[];
       show_video_selector: boolean;
     };
     comments?: {
@@ -103,7 +101,7 @@ declare module '@common/core/settings/settings' {
       enable_comments?: boolean;
     };
     title_page?: {
-      sections: string;
+      sections: (typeof TitlePageSections)[number][];
     };
     content: {
       title_provider?: 'tmdb';

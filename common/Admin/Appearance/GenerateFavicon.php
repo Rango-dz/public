@@ -4,7 +4,8 @@ namespace Common\Admin\Appearance;
 
 use Common\Settings\Settings;
 use Illuminate\Support\Facades\File;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class GenerateFavicon
 {
@@ -51,13 +52,14 @@ class GenerateFavicon
         string $dir = null,
         string $name = null,
     ): void {
-        $img = Image::make($this->initialFilePath);
-        $img->fit($size[0], $size[1]);
-        $img->encode('png');
+        $manager = new ImageManager(new Driver());
+
+        $img = $manager->read($this->initialFilePath);
+        $img->coverDown($size[0], $size[1]);
 
         $dir = $dir ?? $this->absoluteFaviconDir;
         $name = $name ?? "icon-$size[0]x$size[1].png";
 
-        File::put("$dir/$name", $img);
+        $img->toPng()->save("$dir/$name");
     }
 }

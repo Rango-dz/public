@@ -29,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             Title::MODEL_TYPE => Title::class,
+            'movie' => Title::class,
+            'series' => Title::class,
             Season::MODEL_TYPE => Season::class,
             Episode::MODEL_TYPE => Episode::class,
             Person::MODEL_TYPE => Person::class,

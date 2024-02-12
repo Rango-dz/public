@@ -492,6 +492,12 @@ function outline({ color, border }) {
         "hover:bg-danger/4 hover:border-danger",
         disabled
       ];
+    case "positive":
+      return [
+        `text-positive bg-transparent ${border} border-positive/50`,
+        "hover:bg-positive/4 hover:border-positive",
+        disabled
+      ];
     case "paper":
       return [`text bg-paper ${border}`, "hover:bg-hover", disabled];
     case "white":
@@ -655,7 +661,7 @@ const Button = React.forwardRef(
     sizeClassName,
     className,
     equalWidth = false,
-    radius = "rounded",
+    radius = "rounded-button",
     variant = "text",
     ...other
   }, ref) => {
@@ -766,8 +772,15 @@ const getRules = memoize((localeCode) => {
 const Trans = memo((props) => {
   const { message: initialMessage, values } = props;
   const { lines, localeCode } = useSelectedLocale();
-  let translatedMessage = (lines == null ? void 0 : lines[initialMessage]) || initialMessage;
-  if (!values) {
+  let translatedMessage;
+  if (Object == null ? void 0 : Object.hasOwn(lines || {}, initialMessage)) {
+    translatedMessage = lines == null ? void 0 : lines[initialMessage];
+  } else if (Object == null ? void 0 : Object.hasOwn(lines || {}, initialMessage == null ? void 0 : initialMessage.toLowerCase())) {
+    translatedMessage = lines == null ? void 0 : lines[initialMessage.toLowerCase()];
+  } else {
+    translatedMessage = initialMessage;
+  }
+  if (!values || !translatedMessage) {
     return /* @__PURE__ */ jsx(Fragment, { children: translatedMessage });
   }
   translatedMessage = handlePluralMessage(localeCode, {
@@ -782,7 +795,7 @@ const Trans = memo((props) => {
     } else if (isValidElement(value)) {
       nodePlaceholders.push(key);
     } else if (value != void 0) {
-      translatedMessage = translatedMessage.replace(`:${key}`, `${value}`);
+      translatedMessage = translatedMessage == null ? void 0 : translatedMessage.replace(`:${key}`, `${value}`);
     }
   });
   if (tagNames.length || nodePlaceholders.length) {
@@ -1360,12 +1373,15 @@ const BaseSiteConfig = {
 };
 let rootEl = typeof document !== "undefined" ? document.getElementById("root") ?? document.body : void 0;
 let themeEl = typeof document !== "undefined" ? document.documentElement : void 0;
-function setThemeColor(key, value) {
+function setThemeValue(key, value) {
   themeEl == null ? void 0 : themeEl.style.setProperty(key, value);
 }
+function removeThemeValue(key) {
+  themeEl == null ? void 0 : themeEl.style.removeProperty(key);
+}
 function applyThemeToDom(theme) {
-  Object.entries(theme.colors).forEach(([key, value]) => {
-    setThemeColor(key, value);
+  Object.entries(theme.values).forEach(([key, value]) => {
+    setThemeValue(key, value);
   });
   if (theme.is_dark) {
     themeEl.classList.add("dark");
@@ -1381,9 +1397,8 @@ function useThemeSelector() {
 }
 const STORAGE_KEY = "be-active-theme";
 function ThemeProvider({ children }) {
-  const {
-    themes: { user_change, default_id }
-  } = useSettings();
+  const { themes } = useSettings();
+  const canChangeTheme = themes == null ? void 0 : themes.user_change;
   const { data } = useBootstrapData();
   const allThemes = useMemo(() => data.themes.all || [], [data.themes.all]);
   const initialThemeId = data.themes.selectedThemeId || void 0;
@@ -1391,7 +1406,7 @@ function ThemeProvider({ children }) {
     STORAGE_KEY,
     `${initialThemeId}`
   );
-  let selectedTheme = user_change ? allThemes.find((t) => t.id == selectedThemeId) : allThemes.find((t) => t.id == default_id);
+  let selectedTheme = canChangeTheme ? allThemes.find((t) => t.id == selectedThemeId) : allThemes.find((t) => t.id == (themes == null ? void 0 : themes.default_id));
   if (!selectedTheme) {
     selectedTheme = allThemes[0];
   }
@@ -1400,7 +1415,7 @@ function ThemeProvider({ children }) {
       allThemes,
       selectedTheme,
       selectTheme: (id) => {
-        if (!user_change)
+        if (!canChangeTheme)
           return;
         const theme = findTheme(allThemes, id);
         if (theme) {
@@ -1409,7 +1424,7 @@ function ThemeProvider({ children }) {
         }
       }
     };
-  }, [allThemes, selectedTheme, setSelectedThemeId, user_change]);
+  }, [allThemes, selectedTheme, setSelectedThemeId, canChangeTheme]);
   return /* @__PURE__ */ jsx(ThemeSelectorContext.Provider, { value: contextValue, children });
 }
 function findTheme(themes, id) {
@@ -1544,6 +1559,13 @@ function useAuth() {
     }
     return redirectUri;
   }, [redirectUri]);
+  const hasRole = useCallback(
+    (roleId) => {
+      var _a2;
+      return ((_a2 = user == null ? void 0 : user.roles) == null ? void 0 : _a2.find((role) => role.id === roleId)) != null;
+    },
+    [user]
+  );
   return {
     user,
     hasPermission,
@@ -1551,6 +1573,7 @@ function useAuth() {
     getRestrictionValue,
     isLoggedIn: !!user,
     isSubscribed,
+    hasRole,
     // where to redirect user after successful login
     getRedirectUri
   };
@@ -1562,7 +1585,7 @@ const IconButton = forwardRef(
     // only set icon size based on button size if "ButtonSize" is passed in and not custom className
     iconSize = size2 && size2.length <= 3 ? size2 : "md",
     variant = "text",
-    radius = "rounded-full",
+    radius = "rounded-button",
     className,
     padding,
     equalWidth = true,
@@ -1980,6 +2003,145 @@ function EmailVerificationPage() {
     ] })
   ] });
 }
+class LazyLoader {
+  constructor() {
+    __publicField(this, "loadedAssets", {});
+  }
+  loadAsset(url, params = { type: "js" }) {
+    var _a;
+    const currentState = (_a = this.loadedAssets[url]) == null ? void 0 : _a.state;
+    if (currentState === "loaded" && !params.force) {
+      return new Promise((resolve) => resolve());
+    }
+    const neverLoaded = !currentState || this.loadedAssets[url].doc !== params.document;
+    if (neverLoaded || params.force && currentState === "loaded") {
+      this.loadedAssets[url] = {
+        state: new Promise((resolve) => {
+          const finalUrl = isAbsoluteUrl(url) ? url : `assets/${url}`;
+          const finalId = buildId(url, params.id);
+          const assetOptions = {
+            url: finalUrl,
+            id: finalId,
+            resolve,
+            parentEl: params.parentEl,
+            document: params.document
+          };
+          if (params.type === "css") {
+            this.loadStyleAsset(assetOptions);
+          } else {
+            this.loadScriptAsset(assetOptions);
+          }
+        }),
+        doc: params.document
+      };
+      return this.loadedAssets[url].state;
+    }
+    return this.loadedAssets[url].state;
+  }
+  /**
+   * Check whether asset is loading or has already loaded.
+   */
+  isLoadingOrLoaded(url) {
+    return this.loadedAssets[url] != null;
+  }
+  loadStyleAsset(options) {
+    var _a;
+    const doc = options.document || document;
+    const parentEl = options.parentEl || doc.head;
+    const style = doc.createElement("link");
+    const prefixedId = buildId(options.url, options.id);
+    style.rel = "stylesheet";
+    style.id = prefixedId;
+    style.href = options.url;
+    try {
+      if (parentEl.querySelector(`#${prefixedId}`)) {
+        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
+      }
+    } catch (e) {
+    }
+    style.onload = () => {
+      this.loadedAssets[options.url].state = "loaded";
+      options.resolve();
+    };
+    parentEl.appendChild(style);
+  }
+  loadScriptAsset(options) {
+    var _a;
+    const doc = options.document || document;
+    const parentEl = options.parentEl || doc.body;
+    const script = doc.createElement("script");
+    const prefixedId = buildId(options.url, options.id);
+    script.async = true;
+    script.id = prefixedId;
+    script.src = options.url;
+    try {
+      if (parentEl.querySelector(`#${prefixedId}`)) {
+        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
+      }
+    } catch (e) {
+    }
+    script.onload = () => {
+      this.loadedAssets[options.url].state = "loaded";
+      options.resolve();
+    };
+    (parentEl || parentEl).appendChild(script);
+  }
+}
+function buildId(url, id) {
+  if (id)
+    return id;
+  return btoa(url.split("/").pop());
+}
+const lazyLoader = new LazyLoader();
+function prefixId(id) {
+  return `be-fonts-${id}`;
+}
+function loadFonts(fonts, options) {
+  const doc = options.document || document;
+  const googleFonts = [];
+  const customFonts = [];
+  let promises = [];
+  fonts.forEach((font) => {
+    if ("google" in font && font.google) {
+      googleFonts.push(font);
+    } else if ("src" in font) {
+      customFonts.push(font);
+    }
+  });
+  if (googleFonts == null ? void 0 : googleFonts.length) {
+    const weights = options.weights || [400];
+    const families = fonts.map((f) => `${f.family}:${weights.join(",")}`).join("|");
+    const googlePromise = lazyLoader.loadAsset(
+      `https://fonts.googleapis.com/css?family=${families}&display=swap`,
+      {
+        type: "css",
+        id: prefixId(options.id),
+        force: options.forceAssetLoad,
+        document: doc
+      }
+    );
+    promises.push(googlePromise);
+  }
+  if (customFonts == null ? void 0 : customFonts.length) {
+    const customFontPromises = customFonts.map(async (fontConfig) => {
+      const loadedFont = Array.from(doc.fonts.values()).find((current) => {
+        return current.family === fontConfig.family;
+      });
+      if (loadedFont) {
+        return loadedFont.loaded;
+      }
+      const fontFace = new FontFace(
+        fontConfig.family,
+        `url(${(options == null ? void 0 : options.prefixSrc) ? options.prefixSrc(fontConfig.src) : fontConfig.src})`,
+        fontConfig.descriptors
+      );
+      doc.fonts.add(fontFace);
+      return fontFace.load();
+    });
+    promises = promises.concat(customFontPromises);
+  }
+  return Promise.all(promises);
+}
 function AppearanceListener() {
   const navigate = useNavigate$1();
   const { mergeBootstrapData: mergeBootstrapData2, data: currentData } = useBootstrapData();
@@ -1999,8 +2161,19 @@ function AppearanceListener() {
               ...command.values.settings
             }
           });
-        case "setThemeColor":
-          return setThemeColor(command.name, command.value);
+        case "setThemeFont":
+          if (command.value) {
+            setThemeValue("--be-font-family", command.value.family);
+            loadFonts([command.value], {
+              id: "be-primary-font",
+              forceAssetLoad: true
+            });
+          } else {
+            removeThemeValue("--be-font-family");
+          }
+          return;
+        case "setThemeValue":
+          return setThemeValue(command.name, command.value);
         case "setActiveTheme":
           const theme = currentData.themes.all.find(
             (t) => t.id === command.themeId
@@ -2443,11 +2616,11 @@ function getRadius(props) {
   }
   return {
     input: clsx(
-      !isInputGroup && "rounded",
-      startAppend && "rounded-r rounded-l-none",
-      endAppend && "rounded-l rounded-r-none"
+      !isInputGroup && "rounded-input",
+      startAppend && "rounded-input-r rounded-l-none",
+      endAppend && "rounded-input-l rounded-r-none"
     ),
-    append: startAppend ? "rounded-l" : "rounded-r"
+    append: startAppend ? "rounded-input-l" : "rounded-input-r"
   };
 }
 function inputSizeClass({ size: size2, flexibleHeight }) {
@@ -2507,14 +2680,23 @@ function Adornment({
     }
   );
 }
-function removeEmptyValuesFromObject(obj) {
-  const copy = { ...obj };
-  Object.keys(copy).forEach((key) => {
-    if (copy[key] == null || copy[key] === "") {
-      delete copy[key];
+function removeEmptyValuesFromObject(obj, options) {
+  const shouldCopy = (options == null ? void 0 : options.copy) ?? true;
+  const newObj = shouldCopy ? { ...obj } : obj;
+  Object.keys(newObj).forEach((_key) => {
+    const key = _key;
+    if ((options == null ? void 0 : options.arrays) && Array.isArray(newObj[key]) && newObj[key].length === 0) {
+      delete newObj[key];
+    } else if ((options == null ? void 0 : options.deep) && newObj[key] && typeof newObj[key] === "object") {
+      newObj[key] = removeEmptyValuesFromObject(newObj[key], options);
+      if (Object.keys(newObj[key]).length === 0) {
+        delete newObj[key];
+      }
+    } else if (newObj[key] == null || newObj[key] === "") {
+      delete newObj[key];
     }
   });
-  return copy;
+  return shouldCopy ? newObj : obj;
 }
 const Field = React.forwardRef(
   (props, ref) => {
@@ -2570,6 +2752,7 @@ function Label({
   labelProps,
   label,
   labelSuffix,
+  labelSuffixPosition = "spaced",
   required
 }) {
   if (!label) {
@@ -2581,9 +2764,18 @@ function Label({
     required && /* @__PURE__ */ jsx("span", { className: "text-danger", children: " *" })
   ] });
   if (labelSuffix) {
-    return /* @__PURE__ */ jsxs("div", { className: "flex w-full items-center gap-14", children: [
+    return /* @__PURE__ */ jsxs("div", { className: "flex w-full items-center gap-4", children: [
       labelNode,
-      /* @__PURE__ */ jsx("div", { className: "mb-4 ml-auto text-xs text-muted", children: labelSuffix })
+      /* @__PURE__ */ jsx(
+        "div",
+        {
+          className: clsx(
+            "mb-4 text-xs text-muted",
+            labelSuffixPosition === "spaced" ? "ml-auto" : ""
+          ),
+          children: labelSuffix
+        }
+      )
     ] });
   }
   return labelNode;
@@ -2617,6 +2809,7 @@ function useField(props) {
     labelElementType = "label",
     label,
     labelSuffix,
+    labelSuffixPosition,
     autoFocus,
     autoSelectText,
     labelPosition,
@@ -2696,6 +2889,7 @@ function useField(props) {
       disabled,
       label,
       labelSuffix,
+      labelSuffixPosition,
       autoFocus,
       autoSelectText,
       labelPosition,
@@ -2878,7 +3072,7 @@ function useTrans() {
 const translate = memoize(
   (props) => {
     let { lines, message: message2, values, localeCode } = props;
-    message2 = (lines == null ? void 0 : lines[message2]) || message2;
+    message2 = (lines == null ? void 0 : lines[message2]) || (lines == null ? void 0 : lines[message2.toLowerCase()]) || message2;
     if (!values) {
       return message2;
     }
@@ -2931,7 +3125,7 @@ function Dialog(props) {
     "mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden",
     background || "bg-paper",
     type !== "tray" && sizeStyle(size2),
-    type === "tray" && "rounded-t",
+    type === "tray" && "rounded-t border-b-bg",
     size2 !== "fullscreenTakeover" && `shadow-2xl border max-h-dialog`,
     !isTrayOrFullScreen && `${radius} ${maxWidth}`,
     className
@@ -3794,6 +3988,7 @@ function useListbox(props, ref) {
     role = "listbox",
     virtualFocus,
     loopFocus = false,
+    autoFocusFirstItem = true,
     onItemSelected,
     clearInputOnItemSelection,
     blurReferenceOnItemSelection,
@@ -3897,16 +4092,21 @@ function useListbox(props, ref) {
       } else if (clearSelectionOnInputClear) {
         selectValues("");
       }
-      focusItem("increment", 0);
+      if (autoFocusFirstItem && activeIndex == null) {
+        focusItem("increment", 0);
+      } else {
+        setActiveIndex(null);
+      }
     },
     [
       setInputValue,
       setIsOpen,
       setActiveCollection,
       selectValues,
-      isAsync,
       clearSelectionOnInputClear,
-      focusItem
+      focusItem,
+      autoFocusFirstItem,
+      activeIndex
     ]
   );
   const handleItemSelection = (value) => {
@@ -4048,7 +4248,7 @@ const MOBILE_SCREEN_WIDTH = 768;
 function useIsMobileDevice() {
   const isSSR = useIsSSR();
   if (isSSR || typeof window === "undefined") {
-    return false;
+    return getBootstrapData().is_mobile_device;
   }
   return window.screen.width <= MOBILE_SCREEN_WIDTH;
 }
@@ -4080,7 +4280,7 @@ function Listbox({
     !prepend && "shadow-xl border py-4",
     listboxClassName,
     // tray will apply its own rounding and max width
-    Overlay === Popover && "rounded",
+    Overlay === Popover && "rounded-panel",
     Overlay === Popover && floatingWidth === "auto" ? `max-w-288 ${floatingMinWidth}` : ""
   );
   const children = useMemo(() => {
@@ -4173,7 +4373,7 @@ function FocusContainer({
       tabIndex: virtualFocus ? void 0 : -1,
       role,
       id: listboxId,
-      className: "flex-auto overflow-y-auto overscroll-contain",
+      className: "flex-auto overflow-y-auto overscroll-contain outline-none",
       ref: domRef,
       ...domProps,
       children: children.length ? children : /* @__PURE__ */ jsx(EmptyMessage, {})
@@ -4233,7 +4433,7 @@ const ListItemBase = React.forwardRef(
             "div",
             {
               className: clsx(
-                "mr-auto w-full",
+                "min-w-auto mr-auto w-full overflow-hidden overflow-ellipsis",
                 capitalizeFirst && "first-letter:capitalize"
               ),
               children: [
@@ -4850,17 +5050,21 @@ function extractChildren(rawChildren, ctx) {
   }
   return { dialog };
 }
+const EnvatoIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M 23.898438 47 C 13.65625 47 5.003906 38.355469 5.003906 28.125 L 5.003906 28 C 4.929688 23.074219 6.558594 19.714844 7.261719 18.5 C 8.621094 16.152344 10.296875 14.410156 10.8125 14.136719 C 11.566406 13.734375 12.121094 14.332031 12.363281 14.585938 C 12.832031 15.085938 12.597656 15.695313 12.507813 15.925781 C 11.613281 18.265625 10.929688 20.28125 11.003906 23.097656 C 11.097656 26.90625 12.488281 28.699219 13.085938 29.292969 C 13.460938 29.671875 13.769531 29.847656 14.015625 29.933594 C 14.054688 28.671875 14.203125 26.148438 14.773438 23.304688 C 15.113281 21.589844 16.28125 17.085938 19.6875 12.296875 C 23.714844 6.632813 28.449219 4.273438 29.214844 4.042969 C 30.570313 3.636719 33.535156 3.128906 35.957031 3.019531 C 38.53125 2.910156 39.160156 3.574219 39.921875 5.035156 L 40.046875 5.277344 C 41.820313 8.613281 45.03125 18.832031 43.65625 29.132813 C 42.011719 39.992188 34.257813 47 23.898438 47 Z M 14.648438 30 C 14.640625 30 14.632813 30 14.628906 30 L 14.652344 30 C 14.648438 30 14.648438 30 14.648438 30 Z " })
+);
 const googleLabel = message("Continue with google");
 const facebookLabel = message("Continue with facebook");
 const twitterLabel = message("Continue with twitter");
+const envatoLabel = message("Continue with envato");
 function SocialAuthSection({ dividerMessage }) {
-  var _a, _b, _c, _d, _e, _f;
-  const { social, registration } = useSettings();
+  var _a, _b, _c, _d, _e, _f, _g, _h;
+  const { social } = useSettings();
   const navigate = useNavigate();
   const { getRedirectUri } = useAuth();
   const { loginWithSocial, requestingPassword, setIsRequestingPassword } = useSocialLogin();
-  const allSocialsDisabled = !((_a = social == null ? void 0 : social.google) == null ? void 0 : _a.enable) && !((_b = social == null ? void 0 : social.facebook) == null ? void 0 : _b.enable) && !((_c = social == null ? void 0 : social.twitter) == null ? void 0 : _c.enable);
-  if (registration.disable || allSocialsDisabled) {
+  const allSocialsDisabled = !((_a = social == null ? void 0 : social.google) == null ? void 0 : _a.enable) && !((_b = social == null ? void 0 : social.facebook) == null ? void 0 : _b.enable) && !((_c = social == null ? void 0 : social.twitter) == null ? void 0 : _c.enable) && !((_d = social == null ? void 0 : social.envato) == null ? void 0 : _d.enable);
+  if (allSocialsDisabled) {
     return null;
   }
   const handleSocialLogin = async (service) => {
@@ -4870,7 +5074,7 @@ function SocialAuthSection({ dividerMessage }) {
     }
   };
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx("div", { className: "relative text-center my-20 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-1 before:w-full before:bg-divider", children: /* @__PURE__ */ jsx("span", { className: "bg-paper relative z-10 px-10 text-sm text-muted", children: dividerMessage }) }),
+    /* @__PURE__ */ jsx("div", { className: "relative my-20 text-center before:absolute before:left-0 before:top-1/2 before:h-1 before:w-full before:-translate-y-1/2 before:bg-divider", children: /* @__PURE__ */ jsx("span", { className: "relative z-10 bg-paper px-10 text-sm text-muted", children: dividerMessage }) }),
     /* @__PURE__ */ jsxs(
       "div",
       {
@@ -4879,7 +5083,7 @@ function SocialAuthSection({ dividerMessage }) {
           !social.compact_buttons && "flex-col"
         ),
         children: [
-          ((_d = social == null ? void 0 : social.google) == null ? void 0 : _d.enable) ? /* @__PURE__ */ jsx(
+          ((_e = social == null ? void 0 : social.google) == null ? void 0 : _e.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: googleLabel,
@@ -4887,7 +5091,7 @@ function SocialAuthSection({ dividerMessage }) {
               onClick: () => handleSocialLogin("google")
             }
           ) : null,
-          ((_e = social == null ? void 0 : social.facebook) == null ? void 0 : _e.enable) ? /* @__PURE__ */ jsx(
+          ((_f = social == null ? void 0 : social.facebook) == null ? void 0 : _f.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: facebookLabel,
@@ -4895,12 +5099,20 @@ function SocialAuthSection({ dividerMessage }) {
               onClick: () => handleSocialLogin("facebook")
             }
           ) : null,
-          ((_f = social == null ? void 0 : social.twitter) == null ? void 0 : _f.enable) ? /* @__PURE__ */ jsx(
+          ((_g = social == null ? void 0 : social.twitter) == null ? void 0 : _g.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: twitterLabel,
               icon: /* @__PURE__ */ jsx(TwitterIcon, { className: "text-twitter" }),
               onClick: () => handleSocialLogin("twitter")
+            }
+          ) : null,
+          ((_h = social == null ? void 0 : social.envato) == null ? void 0 : _h.enable) ? /* @__PURE__ */ jsx(
+            SocialLoginButton,
+            {
+              label: envatoLabel,
+              icon: /* @__PURE__ */ jsx(EnvatoIcon, { viewBox: "0 0 50 50", className: "text-envato" }),
+              onClick: () => handleSocialLogin("envato")
             }
           ) : null
         ]
@@ -4924,7 +5136,7 @@ function RequestPasswordDialog() {
   return /* @__PURE__ */ jsxs(Dialog, { children: [
     /* @__PURE__ */ jsx(DialogHeader, { children: /* @__PURE__ */ jsx(Trans, { message: "Password required" }) }),
     /* @__PURE__ */ jsxs(DialogBody, { children: [
-      /* @__PURE__ */ jsx("div", { className: "text-sm text-muted mb-30", children: /* @__PURE__ */ jsx(Trans, { message: "An account with this email address already exists. If you want to connect the two accounts, enter existing account password." }) }),
+      /* @__PURE__ */ jsx("div", { className: "mb-30 text-sm text-muted", children: /* @__PURE__ */ jsx(Trans, { message: "An account with this email address already exists. If you want to connect the two accounts, enter existing account password." }) }),
       /* @__PURE__ */ jsx(
         Form,
         {
@@ -4968,16 +5180,7 @@ function SocialLoginButton({ onClick, label, icon }) {
     social: { compact_buttons }
   } = useSettings();
   if (compact_buttons) {
-    return /* @__PURE__ */ jsx(
-      IconButton,
-      {
-        variant: "outline",
-        radius: "rounded",
-        "aria-label": trans(label),
-        onClick,
-        children: icon
-      }
-    );
+    return /* @__PURE__ */ jsx(IconButton, { variant: "outline", "aria-label": trans(label), onClick, children: icon });
   }
   return /* @__PURE__ */ jsx(
     Button,
@@ -4985,7 +5188,7 @@ function SocialLoginButton({ onClick, label, icon }) {
       variant: "outline",
       startIcon: icon,
       onClick,
-      className: "w-full min-h-42",
+      className: "min-h-42 w-full",
       children: /* @__PURE__ */ jsx("span", { className: "min-w-160 text-start", children: /* @__PURE__ */ jsx(Trans, { ...label }) })
     }
   );
@@ -5185,61 +5388,6 @@ function FormCheckbox(props) {
   };
   return /* @__PURE__ */ jsx(Checkbox, { ref, ...mergeProps(formProps, props) });
 }
-class LazyLoader {
-  constructor() {
-    __publicField(this, "loadedAssets", {});
-  }
-  loadAsset(url, params = { type: "js" }) {
-    if (this.loadedAssets[url] === "loaded" && !params.force) {
-      return new Promise((resolve) => resolve());
-    }
-    if (!this.loadedAssets[url] || params.force && this.loadedAssets[url] === "loaded") {
-      this.loadedAssets[url] = new Promise((resolve) => {
-        const finalUrl = isAbsoluteUrl(url) ? url : `assets/${url}`;
-        const finalId = buildId(url, params.id);
-        if (params.type === "css") {
-          this.loadStyleAsset(finalUrl, finalId, resolve);
-        } else {
-          this.loadScriptAsset(finalUrl, finalId, resolve, params.parentEl);
-        }
-      });
-      return this.loadedAssets[url];
-    }
-    return this.loadedAssets[url];
-  }
-  /**
-   * Check whether asset is loading or has already loaded.
-   */
-  isLoadingOrLoaded(url) {
-    return this.loadedAssets[url] != null;
-  }
-  loadStyleAsset(url, id, resolve) {
-    const style = document.createElement("link");
-    style.rel = "stylesheet";
-    style.id = buildId(url, id);
-    style.href = url;
-    style.onload = () => {
-      this.loadedAssets[url] = "loaded";
-      resolve();
-    };
-    document.head.appendChild(style);
-  }
-  loadScriptAsset(url, id, resolve, parentEl) {
-    const s = document.createElement("script");
-    s.async = true;
-    s.id = buildId(url, id);
-    s.src = url;
-    s.onload = () => {
-      this.loadedAssets[url] = "loaded";
-      resolve();
-    };
-    (parentEl || document.body).appendChild(s);
-  }
-}
-function buildId(url, id) {
-  return id || url.split("/").pop();
-}
-const lazyLoader = new LazyLoader();
 function useRecaptcha(action) {
   const { recaptcha: { site_key, enable: enable2 } = {} } = useSettings();
   const enabled = site_key && (enable2 == null ? void 0 : enable2[action]);
@@ -5276,7 +5424,8 @@ async function execute(siteKey, action) {
 }
 function load(siteKey) {
   return lazyLoader.loadAsset(
-    `https://www.google.com/recaptcha/api.js?render=${siteKey}`
+    `https://www.google.com/recaptcha/api.js?render=${siteKey}`,
+    { id: "recaptcha-js" }
   );
 }
 const Helmet = memo(({ children, tags }) => {
@@ -5302,6 +5451,7 @@ function RegisterPage() {
     registration: { disable: disable2 },
     social
   } = useSettings();
+  const { auth } = useContext(SiteConfigContext);
   const { verify, isVerifying } = useRecaptcha("register");
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -5380,6 +5530,7 @@ function RegisterPage() {
               required: true
             }
           ),
+          (auth == null ? void 0 : auth.registerFields) ? /* @__PURE__ */ jsx(auth.registerFields, {}) : null,
           /* @__PURE__ */ jsx(PolicyCheckboxes, {}),
           /* @__PURE__ */ jsx(
             Button,
@@ -5414,7 +5565,7 @@ function PolicyCheckboxes() {
     FormCheckbox,
     {
       name: policy.id,
-      className: "block mb-4",
+      className: "mb-4 block",
       required: true,
       children: /* @__PURE__ */ jsx(
         Trans,
@@ -5551,10 +5702,15 @@ function NotificationEmptyStateMessage() {
     }
   );
 }
+const SettingsIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.09-.16-.26-.25-.44-.25-.06 0-.12.01-.17.03l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.06-.02-.12-.03-.18-.03-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.09.16.26.25.44.25.06 0 .12-.01.17-.03l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.06.02.12.03.18.03.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zm-1.98-1.71c.04.31.05.52.05.73 0 .21-.02.43-.05.73l-.14 1.13.89.7 1.08.84-.7 1.21-1.27-.51-1.04-.42-.9.68c-.43.32-.84.56-1.25.73l-1.06.43-.16 1.13-.2 1.35h-1.4l-.19-1.35-.16-1.13-1.06-.43c-.43-.18-.83-.41-1.23-.71l-.91-.7-1.06.43-1.27.51-.7-1.21 1.08-.84.89-.7-.14-1.13c-.03-.31-.05-.54-.05-.74s.02-.43.05-.73l.14-1.13-.89-.7-1.08-.84.7-1.21 1.27.51 1.04.42.9-.68c.43-.32.84-.56 1.25-.73l1.06-.43.16-1.13.2-1.35h1.39l.19 1.35.16 1.13 1.06.43c.43.18.83.41 1.23.71l.91.7 1.06-.43 1.27-.51.7 1.21-1.07.85-.89.7.14 1.13zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" }),
+  "SettingsOutlined"
+);
 function NotificationDialogTrigger({
   className
 }) {
   const { user } = useAuth();
+  const { notif } = useSettings();
   const query = useUserNotifications();
   const markAsRead = useMarkNotificationsAsRead();
   const hasUnread = !!(user == null ? void 0 : user.unread_notifications_count);
@@ -5562,7 +5718,7 @@ function NotificationDialogTrigger({
     if (!query.data)
       return;
     markAsRead.mutate({
-      ids: query.data.pagination.data.map((n) => n.id)
+      markAllAsUnread: true
     });
   };
   return /* @__PURE__ */ jsxs(DialogTrigger, { type: "popover", children: [
@@ -5580,6 +5736,17 @@ function NotificationDialogTrigger({
         DialogHeader,
         {
           showDivider: true,
+          actions: !hasUnread && notif.subs.integrated && /* @__PURE__ */ jsx(
+            IconButton,
+            {
+              className: "text-muted",
+              size: "sm",
+              elementType: Link,
+              to: "/notifications/settings",
+              target: "_blank",
+              children: /* @__PURE__ */ jsx(SettingsIcon, {})
+            }
+          ),
           rightAdornment: hasUnread && /* @__PURE__ */ jsx(
             Button,
             {
@@ -5840,7 +6007,7 @@ function useDarkThemeVariables() {
   if (isDarkMode) {
     return void 0;
   }
-  return (_a = data.themes.all.find((theme) => theme.is_dark && theme.default_dark)) == null ? void 0 : _a.colors;
+  return (_a = data.themes.all.find((theme) => theme.is_dark && theme.default_dark)) == null ? void 0 : _a.values;
 }
 function Logo({ color, logoColor, isDarkMode }) {
   const { trans } = useTrans();
@@ -5877,6 +6044,11 @@ function Logo({ color, logoColor, isDarkMode }) {
     }
   );
 }
+function useLightThemeVariables() {
+  var _a;
+  const { data } = useBootstrapData();
+  return (_a = data.themes.all.find((theme) => !theme.is_dark && theme.default_light)) == null ? void 0 : _a.values;
+}
 function Navbar(props) {
   let {
     hideLogo,
@@ -5885,30 +6057,33 @@ function Navbar(props) {
     className,
     border,
     size: size2 = "md",
-    color = "primary",
+    color,
     textColor,
-    darkModeColor = "bg-alt",
+    darkModeColor,
     rightChildren,
     menuPosition,
     logoColor,
     primaryButtonColor,
     authMenuItems,
-    alwaysDarkMode = false
+    alwaysDarkMode = false,
+    wrapInContainer = false
   } = props;
   const isDarkMode = useIsDarkMode() || alwaysDarkMode;
   const { notifications } = useSettings();
   const { isLoggedIn } = useAuth();
   const darkThemeVars = useDarkThemeVariables();
+  const lightThemeVars = useLightThemeVariables();
   const showNotifButton = isLoggedIn && (notifications == null ? void 0 : notifications.integrated);
+  color = color ?? (lightThemeVars == null ? void 0 : lightThemeVars["--be-navbar-color"]) ?? "primary";
+  darkModeColor = darkModeColor ?? (darkModeColor == null ? void 0 : darkModeColor["--be-navbar-color"]) ?? "bg-alt";
   if (isDarkMode) {
     color = darkModeColor;
   }
-  return /* @__PURE__ */ jsxs(
+  return /* @__PURE__ */ jsx(
     "div",
     {
       style: alwaysDarkMode ? darkThemeVars : void 0,
       className: clsx(
-        "flex items-center justify-end gap-10 py-8 pl-14 pr-8 md:pl-20 md:pr-20",
         getColorStyle(color, textColor),
         size2 === "md" && "h-64 py-8",
         size2 === "sm" && "h-54 py-4",
@@ -5916,24 +6091,33 @@ function Navbar(props) {
         border,
         className
       ),
-      children: [
-        !hideLogo && /* @__PURE__ */ jsx(Logo, { isDarkMode, color, logoColor }),
-        toggleButton,
-        children,
-        /* @__PURE__ */ jsx(MobileMenu, { position: menuPosition }),
-        /* @__PURE__ */ jsx(DesktopMenu, { position: menuPosition }),
-        /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-4 md:gap-14", children: [
-          rightChildren,
-          showNotifButton && /* @__PURE__ */ jsx(NotificationDialogTrigger, {}),
-          isLoggedIn ? /* @__PURE__ */ jsx(NavbarAuthUser, { items: authMenuItems }) : /* @__PURE__ */ jsx(
-            NavbarAuthButtons,
-            {
-              navbarColor: color,
-              primaryButtonColor
-            }
-          )
-        ] })
-      ]
+      children: /* @__PURE__ */ jsxs(
+        "div",
+        {
+          className: clsx(
+            "flex h-full items-center justify-end gap-10 pl-14 pr-8 md:pl-20 md:pr-20",
+            wrapInContainer && "container mx-auto"
+          ),
+          children: [
+            !hideLogo && /* @__PURE__ */ jsx(Logo, { isDarkMode, color, logoColor }),
+            toggleButton,
+            children,
+            /* @__PURE__ */ jsx(MobileMenu, { position: menuPosition }),
+            /* @__PURE__ */ jsx(DesktopMenu, { position: menuPosition }),
+            /* @__PURE__ */ jsxs("div", { className: "ml-auto flex items-center gap-4 md:gap-14", children: [
+              rightChildren,
+              showNotifButton && /* @__PURE__ */ jsx(NotificationDialogTrigger, {}),
+              isLoggedIn ? /* @__PURE__ */ jsx(NavbarAuthUser, { items: authMenuItems }) : /* @__PURE__ */ jsx(
+                NavbarAuthButtons,
+                {
+                  navbarColor: color,
+                  primaryButtonColor
+                }
+              )
+            ] })
+          ]
+        }
+      )
     }
   );
 }
@@ -6091,22 +6275,23 @@ const LightbulbIcon = createSvgIcon(
 );
 function Footer({ className, padding }) {
   const year = (/* @__PURE__ */ new Date()).getFullYear();
+  const { branding } = useSettings();
   return /* @__PURE__ */ jsxs(
     "footer",
     {
       className: clsx(
         "text-sm",
-        padding ? padding : "pt-54 pb-28 md:pb-54",
+        padding ? padding : "pb-28 pt-54 md:pb-54",
         className
       ),
       children: [
         /* @__PURE__ */ jsx(Menus, {}),
-        /* @__PURE__ */ jsxs("div", { className: "md:flex md:text-left text-center items-center gap-30 justify-between text-muted", children: [
+        /* @__PURE__ */ jsxs("div", { className: "items-center justify-between gap-30 text-center text-muted md:flex md:text-left", children: [
           /* @__PURE__ */ jsx(
             Trans,
             {
-              message: "Copyright © :year, All Rights Reserved",
-              values: { year }
+              message: "Copyright © :year :name, All Rights Reserved",
+              values: { year, name: branding.site_name }
             }
           ),
           /* @__PURE__ */ jsxs("div", { children: [
@@ -6132,9 +6317,9 @@ function Menus() {
   );
   if (!primaryMenu && !secondaryMenu)
     return null;
-  return /* @__PURE__ */ jsxs("div", { className: "md:flex items-center justify-between overflow-x-auto border-b pb-14 mb-14 gap-30", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "mb-14 items-center justify-between gap-30 overflow-x-auto border-b pb-14 md:flex", children: [
     primaryMenu && /* @__PURE__ */ jsx(CustomMenu, { menu: primaryMenu, className: "text-primary" }),
-    secondaryMenu && /* @__PURE__ */ jsx(CustomMenu, { menu: secondaryMenu, className: "text-muted mt-14 mb:mt-0" })
+    secondaryMenu && /* @__PURE__ */ jsx(CustomMenu, { menu: secondaryMenu, className: "mb:mt-0 mt-14 text-muted" })
   ] });
 }
 function ThemeSwitcher() {
@@ -6154,17 +6339,31 @@ function ThemeSwitcher() {
           selectTheme("dark");
         }
       },
-      children: selectedTheme.is_dark ? /* @__PURE__ */ jsx(Trans, { message: "Dark mode" }) : /* @__PURE__ */ jsx(Trans, { message: "Light mode" })
+      children: selectedTheme.is_dark ? /* @__PURE__ */ jsx(Trans, { message: "Light mode" }) : /* @__PURE__ */ jsx(Trans, { message: "Dark mode" })
     }
   );
 }
+function highlightCode(el) {
+  import("./assets/highlight-95c2906e.mjs").then(({ hljs }) => {
+    el.querySelectorAll("pre code").forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  });
+}
 function CustomPageBody({ page }) {
-  return /* @__PURE__ */ jsx("div", { className: "px-16 md:px-24", children: /* @__PURE__ */ jsxs("div", { className: "prose dark:prose-invert mx-auto my-50", children: [
+  const bodyRef = useRef(null);
+  useEffect(() => {
+    if (bodyRef.current) {
+      highlightCode(bodyRef.current);
+    }
+  }, []);
+  return /* @__PURE__ */ jsx("div", { className: "px-16 md:px-24", children: /* @__PURE__ */ jsxs("div", { className: "prose mx-auto my-50 dark:prose-invert", children: [
     /* @__PURE__ */ jsx("h1", { children: page.title }),
     /* @__PURE__ */ jsx(
       "div",
       {
-        className: "break-words whitespace-pre-wrap",
+        ref: bodyRef,
+        className: "whitespace-pre-wrap break-words",
         dangerouslySetInnerHTML: { __html: page.body }
       }
     )
@@ -6199,21 +6398,71 @@ function PageErrorMessage() {
     }
   );
 }
+const defaultOptions = {
+  delay: 500,
+  minDuration: 200
+};
+function useSpinDelay(loading, options) {
+  options = Object.assign({}, defaultOptions, options);
+  const [state, setState] = useState("IDLE");
+  const timeout = useRef(null);
+  useEffect(() => {
+    if (loading && state === "IDLE") {
+      clearTimeout(timeout.current);
+      timeout.current = setTimeout(
+        () => {
+          if (!loading) {
+            return setState("IDLE");
+          }
+          timeout.current = setTimeout(
+            () => {
+              setState("EXPIRE");
+            },
+            options == null ? void 0 : options.minDuration
+          );
+          setState("DISPLAY");
+        },
+        options == null ? void 0 : options.delay
+      );
+      setState("DELAY");
+    }
+    if (!loading && state !== "DISPLAY") {
+      clearTimeout(timeout.current);
+      setState("IDLE");
+    }
+  }, [loading, state, options.delay, options.minDuration]);
+  useEffect(() => {
+    return () => clearTimeout(timeout.current);
+  }, []);
+  return state === "DISPLAY" || state === "EXPIRE";
+}
 function PageStatus({
   query,
   show404 = true,
   loader,
   loaderClassName,
-  loaderIsScreen = true
+  loaderIsScreen = true,
+  delayedSpinner = true,
+  redirectOn404
 }) {
   const { isLoggedIn } = useAuth();
+  const showSpinner = useSpinDelay(query.isLoading, {
+    delay: 500,
+    minDuration: 200
+  });
   if (query.isLoading) {
+    if (!showSpinner && delayedSpinner) {
+      return null;
+    }
     return loader || /* @__PURE__ */ jsx(FullPageLoader, { className: loaderClassName, screen: loaderIsScreen });
   }
   if (query.isError && (errorStatusIs(query.error, 401) || errorStatusIs(query.error, 403)) && !isLoggedIn) {
     return /* @__PURE__ */ jsx(Navigate, { to: "/login", replace: true });
   }
   if (show404 && query.isError && errorStatusIs(query.error, 404)) {
+    if (redirectOn404) {
+      return /* @__PURE__ */ jsx(Navigate, { to: redirectOn404, replace: true });
+    }
     return /* @__PURE__ */ jsx(NotFoundPage, {});
   }
   return /* @__PURE__ */ jsx(PageErrorMessage, {});
@@ -6221,6 +6470,12 @@ function PageStatus({
 function CustomPageLayout({ slug }) {
   const { pageSlug } = useParams();
   const query = useCustomPage(slug || pageSlug);
+  useEffect(() => {
+    var _a;
+    if ((_a = query.data) == null ? void 0 : _a.page) {
+      window.scrollTo(0, 0);
+    }
+  }, [query]);
   return /* @__PURE__ */ jsxs("div", { className: "flex flex-col min-h-screen bg", children: [
     /* @__PURE__ */ jsx(PageMetaTags, { query }),
     /* @__PURE__ */ jsx(
@@ -6412,7 +6667,7 @@ function LoginPage({ onTwoFactorChallenge }) {
               required: true
             }
           ),
-          /* @__PURE__ */ jsx(FormCheckbox, { name: "remember", className: "block mb-32", children: /* @__PURE__ */ jsx(Trans, { message: "Stay signed in for a month" }) }),
+          /* @__PURE__ */ jsx(FormCheckbox, { name: "remember", className: "mb-32 block", children: /* @__PURE__ */ jsx(Trans, { message: "Stay signed in for a month" }) }),
           /* @__PURE__ */ jsx(
             Button,
             {
@@ -6446,8 +6701,8 @@ function getDemoFormDefaults(siteConfig) {
     };
   } else {
     return {
-      email: "admin@admin.com",
-      password: "admin"
+      email: siteConfig.demo.email ?? "admin@admin.com",
+      password: siteConfig.demo.password ?? "admin"
     };
   }
 }
@@ -6791,11 +7046,11 @@ function Chip(props) {
     switch (e.key) {
       case "ArrowRight":
       case "ArrowDown":
-        focusManager.focusNext({ tabbable: true });
+        focusManager == null ? void 0 : focusManager.focusNext({ tabbable: true });
         break;
       case "ArrowLeft":
       case "ArrowUp":
-        focusManager.focusPrevious({ tabbable: true });
+        focusManager == null ? void 0 : focusManager.focusPrevious({ tabbable: true });
         break;
       case "Backspace":
       case "Delete":
@@ -6833,7 +7088,7 @@ function Chip(props) {
       onClick: selectable ? handleClick : void 0,
       className: clsx(
         "relative flex flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none",
-        "after:pointer-events-none after:absolute after:inset-0",
+        "min-w-0 max-w-full after:pointer-events-none after:absolute after:inset-0",
         onClick && "cursor-pointer",
         radius,
         colorClassName(props),
@@ -6843,7 +7098,7 @@ function Chip(props) {
       ),
       children: [
         adornment,
-        children,
+        /* @__PURE__ */ jsx("div", { className: "flex-auto overflow-hidden overflow-ellipsis", children }),
         onRemove && /* @__PURE__ */ jsx(
           ButtonBase,
           {
@@ -7736,9 +7991,6 @@ function BottomCta({
     }
   );
 }
-const EnvatoIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M 23.898438 47 C 13.65625 47 5.003906 38.355469 5.003906 28.125 L 5.003906 28 C 4.929688 23.074219 6.558594 19.714844 7.261719 18.5 C 8.621094 16.152344 10.296875 14.410156 10.8125 14.136719 C 11.566406 13.734375 12.121094 14.332031 12.363281 14.585938 C 12.832031 15.085938 12.597656 15.695313 12.507813 15.925781 C 11.613281 18.265625 10.929688 20.28125 11.003906 23.097656 C 11.097656 26.90625 12.488281 28.699219 13.085938 29.292969 C 13.460938 29.671875 13.769531 29.847656 14.015625 29.933594 C 14.054688 28.671875 14.203125 26.148438 14.773438 23.304688 C 15.113281 21.589844 16.28125 17.085938 19.6875 12.296875 C 23.714844 6.632813 28.449219 4.273438 29.214844 4.042969 C 30.570313 3.636719 33.535156 3.128906 35.957031 3.019531 C 38.53125 2.910156 39.160156 3.574219 39.921875 5.035156 L 40.046875 5.277344 C 41.820313 8.613281 45.03125 18.832031 43.65625 29.132813 C 42.011719 39.992188 34.257813 47 23.898438 47 Z M 14.648438 30 C 14.640625 30 14.632813 30 14.628906 30 L 14.652344 30 C 14.648438 30 14.648438 30 14.648438 30 Z " })
-);
 function AccountSettingsPanel({
   id,
   title,
@@ -7750,14 +8002,14 @@ function AccountSettingsPanel({
     "section",
     {
       id,
-      className: "bg-paper rounded border px-24 py-20 mb-24 w-full",
+      className: "rounded-panel mb-24 w-full border bg-paper px-24 py-20",
       children: [
-        /* @__PURE__ */ jsxs("div", { className: "border-b pb-10 flex items-center gap-14", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-14 border-b pb-10", children: [
           /* @__PURE__ */ jsx("div", { className: "text-lg font-light", children: title }),
           titleSuffix && /* @__PURE__ */ jsx("div", { className: "ml-auto", children: titleSuffix })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "pt-24", children }),
-        actions && /* @__PURE__ */ jsx("div", { className: "pt-10 mt-36 border-t flex justify-end", children: actions })
+        actions && /* @__PURE__ */ jsx("div", { className: "mt-36 flex justify-end border-t pt-10", children: actions })
       ]
     }
   );
@@ -7768,7 +8020,7 @@ function List({ children, className, padding, dataTestId }) {
     {
       "data-testid": dataTestId,
       className: clsx(
-        "text-base sm:text-sm outline-none",
+        "text-base outline-none sm:text-sm",
         className,
         padding ?? "py-4"
       ),
@@ -7791,19 +8043,19 @@ const ListItem = forwardRef(
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          focusManager.focusNext();
+          focusManager == null ? void 0 : focusManager.focusNext();
           break;
         case "ArrowUp":
           e.preventDefault();
-          focusManager.focusPrevious();
+          focusManager == null ? void 0 : focusManager.focusPrevious();
           break;
         case "Home":
           e.preventDefault();
-          focusManager.focusFirst();
+          focusManager == null ? void 0 : focusManager.focusFirst();
           break;
         case "End":
           e.preventDefault();
-          focusManager.focusLast();
+          focusManager == null ? void 0 : focusManager.focusLast();
           break;
         case "Enter":
         case "Space":
@@ -7873,11 +8125,22 @@ var AccountSettingsId = /* @__PURE__ */ ((AccountSettingsId2) => {
   return AccountSettingsId2;
 })(AccountSettingsId || {});
 function AccountSettingsSidenav() {
+  var _a;
   const p = AccountSettingsId;
   const { hasPermission } = useAuth();
   const { api, social } = useSettings();
+  const { auth } = useContext(SiteConfigContext);
   const socialEnabled = (social == null ? void 0 : social.envato) || (social == null ? void 0 : social.google) || (social == null ? void 0 : social.facebook) || (social == null ? void 0 : social.twitter);
-  return /* @__PURE__ */ jsx("aside", { className: "flex-shrink-0 sticky top-10 hidden lg:block", children: /* @__PURE__ */ jsxs(List, { padding: "p-0", children: [
+  return /* @__PURE__ */ jsx("aside", { className: "sticky top-10 hidden flex-shrink-0 lg:block", children: /* @__PURE__ */ jsxs(List, { padding: "p-0", children: [
+    (_a = auth.accountSettingsPanels) == null ? void 0 : _a.map((panel) => /* @__PURE__ */ jsx(
+      Item,
+      {
+        icon: /* @__PURE__ */ jsx(panel.icon, { viewBox: "0 0 50 50" }),
+        panel: panel.id,
+        children: /* @__PURE__ */ jsx(Trans, { ...panel.label })
+      },
+      panel.id
+    )),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(PersonIcon, {}), panel: p.AccountDetails, children: /* @__PURE__ */ jsx(Trans, { message: "Account details" }) }),
     socialEnabled && /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(LoginIcon, {}), panel: p.SocialLogin, children: /* @__PURE__ */ jsx(Trans, { message: "Social login" }) }),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(LockIcon, {}), panel: p.Password, children: /* @__PURE__ */ jsx(Trans, { message: "Password" }) }),
@@ -7917,7 +8180,13 @@ function SocialLoginPanel({ user }) {
         /* @__PURE__ */ jsx(
           SocialLoginPanelRow,
           {
-            icon: /* @__PURE__ */ jsx(EnvatoIcon, { viewBox: "0 0 50 50", className: "bg-envato" }),
+            icon: /* @__PURE__ */ jsx(
+              EnvatoIcon,
+              {
+                viewBox: "0 0 50 50",
+                className: "border-envato bg-envato text-white"
+              }
+            ),
             service: "envato",
             user
           }
@@ -7946,7 +8215,7 @@ function SocialLoginPanel({ user }) {
             user
           }
         ),
-        /* @__PURE__ */ jsx("div", { className: "text-muted text-sm pt-16 pb-6", children: /* @__PURE__ */ jsx(Trans, { message: "If you disable social logins, you'll still be able to log in using your email and password." }) })
+        /* @__PURE__ */ jsx("div", { className: "pb-6 pt-16 text-sm text-muted", children: /* @__PURE__ */ jsx(Trans, { message: "If you disable social logins, you'll still be able to log in using your email and password." }) })
       ]
     }
   );
@@ -7968,7 +8237,7 @@ function SocialLoginPanelRow({
     "div",
     {
       className: clsx(
-        "flex items-center gap-14 px-10 py-20 border-b",
+        "flex items-center gap-14 border-b px-10 py-20",
         className
       ),
       children: [
@@ -7976,9 +8245,9 @@ function SocialLoginPanelRow({
           size: "xl",
           className: clsx(icon.props.className, "border p-8 rounded")
         }),
-        /* @__PURE__ */ jsxs("div", { className: "mr-auto whitespace-nowrap overflow-hidden text-ellipsis", children: [
-          /* @__PURE__ */ jsx("div", { className: "first-letter:capitalize text-sm font-bold overflow-hidden text-ellipsis", children: /* @__PURE__ */ jsx(Trans, { message: ":service account", values: { service } }) }),
-          /* @__PURE__ */ jsx("div", { className: "text-xs mt-2", children: username || /* @__PURE__ */ jsx(Trans, { message: "Disabled" }) })
+        /* @__PURE__ */ jsxs("div", { className: "mr-auto overflow-hidden text-ellipsis whitespace-nowrap", children: [
+          /* @__PURE__ */ jsx("div", { className: "overflow-hidden text-ellipsis text-sm font-bold first-letter:capitalize", children: /* @__PURE__ */ jsx(Trans, { message: ":service account", values: { service } }) }),
+          /* @__PURE__ */ jsx("div", { className: "mt-2 text-xs", children: username || /* @__PURE__ */ jsx(Trans, { message: "Disabled" }) })
         ] }),
         /* @__PURE__ */ jsx(
           Button,
@@ -8495,6 +8764,7 @@ class AxiosUpload {
     const formData = new FormData();
     const { onSuccess, onError, onProgress, metadata } = this.config;
     formData.set("file", this.file.native);
+    formData.set("workspaceId", `12`);
     if (metadata) {
       Object.entries(metadata).forEach(([key, value]) => {
         formData.set(key, `${value}`);
@@ -9239,7 +9509,7 @@ function ImageSelector({
       children: /* @__PURE__ */ jsx(Trans, { message: "Remove image" })
     }
   ) : null;
-  const useDefaultButton = defaultValue && value !== defaultValue ? /* @__PURE__ */ jsx(
+  const useDefaultButton = defaultValue != null && value !== defaultValue ? /* @__PURE__ */ jsx(
     Button,
     {
       variant: "outline",
@@ -9472,6 +9742,7 @@ function AvatarVariant({
               variant: "outline",
               size: "sm",
               color: "primary",
+              radius: "rounded-full",
               children: /* @__PURE__ */ jsx(AddAPhotoIcon, {})
             }
           ) })
@@ -9733,6 +10004,7 @@ function ComboBox(props, ref) {
     prependListbox,
     listboxClassName,
     onEndAdornmentClick,
+    autoFocusFirstItem = true,
     ...textFieldProps
   } = props;
   const listbox = useListbox(
@@ -9791,7 +10063,6 @@ function ComboBox(props, ref) {
           endAdornment: !hideEndAdornment ? /* @__PURE__ */ jsx(
             IconButton,
             {
-              radius: "rounded",
               size: "md",
               tabIndex: -1,
               disabled: textFieldProps.disabled,
@@ -9842,6 +10113,7 @@ function ComboBox(props, ref) {
 }
 const ComboBoxForwardRef = React.forwardRef(ComboBox);
 function Select(props, ref) {
+  const isMobile = useIsMobileMediaQuery();
   const {
     hideCaret,
     placeholder = /* @__PURE__ */ jsx(Trans, { message: "Select an option..." }),
@@ -9861,15 +10133,15 @@ function Select(props, ref) {
     isLoading,
     isAsync,
     valueClassName,
+    floatingWidth = isMobile ? "auto" : "matchTrigger",
     ...inputFieldProps
   } = props;
-  const isMobile = useIsMobileMediaQuery();
   const listbox = useListbox(
     {
       ...props,
       clearInputOnItemSelection: true,
       showEmptyMessage: showEmptyMessage || showSearchField,
-      floatingWidth: isMobile ? "auto" : "matchTrigger",
+      floatingWidth,
       selectionMode: "single",
       role: "listbox",
       virtualFocus: showSearchField
@@ -9949,7 +10221,7 @@ function Select(props, ref) {
       searchField: showSearchField && /* @__PURE__ */ jsx(
         TextField,
         {
-          size: "sm",
+          size: props.size === "xs" || props.size === "sm" ? "xs" : "sm",
           placeholder: searchPlaceholder,
           startAdornment: /* @__PURE__ */ jsx(SearchIcon, {}),
           className: "flex-shrink-0 px-8 pb-8 pt-4",
@@ -9973,7 +10245,7 @@ function Select(props, ref) {
         {
           fieldClassNames,
           ...fieldProps,
-          endAdornment: /* @__PURE__ */ jsx(ComboboxEndAdornment, { isLoading }),
+          endAdornment: !hideCaret && /* @__PURE__ */ jsx(ComboboxEndAdornment, { isLoading }),
           children: /* @__PURE__ */ jsx(
             "button",
             {
@@ -10021,7 +10293,37 @@ function FormSelect({
     errorMessage: error == null ? void 0 : error.message,
     name: props.name
   };
-  return /* @__PURE__ */ jsx(SelectForwardRef, { ref, ...mergeProps(formProps, props), children });
+  const errorMessage = props.errorMessage || (error == null ? void 0 : error.message);
+  return /* @__PURE__ */ jsx(
+    SelectForwardRef,
+    {
+      ref,
+      ...mergeProps(formProps, props, { errorMessage }),
+      children
+    }
+  );
+}
+function TimezoneSelect({
+  name,
+  size: size2,
+  timezones,
+  label,
+  ...selectProps
+}) {
+  const { trans } = useTrans();
+  return /* @__PURE__ */ jsx(
+    FormSelect,
+    {
+      selectionMode: "single",
+      name,
+      size: size2,
+      label,
+      showSearchField: true,
+      searchPlaceholder: trans(message("Search timezones")),
+      ...selectProps,
+      children: Object.entries(timezones).map(([sectionName, sectionItems]) => /* @__PURE__ */ jsx(Section, { label: sectionName, children: sectionItems.map((timezone) => /* @__PURE__ */ jsx(Item$1, { value: timezone.value, children: timezone.text }, timezone.value)) }, sectionName))
+    }
+  );
 }
 function LocalizationPanel({ user }) {
   const formId = useId();
@@ -10088,14 +10390,11 @@ function LocalizationPanel({ user }) {
               }
             ),
             /* @__PURE__ */ jsx(
-              FormSelect,
+              TimezoneSelect,
               {
-                selectionMode: "single",
-                name: "timezone",
                 label: /* @__PURE__ */ jsx(Trans, { message: "Timezone" }),
-                showSearchField: true,
-                searchPlaceholder: trans(message("Search timezones")),
-                children: Object.entries(timezones).map(([sectionName, sectionItems]) => /* @__PURE__ */ jsx(Section, { label: sectionName, children: sectionItems.map((timezone) => /* @__PURE__ */ jsx(Item$1, { value: timezone.value, children: timezone.text }, timezone.value)) }, sectionName))
+                name: "timezone",
+                timezones
               }
             )
           ]
@@ -10964,15 +11263,17 @@ function ValueOrUnknown({ children }) {
   return children ? /* @__PURE__ */ jsx(Fragment, { children }) : /* @__PURE__ */ jsx(Trans, { message: "Unknown" });
 }
 function AccountSettingsPage() {
+  var _a;
+  const { auth } = useContext(SiteConfigContext);
   const { data, isLoading } = useUser("me", {
     with: ["roles", "social_profiles", "tokens"]
   });
-  return /* @__PURE__ */ jsxs("div", { className: "bg-alt min-h-screen", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-alt", children: [
     /* @__PURE__ */ jsx(StaticPageTitle, { children: /* @__PURE__ */ jsx(Trans, { message: "Account Settings" }) }),
     /* @__PURE__ */ jsx(Navbar, { menuPosition: "account-settings-page" }),
     /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsxs("div", { className: "container mx-auto my-24 px-24", children: [
       /* @__PURE__ */ jsx("h1", { className: "text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Account settings" }) }),
-      /* @__PURE__ */ jsx("div", { className: "mb-40 text-muted text-base", children: /* @__PURE__ */ jsx(Trans, { message: "View and update your account details, profile and more." }) }),
+      /* @__PURE__ */ jsx("div", { className: "mb-40 text-base text-muted", children: /* @__PURE__ */ jsx(Trans, { message: "View and update your account details, profile and more." }) }),
       isLoading || !data ? /* @__PURE__ */ jsx(
         ProgressCircle,
         {
@@ -10983,6 +11284,7 @@ function AccountSettingsPage() {
       ) : /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-24", children: [
         /* @__PURE__ */ jsx(AccountSettingsSidenav, {}),
         /* @__PURE__ */ jsxs("main", { className: "flex-auto", children: [
+          (_a = auth.accountSettingsPanels) == null ? void 0 : _a.map((panel) => /* @__PURE__ */ jsx(panel.component, { user: data.user }, panel.id)),
           /* @__PURE__ */ jsx(BasicInfoPanel, { user: data.user }),
           /* @__PURE__ */ jsx(SocialLoginPanel, { user: data.user }),
           /* @__PURE__ */ jsx(ChangePasswordPanel, {}),
@@ -11258,9 +11560,9 @@ function ContactSection() {
   ] });
 }
 const BillingPageRoutes = React.lazy(
-  () => import("./assets/billing-page-routes-0d187706.mjs")
+  () => import("./assets/billing-page-routes-452fd57e.mjs")
 );
-const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-b7007b94.mjs"));
+const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-388e4c47.mjs"));
 const BillingRoutes = /* @__PURE__ */ jsxs(Fragment, { children: [
   /* @__PURE__ */ jsx(Route, { path: "/pricing", element: /* @__PURE__ */ jsx(PricingPage, {}) }),
   /* @__PURE__ */ jsx(
@@ -11283,11 +11585,12 @@ function NotificationsPage() {
   const { data, isLoading } = useUserNotifications({ perPage: 30 });
   const hasUnread = !!(user == null ? void 0 : user.unread_notifications_count);
   const markAsRead = useMarkNotificationsAsRead();
+  const { notif } = useSettings();
   const handleMarkAsRead = () => {
     if (!data)
       return;
     markAsRead.mutate({
-      ids: data.pagination.data.map((n) => n.id)
+      markAllAsUnread: true
     });
   };
   const markAsReadButton = /* @__PURE__ */ jsx(
@@ -11306,10 +11609,20 @@ function NotificationsPage() {
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(StaticPageTitle, { children: /* @__PURE__ */ jsx(Trans, { message: "Notifications" }) }),
     /* @__PURE__ */ jsx(Navbar, { menuPosition: "notifications-page" }),
-    /* @__PURE__ */ jsxs("div", { className: "container mx-auto p-16 md:p-24 min-h-[1000px]", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-24 mb-30", children: [
+    /* @__PURE__ */ jsxs("div", { className: "container mx-auto min-h-[1000px] p-16 md:p-24", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mb-30 flex items-center gap-24", children: [
         /* @__PURE__ */ jsx("h1", { className: "text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Notifications" }) }),
-        hasUnread && markAsReadButton
+        hasUnread && markAsReadButton,
+        notif.subs.integrated && /* @__PURE__ */ jsx(
+          IconButton,
+          {
+            className: "ml-auto text-muted",
+            elementType: Link,
+            to: "/notifications/settings",
+            target: "_blank",
+            children: /* @__PURE__ */ jsx(SettingsIcon, {})
+          }
+        )
       ] }),
       /* @__PURE__ */ jsx(PageContent, {})
     ] }),
@@ -11356,6 +11669,7 @@ function useUpdateNotificationSettings() {
   });
 }
 function NotificationSettingsPage() {
+  const { notif } = useSettings();
   const updateSettings = useUpdateNotificationSettings();
   const { data, isFetched } = useNotificationSubscriptions();
   const [selection, setSelection] = useState();
@@ -11379,6 +11693,9 @@ function NotificationSettingsPage() {
       setSelection(initialSelection);
     }
   }, [data, selection]);
+  if (!notif.subs.integrated || data && data.subscriptions.length === 0) {
+    return /* @__PURE__ */ jsx(Navigate, { to: "/", replace: true });
+  }
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-alt", children: [
     /* @__PURE__ */ jsx(Navbar, { menuPosition: "notifications-page" }),
     !isFetched || !data || !selection ? /* @__PURE__ */ jsx("div", { className: "container mx-auto my-100 flex justify-center", children: /* @__PURE__ */ jsx(
@@ -11643,11 +11960,11 @@ function DialogStoreOutlet() {
     }
   );
 }
-const AdminRoutes = React.lazy(() => import("./assets/admin-routes-d52fddd6.mjs").then((n) => n.Y));
+const AdminRoutes = React.lazy(() => import("./assets/admin-routes-6affa834.mjs").then((n) => n.Y));
 const SwaggerApiDocs = React.lazy(
-  () => import("./assets/swagger-api-docs-page-ebf8704c.mjs")
+  () => import("./assets/swagger-api-docs-page-6890ff43.mjs")
 );
-const SiteRoutes = React.lazy(() => import("./assets/site-routes-90e0d692.mjs"));
+const SiteRoutes = React.lazy(() => import("./assets/site-routes-5fb59717.mjs"));
 function AppRoutes() {
   var _a;
   const { homepage, billing, notifications, require_email_confirmation, api } = useSettings();
@@ -11804,7 +12121,7 @@ async function takeScreenshot(request, response) {
 }
 console.log(`Starting SSR server on port ${port}...`);
 export {
-  FormSelect as $,
+  createSvgIconFromTree as $,
   onFormQueryError as A,
   Button as B,
   CustomMenu as C,
@@ -11819,134 +12136,136 @@ export {
   FormattedDate as L,
   Tooltip as M,
   Navbar as N,
-  ButtonBase as O,
+  LoginIcon as O,
   ProgressBar as P,
-  getInputFieldClassNames as Q,
-  FormImageSelector as R,
+  ButtonBase as Q,
+  getInputFieldClassNames as R,
   SelectForwardRef as S,
   Trans as T,
   Underlay as U,
-  useValueLists as V,
-  DoneAllIcon as W,
-  List as X,
-  ListItem as Y,
-  Skeleton as Z,
-  createSvgIconFromTree as _,
+  FormImageSelector as V,
+  useValueLists as W,
+  DoneAllIcon as X,
+  List as Y,
+  ListItem as Z,
+  Skeleton as _,
   useMediaQuery as a,
-  useDarkThemeVariables as a$,
-  Section as a0,
-  MixedText as a1,
-  FileUploadProvider as a2,
-  useAppearanceEditorMode as a3,
-  ProgressCircle as a4,
-  useNavigate as a5,
-  useBootstrapData as a6,
-  FullPageLoader as a7,
-  LinkStyle as a8,
-  SiteConfigContext as a9,
-  RadioGroup as aA,
-  Radio as aB,
-  openDialog as aC,
-  PageErrorMessage as aD,
-  ComboBoxForwardRef as aE,
-  openUploadWindow as aF,
-  UploadInputType as aG,
-  PageMetaTags as aH,
-  WarningIcon as aI,
-  KeyboardArrowDownIcon as aJ,
-  shallowEqual as aK,
-  getBootstrapData as aL,
-  useSelectedLocale as aM,
-  useThemeSelector as aN,
-  lazyLoader as aO,
-  AuthRoute as aP,
-  useCustomPage as aQ,
-  NotFoundPage as aR,
-  Footer as aS,
-  useCookie as aT,
-  FacebookIcon as aU,
-  TwitterIcon as aV,
-  LockIcon as aW,
-  useAuth as aX,
-  useImageSrc as aY,
-  useLocalStorage as aZ,
-  FormattedCurrency as a_,
-  ExternalLink as aa,
-  MenuTrigger as ab,
-  Menu as ac,
-  Checkbox as ad,
-  FormRadioGroup as ae,
-  FormRadio as af,
-  DateFormatPresets as ag,
-  prettyBytes as ah,
-  useSocialLogin as ai,
-  useField as aj,
-  Field as ak,
-  useResendVerificationEmail as al,
-  useUser as am,
-  useUploadAvatar as an,
-  useRemoveAvatar as ao,
-  isAbsoluteUrl as ap,
-  useProducts as aq,
-  FormattedPrice as ar,
-  PageStatus as as,
-  slugifyString as at,
-  FormattedRelativeTime as au,
-  useActiveUpload as av,
-  useAutoFocus as aw,
-  validateUpload as ax,
-  UploadedFile as ay,
-  Disk as az,
+  useAuth as a$,
+  FormSelect as a0,
+  Section as a1,
+  MixedText as a2,
+  FileUploadProvider as a3,
+  useAppearanceEditorMode as a4,
+  ProgressCircle as a5,
+  useNavigate as a6,
+  useBootstrapData as a7,
+  FullPageLoader as a8,
+  LinkStyle as a9,
+  UploadedFile as aA,
+  Disk as aB,
+  SettingsIcon as aC,
+  RadioGroup as aD,
+  Radio as aE,
+  openDialog as aF,
+  PageErrorMessage as aG,
+  ComboBoxForwardRef as aH,
+  openUploadWindow as aI,
+  UploadInputType as aJ,
+  PageMetaTags as aK,
+  WarningIcon as aL,
+  KeyboardArrowDownIcon as aM,
+  shallowEqual as aN,
+  useSelectedLocale as aO,
+  useThemeSelector as aP,
+  lazyLoader as aQ,
+  AuthRoute as aR,
+  useCustomPage as aS,
+  useCollator as aT,
+  loadFonts as aU,
+  NotFoundPage as aV,
+  Footer as aW,
+  useCookie as aX,
+  FacebookIcon as aY,
+  TwitterIcon as aZ,
+  LockIcon as a_,
+  SiteConfigContext as aa,
+  getBootstrapData as ab,
+  ExternalLink as ac,
+  MenuTrigger as ad,
+  Menu as ae,
+  Checkbox as af,
+  FormRadioGroup as ag,
+  FormRadio as ah,
+  DateFormatPresets as ai,
+  prettyBytes as aj,
+  useSocialLogin as ak,
+  useField as al,
+  Field as am,
+  useResendVerificationEmail as an,
+  useUser as ao,
+  useUploadAvatar as ap,
+  useRemoveAvatar as aq,
+  slugifyString as ar,
+  isAbsoluteUrl as as,
+  useProducts as at,
+  FormattedPrice as au,
+  PageStatus as av,
+  FormattedRelativeTime as aw,
+  useActiveUpload as ax,
+  useAutoFocus as ay,
+  validateUpload as az,
   useIsMobileMediaQuery as b,
-  useUserTimezone as b0,
-  AvatarPlaceholderIcon as b1,
-  createEventHandler as b2,
-  useIsDarkMode as b3,
-  useListbox as b4,
-  Listbox as b5,
-  Popover as b6,
-  useListboxKeyboardNavigation as b7,
-  clamp as b8,
-  rootEl as b9,
-  LightModeIcon as bA,
-  LightbulbIcon as bB,
-  LoginIcon as bC,
-  MenuIcon as bD,
-  NotificationsIcon as bE,
-  PaymentsIcon as bF,
-  PeopleIcon as bG,
-  PhonelinkLockIcon as bH,
-  SmartphoneIcon as bI,
-  TabletIcon as bJ,
-  useCollator as bK,
-  elementToTree as bL,
-  EnvatoIcon as bM,
-  MovieIcon as ba,
-  useImageSrcSet as bb,
-  PersonIcon as bc,
-  BillingCycleRadio as bd,
-  findBestPrice as be,
-  removeFromLocalStorage as bf,
-  LocaleSwitcher as bg,
-  ProductFeatureList as bh,
-  ErrorIcon as bi,
-  useCallbackRef as bj,
-  AccountCircleIcon as bk,
-  AddAPhotoIcon as bl,
-  ApiIcon as bm,
-  ArrowDropDownIcon as bn,
-  CheckBoxOutlineBlankIcon as bo,
-  CheckCircleIcon as bp,
-  ComputerIcon as bq,
-  DangerousIcon as br,
-  DarkModeIcon as bs,
-  DevicesIcon as bt,
-  ErrorOutlineIcon as bu,
-  ExitToAppIcon as bv,
-  FileDownloadDoneIcon as bw,
-  ForumIcon as bx,
-  GroupAddIcon as by,
-  LanguageIcon as bz,
+  useImageSrc as b0,
+  useLocalStorage as b1,
+  FormattedCurrency as b2,
+  useDarkThemeVariables as b3,
+  useUserTimezone as b4,
+  createEventHandler as b5,
+  useIsDarkMode as b6,
+  ArrowDropDownIcon as b7,
+  AvatarPlaceholderIcon as b8,
+  useListbox as b9,
+  FileDownloadDoneIcon as bA,
+  ForumIcon as bB,
+  GroupAddIcon as bC,
+  LanguageIcon as bD,
+  LightModeIcon as bE,
+  LightbulbIcon as bF,
+  MenuIcon as bG,
+  NotificationsIcon as bH,
+  PaymentsIcon as bI,
+  PeopleIcon as bJ,
+  PhonelinkLockIcon as bK,
+  SmartphoneIcon as bL,
+  TabletIcon as bM,
+  elementToTree as bN,
+  EnvatoIcon as bO,
+  Listbox as ba,
+  Popover as bb,
+  useListboxKeyboardNavigation as bc,
+  clamp as bd,
+  rootEl as be,
+  MovieIcon as bf,
+  useImageSrcSet as bg,
+  PersonIcon as bh,
+  BillingCycleRadio as bi,
+  findBestPrice as bj,
+  removeFromLocalStorage as bk,
+  LocaleSwitcher as bl,
+  ProductFeatureList as bm,
+  ErrorIcon as bn,
+  useCallbackRef as bo,
+  AccountCircleIcon as bp,
+  AddAPhotoIcon as bq,
+  ApiIcon as br,
+  CheckBoxOutlineBlankIcon as bs,
+  CheckCircleIcon as bt,
+  ComputerIcon as bu,
+  DangerousIcon as bv,
+  DarkModeIcon as bw,
+  DevicesIcon as bx,
+  ErrorOutlineIcon as by,
+  ExitToAppIcon as bz,
   createSvgIcon as c,
   useNumberFormatter as d,
   Item$1 as e,

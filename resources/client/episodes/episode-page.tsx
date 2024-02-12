@@ -25,9 +25,9 @@ import {useIsStreamingMode} from '@app/videos/use-is-streaming-mode';
 import {WatchNowButton} from '@app/titles/pages/title-page/watch-now-button';
 import {Episode} from '@app/titles/models/episode';
 import {TitlePageSections} from '@app/titles/pages/title-page/sections/title-page-sections';
-import {useConfiguredTitlePageSections} from '@app/titles/pages/title-page/sections/use-configured-title-page-sections';
 import {TitlePageEpisodeGrid} from '@app/titles/pages/title-page/sections/title-page-episode-grid';
 import {Trans} from '@common/i18n/trans';
+import {useSettings} from '@common/core/settings/use-settings';
 
 export function EpisodePage() {
   const query = useEpisode('episodePage');
@@ -70,7 +70,7 @@ interface MainContentProps {
 }
 function MainContent({data}: MainContentProps) {
   const {episode, title, credits} = data;
-  const sections = useConfiguredTitlePageSections();
+  const {title_page} = useSettings();
   return (
     <main className="@container">
       {title.genres?.length ? (
@@ -92,7 +92,7 @@ function MainContent({data}: MainContentProps) {
         description={episode.description}
       />
       <CompactCredits credits={credits} />
-      {sections.map(name => (
+      {title_page?.sections.map(name => (
         <EpisodePageSection key={name} name={name} data={data} />
       ))}
     </main>
