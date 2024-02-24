@@ -29,8 +29,10 @@ use App\Http\Controllers\VideoApproveController;
 use App\Http\Controllers\VideosController;
 use App\Http\Controllers\WatchController;
 use Common\Channels\ChannelController;
+use App\Http\Controllers\VideoLinkManagementController;
 
 Route::group(['prefix' => 'v1'], function() {
+    Route::post('/users/video-management/links', [VideoLinkManagementController::class, 'store'])->name('user.video-management.link.store');
     Route::group(['middleware' => ['optionalAuth:sanctum', 'verified', 'verifyApiAccess']], function () {
         // episodes
         Route::get('titles/{titleId}/seasons/{seasonNumber}/episodes/{episodeNumber}', [EpisodeController::class, 'show']);

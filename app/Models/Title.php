@@ -35,6 +35,11 @@ class Title extends BaseModel
     public const SERIES_TYPE = 'series';
     public const MODEL_TYPE = 'title';
 
+    public const IMDB_MEDIUM = 'imdb';
+    public const TMDB_MEDIUM = 'tmdb';
+    public const IWO_MEDIUM = 'iwo';
+    public const TV_MAZE_MEDIUM = 'tv_maze';
+
     protected $guarded = ['id', 'type'];
     protected $appends = [
         'rating',
@@ -53,6 +58,7 @@ class Title extends BaseModel
         'tmdb_vote_count',
         'mc_user_score',
         'mc_critic_score',
+        'api_key',
     ];
 
     protected $casts = [
@@ -356,5 +362,13 @@ class Title extends BaseModel
         return static::where('tmdb_id', $tmdbId)
             ->where('is_series', $type === Title::SERIES_TYPE)
             ->firstOrFail();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class, 'title_id');
     }
 }

@@ -6,7 +6,9 @@ use App\Actions\Titles\StoresMediaImages;
 use App\Models\Season;
 use App\Models\Title;
 use App\Models\Video;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class StoreTitleData
@@ -28,8 +30,10 @@ class StoreTitleData
         $this->data = $data;
         $this->options = $options;
 
-        $this->persistData();
-        $this->persistRelations();
+        DB::transaction(function () {
+            $this->persistData();
+            $this->persistRelations();
+        });
 
         return $this->title;
     }
@@ -121,13 +125,19 @@ class StoreTitleData
     private function persistVideos(array $values): void
     {
         $videos = collect($values)
-            ->unique(fn($v) => strtolower($v['name']))
+            ->unique(fn($v) => strtolower($v['name'] ?? $this->options['videos']['name']))
             ->values()
             ->map(function ($value, $i) {
                 $value['title_id'] = $this->title->id;
                 $value['order'] = $i + 1;
                 $value['created_at'] = now();
                 $value['updated_at'] = now();
+                if (isset($this->options['videos'])) {
+                    $value['name'] = $value['name'] ?? $this->options['videos']['name'];
+                    $value['type'] = $value['type'] ?? $this->options['videos']['type'];
+                    $value['category'] = $value['category'] ?? $this->options['videos']['category'];
+                    $value['user_id'] = $this->options['videos']['user_id'];
+                }
                 return $value;
             });
 
