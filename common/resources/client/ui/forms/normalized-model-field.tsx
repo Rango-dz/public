@@ -7,7 +7,7 @@ import {IconButton} from '../buttons/icon-button';
 import {EditIcon} from '../../icons/material/Edit';
 import {message} from '../../i18n/message';
 import {Item} from './listbox/item';
-import {useController} from 'react-hook-form';
+import {useController, useFormContext} from 'react-hook-form';
 import {useControlledState} from '@react-stately/utils';
 import {getInputFieldClassNames} from './input-field/get-input-field-class-names';
 import clsx from 'clsx';
@@ -21,8 +21,6 @@ import {MessageDescriptor} from '@common/i18n/message-descriptor';
 import {BaseFieldProps} from '@common/ui/forms/input-field/base-field-props';
 
 interface NormalizedModelFieldProps {
-  // can be empty string to simplify building custom endpoints
-  modelType: string | '';
   label?: ReactNode;
   className?: string;
   background?: BaseFieldProps['background'];
@@ -36,13 +34,11 @@ interface NormalizedModelFieldProps {
   description?: ReactNode;
   autoFocus?: boolean;
   queryParams?: Record<string, string>;
-  customEndpoint?: string;
-  singleEndpoint?: string;
-  multipleEndpoint?: string;
+  endpoint: string;
   disabled?: boolean;
+  required?: boolean;
 }
 export function NormalizedModelField({
-  modelType,
   label,
   className,
   background,
@@ -56,27 +52,21 @@ export function NormalizedModelField({
   invalid,
   autoFocus,
   queryParams,
-  customEndpoint,
-  singleEndpoint = customEndpoint,
-  multipleEndpoint = customEndpoint,
+  endpoint,
   disabled,
+  required,
 }: NormalizedModelFieldProps) {
   const inputRef = useRef<HTMLButtonElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [selectedValue, setSelectedValue] = useControlledState(
     value,
     defaultValue,
-    onChange
+    onChange,
   );
-  const query = useNormalizedModels(
-    modelType,
-    {
-      query: inputValue,
-      ...queryParams,
-    },
-    null,
-    multipleEndpoint
-  );
+  const query = useNormalizedModels(endpoint, {
+    query: inputValue,
+    ...queryParams,
+  });
   const {trans} = useTrans();
 
   const fieldClassNames = getInputFieldClassNames({size: 'md'});
@@ -87,16 +77,15 @@ export function NormalizedModelField({
         <div className={fieldClassNames.label}>{label}</div>
         <div
           className={clsx(
-            'rounded border p-8',
+            'rounded-input border p-8',
             background,
-            invalid && 'border-danger'
+            invalid && 'border-danger',
           )}
         >
           <AnimatePresence initial={false} mode="wait">
             <SelectedModelPreview
               disabled={disabled}
-              endpoint={singleEndpoint}
-              modelType={modelType}
+              endpoint={endpoint}
               modelId={selectedValue}
               queryParams={queryParams}
               onEditClick={() => {
@@ -143,6 +132,7 @@ export function NormalizedModelField({
       ref={inputRef}
       autoFocus={autoFocus}
       disabled={disabled}
+      required={required}
     >
       {model => (
         <Item
@@ -159,7 +149,6 @@ export function NormalizedModelField({
 }
 
 interface SelectedModelPreviewProps {
-  modelType: string;
   modelId: string | number;
   selectedValue?: number | string;
   onEditClick?: () => void;
@@ -168,7 +157,6 @@ interface SelectedModelPreviewProps {
   queryParams?: NormalizedModelFieldProps['queryParams'];
 }
 function SelectedModelPreview({
-  modelType,
   modelId,
   onEditClick,
   endpoint,
@@ -176,10 +164,8 @@ function SelectedModelPreview({
   queryParams,
 }: SelectedModelPreviewProps) {
   const {data, isLoading} = useNormalizedModel(
-    modelType,
-    modelId,
+    `${endpoint}/${modelId}`,
     queryParams,
-    endpoint
   );
 
   if (isLoading || !data?.model) {
@@ -190,7 +176,7 @@ function SelectedModelPreview({
     <m.div
       className={clsx(
         'flex items-center gap-10',
-        disabled && 'pointer-events-none cursor-not-allowed text-disabled'
+        disabled && 'pointer-events-none cursor-not-allowed text-disabled',
       )}
       key="preview"
       {...opacityAnimation}
@@ -234,6 +220,7 @@ export function FormNormalizedModelField({
   name,
   ...fieldProps
 }: FormNormalizedModelFieldProps) {
+  const {clearErrors} = useFormContext();
   const {
     field: {onChange, value = ''},
     fieldState: {invalid, error},
@@ -244,7 +231,10 @@ export function FormNormalizedModelField({
   return (
     <NormalizedModelField
       value={value}
-      onChange={onChange}
+      onChange={value => {
+        onChange(value);
+        clearErrors(name);
+      }}
       invalid={invalid}
       errorMessage={error?.message}
       {...fieldProps}

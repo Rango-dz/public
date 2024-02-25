@@ -5,7 +5,7 @@ return [
     [
         'name' => 'branding.site_description',
         'value' =>
-            "Iwatchonline, the world's most popular and authoritative source for movie, TV and celebrity content.",
+            "iwatchonline, the world's most popular and authoritative source for movie, TV and celebrity content.",
     ],
 
     // billing
@@ -688,7 +688,6 @@ return [
     ['name' => 'news.auto_update', 'value' => false],
     ['name' => 'tmdb.language', 'value' => 'en'],
     ['name' => 'tmdb.includeAdult', 'value' => false],
-    ['name' => 'titles.video_panel_mode', 'value' => 'carousel'],
     ['name' => 'streaming.video_panel_content', 'value' => 'all'],
     ['name' => 'streaming.related_videos_type', 'value' => 'other_titles'],
     ['name' => 'player.show_next_episodes', 'value' => false],
@@ -722,7 +721,7 @@ return [
             'headerSubtitle' =>
                 'Unleash the Power of Streaming with Our Vast Collection of Movies and TV Shows',
             'headerImage' => 'images/landing/landing.jpg',
-            'headerImageOpacity' => "0.4",
+            'headerImageOpacity' => '0.4',
             'headerOverlayColor1' => '#000',
             'blurHeaderImage' => true,
             'pricingTitle' => 'Simple pricing, for everyone.',
@@ -731,13 +730,13 @@ return [
                 'cta1' => [
                     'label' => 'Join Now',
                     'type' => 'route',
-                    'action' => '/register'
+                    'action' => '/register',
                 ],
                 'cta3' => [
                     'label' => 'Get Instant Access',
                     'type' => 'route',
-                    'action' => '/register'
-                ]
+                    'action' => '/register',
+                ],
             ],
             'secondaryFeatures' => [
                 [
@@ -763,7 +762,8 @@ return [
                 ],
             ],
             'footerTitle' => 'Start Your Streaming Journey Today!',
-            'footerSubtitle' => "Unlock a World of Entertainment with MTDb Premium Streaming Service",
+            'footerSubtitle' =>
+                'Unlock a World of Entertainment with iwatchonline Premium Streaming Service',
             'footerImage' => 'images/landing/landing.jpg',
         ]),
     ],

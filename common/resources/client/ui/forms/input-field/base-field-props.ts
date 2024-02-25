@@ -5,6 +5,7 @@ export interface BaseFieldProps {
   disabled?: boolean;
   required?: boolean;
   labelSuffix?: ReactNode;
+  labelSuffixPosition?: 'spaced' | 'inline';
   autoFocus?: boolean;
   autoSelectText?: boolean;
   labelElementType?: ElementType;

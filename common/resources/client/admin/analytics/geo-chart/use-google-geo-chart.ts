@@ -38,10 +38,10 @@ export function useGoogleGeoChart({
     ]);
 
     const backgroundColor = `${themeValueToHex(
-      selectedTheme.colors['--be-paper']
+      selectedTheme.values['--be-paper'],
     )}`;
     const chartColor = `${themeValueToHex(
-      selectedTheme.colors['--be-primary']
+      selectedTheme.values['--be-primary'],
     )}`;
 
     const options: google.visualization.GeoChartOptions = {
@@ -59,12 +59,12 @@ export function useGoogleGeoChart({
       google?.visualization?.GeoChart
     ) {
       geoChartRef.current = new google.visualization.GeoChart(
-        placeholderRef.current
+        placeholderRef.current,
       );
     }
     geoChartRef.current?.draw(
       google.visualization.arrayToDataTable(seedData),
-      options
+      options,
     );
   }, [
     selectedTheme,
@@ -77,7 +77,7 @@ export function useGoogleGeoChart({
 
   const initGoogleGeoChart = useCallback(async () => {
     if (lazyLoader.isLoadingOrLoaded(loaderUrl)) return;
-    await lazyLoader.loadAsset(loaderUrl, {type: 'js'});
+    await lazyLoader.loadAsset(loaderUrl, {type: 'js', id: 'google-charts-js'});
     await google.charts.load('current', {
       packages: ['geochart'],
       mapsApiKey: apiKey,
@@ -90,7 +90,7 @@ export function useGoogleGeoChart({
       google.visualization.events.addListener(
         geoChartRef.current,
         'regionClick',
-        (a: {region: string}) => onCountrySelected?.(a.region)
+        (a: {region: string}) => onCountrySelected?.(a.region),
       );
     }
 

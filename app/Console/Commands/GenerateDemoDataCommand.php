@@ -8,6 +8,7 @@ use App\Actions\Demo\GenerateDemoReviews;
 use App\Actions\Demo\GenerateDemoStreamVideos;
 use App\Actions\Demo\GenerateDemoUsers;
 use App\Actions\Demo\GenerateDemoVideoVotes;
+use App\Models\Channel;
 use Common\Admin\Appearance\Themes\CssTheme;
 use Common\Channels\GenerateChannelsFromConfig;
 use Common\Channels\UpdateAllChannelsContent;
@@ -15,10 +16,11 @@ use Common\Settings\DotEnvEditor;
 use Common\Settings\Setting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class GenerateDemoDataCommand extends Command
 {
-    protected $signature = 'demo:generate {variant}';
+    protected $signature = 'demo:generate {variant} {--truncate}';
 
     public function handle(): void
     {
@@ -73,14 +75,13 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = (new GenerateChannelsFromConfig())->execute([
+        $homepageChannel = $this->generateChannels([
             resource_path('defaults/channels/shared-channels.json'),
             resource_path('defaults/channels/default-channels.json'),
         ]);
         settings()->save([
             'homepage.type' => 'channels',
             'homepage.value' => $homepageChannel->id,
-            'titles.video_panel_mode' => 'carousel',
             'streaming.video_panel_content' => 'all',
             'streaming.prefer_full' => false,
             'streaming.show_video_selector' => false,
@@ -109,6 +110,10 @@ class GenerateDemoDataCommand extends Command
 
     protected function streamingVariant(): void
     {
+        if ($this->option('truncate')) {
+            Artisan::call(TruncateTitleData::class);
+        }
+
         $this->overridePrimaryMenu([
             [
                 'id' => 'cVKg0I',
@@ -130,7 +135,7 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = (new GenerateChannelsFromConfig())->execute([
+        $homepageChannel = $this->generateChannels([
             resource_path('defaults/channels/shared-channels.json'),
             resource_path('defaults/channels/streaming-channels.json'),
         ]);
@@ -140,7 +145,7 @@ class GenerateDemoDataCommand extends Command
         settings()->save([
             'themes.default_id' => $darkTheme->id,
             'homepage.type' => 'landingPage',
-            'titles.video_panel_mode' => 'hide',
+            'homepage.value' => $homepageChannel->id,
             'streaming.video_panel_content' => 'full',
             'streaming.prefer_full' => true,
             'streaming.show_video_selector' => false,
@@ -162,8 +167,12 @@ class GenerateDemoDataCommand extends Command
             'scout_driver' => 'meilisearch',
         ]);
 
+        $this->info('Updating channels');
         Artisan::call(UpdateAllChannelsContent::class);
+        $this->info('Channels updated.');
+        $this->info('Updating seasons');
         Artisan::call(UpdateSeasonsFromRemote::class);
+        $this->info('Seasons updated.');
 
         (new GenerateDemoUsers())->execute();
         (new GenerateDemoStreamVideos())->execute();
@@ -174,6 +183,10 @@ class GenerateDemoDataCommand extends Command
 
     protected function animeVariant(): void
     {
+        if ($this->option('truncate')) {
+            Artisan::call(TruncateTitleData::class);
+        }
+
         $this->overridePrimaryMenu([
             [
                 'id' => 'cVKg0I',
@@ -195,7 +208,7 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = (new GenerateChannelsFromConfig())->execute([
+        $homepageChannel = $this->generateChannels([
             resource_path('defaults/channels/shared-channels.json'),
             resource_path('defaults/channels/anime-channels.json'),
         ]);
@@ -203,7 +216,6 @@ class GenerateDemoDataCommand extends Command
         settings()->save([
             'homepage.type' => 'channels',
             'homepage.value' => $homepageChannel->id,
-            'titles.video_panel_mode' => 'hide',
             'streaming.video_panel_content' => 'full',
             'streaming.prefer_full' => true,
             'streaming.show_video_selector' => true,
@@ -236,14 +248,22 @@ class GenerateDemoDataCommand extends Command
 
     protected function overridePrimaryMenu(array $items): void
     {
-        $menus = json_decode(
-            Setting::where('name', 'menus')->first()->value,
-            true,
-        );
+        $menus = Setting::where('name', 'menus')->first()->value;
         $index = array_search('primary', array_column($menus, 'name'));
         $menus[$index]['items'] = $items;
         Setting::where('name', 'menus')->update([
             'value' => json_encode($menus),
         ]);
+    }
+
+    protected function generateChannels(array $paths): ?Channel
+    {
+        $ids = Channel::where('type', 'channel')->pluck('id');
+        DB::table('channelables')
+            ->whereIn('channel_id', $ids)
+            ->delete();
+        Channel::whereIn('id', $ids)->delete();
+
+        return (new GenerateChannelsFromConfig())->execute($paths);
     }
 }

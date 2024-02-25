@@ -8,6 +8,8 @@ import {MetaTag} from '../../seo/meta-tag';
 export interface BootstrapData {
   themes: {all: CssTheme[]; selectedThemeId?: number | string | null};
   sentry_release: string;
+  is_mobile_device: boolean;
+  csrf_token: string;
   settings: Settings;
   user: User | null;
   guest_role: Role | null;

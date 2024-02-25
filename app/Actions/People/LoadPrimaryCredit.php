@@ -11,17 +11,22 @@ class LoadPrimaryCredit
 {
     public function execute(Collection|AbstractPaginator $people): void
     {
+        $prefix = DB::getTablePrefix();
         $titleSelect = Title::select([
             'titles.id',
             'titles.is_series',
             'titles.name',
-            DB::raw('creditables.person_id as pivot_person_id'),
-            DB::raw('creditables.creditable_id as pivot_creditable_id'),
-            DB::raw('creditables.creditable_type as pivot_creditable_type'),
-            DB::raw('creditables.job as pivot_job'),
-            DB::raw('creditables.department as pivot_department'),
+            DB::raw("{$prefix}creditables.person_id as pivot_person_id"),
             DB::raw(
-                'row_number() over (partition by creditables.person_id order by titles.popularity desc) as laravel_row',
+                "{$prefix}creditables.creditable_id as pivot_creditable_id",
+            ),
+            DB::raw(
+                "{$prefix}creditables.creditable_type as pivot_creditable_type",
+            ),
+            DB::raw("{$prefix}creditables.job as pivot_job"),
+            DB::raw("{$prefix}creditables.department as pivot_department"),
+            DB::raw(
+                "row_number() over (partition by {$prefix}creditables.person_id order by {$prefix}titles.popularity desc) as laravel_row",
             ),
         ])
             ->join('creditables', 'titles.id', '=', 'creditables.creditable_id')
@@ -29,9 +34,14 @@ class LoadPrimaryCredit
             ->whereIn('creditables.person_id', $people->pluck('id'))
             // this scope will mess up binding merging below
             ->withoutGlobalScope('adult')
-            ->when(!config('tmdb.includeAdult'), fn($q) => $q->where('adult', false));
+            ->when(
+                !config('tmdb.includeAdult'),
+                fn($q) => $q->where('adult', false),
+            );
 
-        $items = DB::table(DB::raw("({$titleSelect->toSql()}) as laravel_table"))
+        $items = DB::table(
+            DB::raw("({$titleSelect->toSql()}) as laravel_table"),
+        )
             ->select('*')
             ->mergeBindings($titleSelect->getQuery())
             ->where('laravel_row', '<=', 1)

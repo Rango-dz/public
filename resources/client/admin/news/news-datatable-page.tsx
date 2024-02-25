@@ -47,7 +47,6 @@ function Actions() {
         <IconButton
           variant="outline"
           color="primary"
-          radius="rounded"
           size="sm"
           onClick={() => importArticles.mutate()}
           disabled={importArticles.isPending}

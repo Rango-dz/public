@@ -4,9 +4,11 @@ namespace Common\Channels;
 
 use App\Http\Resources\ChannelResource;
 use App\Models\Channel;
+use App\Services\GenerateDefaultChannels;
 use Common\Core\BaseController;
 use Common\Core\Prerender\Actions\ReplacePlaceholders;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class ChannelController extends BaseController
@@ -39,9 +41,16 @@ class ChannelController extends BaseController
         }
 
         $channel->loadContent($params);
+        if (
+            $loader === 'channelPage' &&
+            $channel->shouldRestrictContent() &&
+            !$channel->restriction
+        ) {
+            abort(404);
+        }
 
         $channel =
-            $loader === 'channelPage'
+            $loader === 'channelPage' && class_exists(ChannelResource::class)
                 ? new ChannelResource($channel)
                 : $channel;
 
@@ -81,7 +90,7 @@ class ChannelController extends BaseController
         }
 
         return $this->renderClientOrApi([
-            'pageName' => 'channel-page',
+            'pageName' => $loader === 'channelPage' ? 'channel-page' : null,
             'data' => [
                 'channel' => $channel,
                 'loader' => $loader,
@@ -104,7 +113,7 @@ class ChannelController extends BaseController
         Channel $channel,
         CrupdateChannelRequest $request,
     ): Response {
-        $this->authorize('store', $channel);
+        $this->authorize('update', $channel);
 
         $channel = app(CrupdateChannel::class)->execute(
             $request->validationData(),
@@ -148,9 +157,8 @@ class ChannelController extends BaseController
 
     public function searchForAddableContent(): Response
     {
-        $this->authorize('index', Channel::class);
-
         $namespace = modelTypeToNamespace(request('modelType'));
+        $this->authorize('index', $namespace);
 
         $builder = app($namespace);
 
@@ -179,10 +187,13 @@ class ChannelController extends BaseController
     {
         $this->authorize('destroy', Channel::class);
 
-        (new GenerateChannelsFromConfig())->execute([
-            resource_path('defaults/channels/shared-channels.json'),
-            resource_path('defaults/channels/default-channels.json'),
-        ]);
+        $ids = Channel::where('type', 'channel')->pluck('id');
+        DB::table('channelables')
+            ->whereIn('channel_id', $ids)
+            ->delete();
+        Channel::whereIn('id', $ids)->delete();
+
+        (new GenerateDefaultChannels())->execute();
 
         return $this->success();
     }

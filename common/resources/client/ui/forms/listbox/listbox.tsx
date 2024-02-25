@@ -61,10 +61,10 @@ export function Listbox({
     listboxClassName,
 
     // tray will apply its own rounding and max width
-    Overlay === Popover && 'rounded',
+    Overlay === Popover && 'rounded-panel',
     Overlay === Popover && floatingWidth === 'auto'
       ? `max-w-288 ${floatingMinWidth}`
-      : ''
+      : '',
   );
 
   const children = useMemo(() => {
@@ -75,7 +75,7 @@ export function Listbox({
         prev.push(
           cloneElement(curr.element, {
             key: curr.element.key || curr.element.props.value,
-          })
+          }),
         );
       } else if (!renderedSections.includes(curr.section)) {
         const section = cloneElement(curr.section, {
@@ -128,7 +128,7 @@ export function Listbox({
                 </Overlay>
               )}
             </AnimatePresence>,
-            rootEl
+            rootEl,
           )}
     </ListBoxContext.Provider>
   );
@@ -184,7 +184,7 @@ function FocusContainer({
       tabIndex={virtualFocus ? undefined : -1}
       role={role}
       id={listboxId}
-      className="flex-auto overflow-y-auto overscroll-contain"
+      className="flex-auto overflow-y-auto overscroll-contain outline-none"
       ref={domRef}
       {...domProps}
     >

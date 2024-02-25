@@ -77,7 +77,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
       newVisibleItems++;
 
       if (isShowingMenu) {
-        calculatedWidth += listItems.shift()!.offsetWidth;
+        calculatedWidth += listItems.shift()?.offsetWidth ?? 0;
         maxVisibleItems--;
       }
 
@@ -108,7 +108,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
 
       return Math.max(
         MIN_VISIBLE_ITEMS,
-        Math.min(maxVisibleItems, newVisibleItems)
+        Math.min(maxVisibleItems, newVisibleItems),
       );
     };
 

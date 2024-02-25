@@ -15,7 +15,7 @@ export function useTrans(): UseTransReturn {
     (props: MessageDescriptor): string => {
       return translate({...props, lines, localeCode});
     },
-    [lines, localeCode]
+    [lines, localeCode],
   );
 
   return {trans};
@@ -28,7 +28,7 @@ interface TranslateProps extends MessageDescriptor {
 const translate = memoize(
   (props: TranslateProps) => {
     let {lines, message, values, localeCode} = props;
-    message = lines?.[message] || message;
+    message = lines?.[message] || lines?.[message.toLowerCase()] || message;
 
     if (!values) {
       return message;
@@ -42,5 +42,5 @@ const translate = memoize(
 
     return message;
   },
-  {equals: shallowEqual, callTimeout: 0}
+  {equals: shallowEqual, callTimeout: 0},
 );

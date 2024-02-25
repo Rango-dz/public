@@ -22,7 +22,6 @@ export function DataTableExportCsvButton({
       <IconButton
         variant="outline"
         color="primary"
-        radius="rounded"
         size="sm"
         className="flex-shrink-0"
         disabled={exportCsv.isPending}

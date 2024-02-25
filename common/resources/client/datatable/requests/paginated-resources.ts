@@ -42,18 +42,28 @@ export function useDatatableData<T = object>(
     >,
     'queryKey' | 'queryFn'
   >,
+  onLoad?: (data: PaginatedBackendResponse<T>) => void,
 ) {
   return useQuery({
     queryKey: DatatableDataQueryKey(endpoint, params),
-    queryFn: () => paginate<T>(endpoint, params),
+    queryFn: ({signal}) => paginate<T>(endpoint, params, onLoad, signal),
     placeholderData: keepPreviousData,
     ...options,
   });
 }
 
-function paginate<T>(
+async function paginate<T>(
   endpoint: string,
   params: GetDatatableDataParams,
+  onLoad?: (data: PaginatedBackendResponse<T>) => void,
+  signal?: AbortSignal,
 ): Promise<PaginatedBackendResponse<T>> {
-  return apiClient.get(endpoint, {params}).then(response => response.data);
+  if (params.query) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  const response = await apiClient
+    .get(endpoint, {params, signal: params.query ? signal : undefined})
+    .then(response => response.data);
+  onLoad?.(response);
+  return response;
 }

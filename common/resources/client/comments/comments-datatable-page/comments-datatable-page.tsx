@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Trans} from '@common/i18n/trans';
 import clsx from 'clsx';
 import {StaticPageTitle} from '@common/seo/static-page-title';
@@ -34,18 +34,21 @@ export function CommentsDatatablePage({hideTitle, commentable}: Props) {
   const {encodedFilters} = useBackendFilterUrlParams(filters);
   const [params, setParams] = useState<GetDatatableDataParams>({perPage: 15});
   const [selectedComments, setSelectedComments] = useState<number[]>([]);
-  const query = useDatatableData<Comment>('comment', {
-    ...params,
-    with: 'commentable',
-    withCount: 'reports',
-    filters: encodedFilters,
-    commentable_type: commentable?.model_type,
-    commentable_id: commentable?.id,
-  });
-
-  useEffect(() => {
-    setSelectedComments([]);
-  }, [query.data]);
+  const query = useDatatableData<Comment>(
+    'comment',
+    {
+      ...params,
+      with: 'commentable',
+      withCount: 'reports',
+      filters: encodedFilters,
+      commentable_type: commentable?.model_type,
+      commentable_id: commentable?.id,
+    },
+    undefined,
+    () => {
+      setSelectedComments([]);
+    },
+  );
 
   const toggleComment = useCallback(
     (id: number) => {
@@ -104,7 +107,7 @@ export function CommentsDatatablePage({hideTitle, commentable}: Props) {
         {query.isLoading ? (
           <FullPageLoader className="min-h-200" />
         ) : (
-          <div className="border-x border-t rounded">
+          <div className="rounded border-x border-t">
             {pagination?.data.map(comment => (
               <CommentDatatableItem
                 key={comment.id}

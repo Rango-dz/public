@@ -16,7 +16,10 @@ class StopSsr extends Command
         $ch = curl_init($serverUrl);
         curl_exec($ch);
 
-        if (curl_error($ch) !== 'Empty reply from server') {
+        if (
+            curl_error($ch) !== '' &&
+            curl_error($ch) !== 'Empty reply from server'
+        ) {
             $this->error('Unable to connect to SSR server.');
 
             return self::FAILURE;

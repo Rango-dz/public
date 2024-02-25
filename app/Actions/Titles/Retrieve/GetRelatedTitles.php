@@ -25,6 +25,7 @@ class GetRelatedTitles
 
     private function getByTags(Title $title, array $params): Collection
     {
+        $prefix = DB::getTablePrefix();
         $keywordIds = $title->keywords->pluck('id');
         $genreIds = $title->genres->pluck('id');
 
@@ -33,7 +34,7 @@ class GetRelatedTitles
             ->join('genre_title as g', 'g.title_id', '=', 'titles.id')
             ->select(
                 DB::raw(
-                    'titles.id, COUNT(k.id) + COUNT(g.id) as total_count',
+                    "{$prefix}titles.id, COUNT({$prefix}k.id) + COUNT({$prefix}g.id) as total_count",
                 ),
             )
             ->whereIn('k.keyword_id', $keywordIds)

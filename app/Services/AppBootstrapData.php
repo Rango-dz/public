@@ -8,15 +8,8 @@ class AppBootstrapData extends BaseBootstrapData
     {
         parent::init();
 
-        $this->data['settings']['tmdb_is_setup'] = !is_null(
-            config('services.tmdb.key'),
-        );
+        $this->data['settings']['tmdb_is_setup'] = !is_null(config('services.tmdb.key'));
 
         return $this;
-    }
-
-    protected function getDefaultMetaTags()
-    {
-        return view('seo.landing-page.seo-tags')->render();
     }
 }

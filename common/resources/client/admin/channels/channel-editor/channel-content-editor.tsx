@@ -107,9 +107,9 @@ export function ChannelContentEditor({
   });
 
   return (
-    <div className="mt-40 pt-40 border-t">
+    <div className="mt-40 border-t pt-40">
       <div className="mb-40">
-        <h2 className="text-2xl mb-10">
+        <h2 className="mb-10 text-2xl">
           {title || <Trans message="Channel content" />}
         </h2>
         <ContentNotEditableWarning />
@@ -206,7 +206,7 @@ const RowDragPreview = React.forwardRef<
   return (
     <DragPreview ref={ref}>
       {() => (
-        <div className="p-8 rounded shadow bg-chip text-base">{item.name}</div>
+        <div className="rounded bg-chip p-8 text-base shadow">{item.name}</div>
       )}
     </DragPreview>
   );
@@ -240,7 +240,7 @@ function ContentNotEditableWarning() {
   }
 
   return (
-    <div className="flex items-center gap-8 mt-4 mb-20">
+    <div className="mb-20 mt-4 flex items-center gap-8">
       <WarningIcon size="xs" />
       <div className="text-xs text-muted">
         {contentType === 'listAll' ? (
@@ -272,12 +272,12 @@ function UpdateContentButton() {
       onClick={() => {
         updateContent.mutate(
           {
-            channelConfig: getValues('config'),
+            channelConfig: (getValues as any)('config'),
           },
           {
             onSuccess: response => {
               if (response.channel.content) {
-                setValue('content', response.channel.content);
+                (setValue as any)('content', response.channel.content);
               }
             },
           },

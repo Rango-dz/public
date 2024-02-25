@@ -36,7 +36,6 @@ class Title extends BaseModel
     public const MODEL_TYPE = 'title';
 
     protected $guarded = ['id', 'type'];
-    protected $dates = ['release_date'];
     protected $appends = [
         'rating',
         'model_type',
@@ -72,6 +71,7 @@ class Title extends BaseModel
         'rating' => 'float',
         'vote_count' => 'integer',
         'seasons_count' => 'integer',
+        'release_date' => 'date',
     ];
 
     protected static function booted()

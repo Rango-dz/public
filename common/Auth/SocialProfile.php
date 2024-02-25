@@ -7,7 +7,9 @@ class SocialProfile extends Model
 {
     protected $guarded = ['id'];
 
-    protected $dates = ['access_expires_at'];
+    protected $casts = [
+        'access_expires_at' => 'datetime',
+    ];
 
     const MODEL_TYPE = 'social_profile';
 

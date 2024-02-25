@@ -93,11 +93,15 @@ class FileEntry extends BaseModel
             return null;
         }
 
+        $endpoint = config('common.site.file_preview_endpoint');
+
         if (Arr::get($this->attributes, 'public')) {
-            return Storage::disk('public')->url(
-                "$this->disk_prefix/$this->file_name",
-            );
-        } elseif ($endpoint = config('common.site.file_preview_endpoint')) {
+            $publicPath =  "$this->disk_prefix/$this->file_name";
+            if ($endpoint) {
+                return "$endpoint/storage/$publicPath";
+            }
+            return Storage::disk('public')->url($publicPath);
+        } elseif ($endpoint) {
             return "$endpoint/uploads/{$this->file_name}/{$this->file_name}";
         } else {
             return "api/v1/file-entries/{$this->attributes['id']}";

@@ -11,8 +11,8 @@ import clsx from 'clsx';
 import {AnimatePresence, m} from 'framer-motion';
 import {useControlledState} from '@react-stately/utils';
 import {FocusScope, useFocusManager} from '@react-aria/focus';
-import {KeyboardArrowDownIcon} from '../../icons/material/KeyboardArrowDown';
 import {AccordionAnimation} from '@common/ui/accordion/accordtion-animation';
+import {ArrowDropDownIcon} from '@common/icons/material/ArrowDropDown';
 
 type Props = {
   variant?: 'outline' | 'default' | 'minimal';
@@ -34,13 +34,15 @@ export const Accordion = React.forwardRef<HTMLDivElement, Props>(
       isLazy,
       ...other
     },
-    ref
+    ref,
   ) => {
     const [expandedValues, setExpandedValues] = useControlledState(
       other.expandedValues,
       other.defaultExpandedValues || [],
-      other.onExpandedChange
+      other.onExpandedChange,
     );
+
+    const itemsCount = React.Children.count(children);
 
     return (
       <div
@@ -55,6 +57,8 @@ export const Accordion = React.forwardRef<HTMLDivElement, Props>(
               return cloneElement<ClonedItemProps>(child, {
                 key: child.key || index,
                 value: child.props.value || index,
+                isFirst: index === 0,
+                isLast: index === itemsCount - 1,
                 mode,
                 variant,
                 expandedValues,
@@ -66,7 +70,7 @@ export const Accordion = React.forwardRef<HTMLDivElement, Props>(
         </AnimatePresence>
       </div>
     );
-  }
+  },
 );
 
 interface AccordionItemProps {
@@ -75,6 +79,8 @@ interface AccordionItemProps {
   label: ReactNode;
   description?: ReactNode;
   value?: Key;
+  isFirst?: boolean;
+  isLast?: boolean;
   bodyClassName?: string;
   labelClassName?: string;
   buttonPadding?: string;
@@ -101,6 +107,8 @@ export function AccordionItem({
   description,
   endAppend,
   chevronPosition = 'right',
+  isFirst,
+  isLast,
   ...other
 }: AccordionItemProps) {
   const {expandedValues, setExpandedValues, variant, value, mode, isLazy} =
@@ -119,16 +127,16 @@ export function AccordionItem({
   const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     switch (e.key) {
       case 'ArrowDown':
-        focusManager.focusNext();
+        focusManager?.focusNext();
         break;
       case 'ArrowUp':
-        focusManager.focusPrevious();
+        focusManager?.focusPrevious();
         break;
       case 'Home':
-        focusManager.focusFirst();
+        focusManager?.focusFirst();
         break;
       case 'End':
-        focusManager.focusLast();
+        focusManager?.focusLast();
         break;
     }
   };
@@ -148,12 +156,12 @@ export function AccordionItem({
 
   const chevron = (
     <div className={clsx(variant === 'minimal' && '')}>
-      <KeyboardArrowDownIcon
+      <ArrowDropDownIcon
         aria-hidden="true"
         size="md"
         className={clsx(
           disabled ? 'text-disabled' : 'text-muted',
-          isExpanded && 'rotate-180 transition-transform'
+          isExpanded && 'rotate-180 transition-transform',
         )}
       />
     </div>
@@ -163,22 +171,23 @@ export function AccordionItem({
     <div
       className={clsx(
         variant === 'default' && 'border-b',
-        variant === 'outline' && 'rounded border',
-        disabled && 'text-disabled'
+        variant === 'outline' && 'rounded-panel border',
+        disabled && 'text-disabled',
       )}
     >
       <h3
         className={clsx(
           'flex w-full items-center justify-between text-sm',
           disabled && 'pointer-events-none',
+          isFirst && variant === 'default' && 'border-t',
           isExpanded && variant !== 'minimal'
             ? 'border-b'
             : 'border-b border-b-transparent',
           variant === 'outline'
             ? isExpanded
-              ? 'rounded-t'
-              : 'rounded'
-            : undefined
+              ? 'rounded-panel-t'
+              : 'rounded-panel'
+            : undefined,
         )}
       >
         <button
@@ -196,7 +205,7 @@ export function AccordionItem({
           }}
           className={clsx(
             'flex flex-auto items-center gap-10 text-left outline-none hover:bg-hover focus-visible:bg-primary/focus',
-            buttonPadding
+            buttonPadding,
           )}
         >
           {chevronPosition === 'left' && chevron}
@@ -205,7 +214,7 @@ export function AccordionItem({
               size: 'md',
               className: clsx(
                 startIcon.props.className,
-                disabled ? 'text-disabled' : 'text-muted'
+                disabled ? 'text-disabled' : 'text-muted',
               ),
             })}
           <div className="flex-auto overflow-hidden overflow-ellipsis">

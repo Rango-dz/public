@@ -14,6 +14,9 @@ import {Badge} from '../../ui/badge/badge';
 import {DoneAllIcon} from '../../icons/material/DoneAll';
 import {useMarkNotificationsAsRead} from '../requests/use-mark-notifications-as-read';
 import {NotificationEmptyStateMessage} from '../empty-state/notification-empty-state-message';
+import {SettingsIcon} from '@common/icons/material/Settings';
+import {Link} from 'react-router-dom';
+import {useSettings} from '@common/core/settings/use-settings';
 
 interface NotificationDialogTriggerProps {
   className?: string;
@@ -22,6 +25,7 @@ export function NotificationDialogTrigger({
   className,
 }: NotificationDialogTriggerProps) {
   const {user} = useAuth();
+  const {notif} = useSettings();
   const query = useUserNotifications();
   const markAsRead = useMarkNotificationsAsRead();
   const hasUnread = !!user?.unread_notifications_count;
@@ -29,7 +33,7 @@ export function NotificationDialogTrigger({
   const handleMarkAsRead = () => {
     if (!query.data) return;
     markAsRead.mutate({
-      ids: query.data.pagination.data.map(n => n.id),
+      markAllAsUnread: true,
     });
   };
 
@@ -51,6 +55,20 @@ export function NotificationDialogTrigger({
       <Dialog>
         <DialogHeader
           showDivider
+          actions={
+            !hasUnread &&
+            notif.subs.integrated && (
+              <IconButton
+                className="text-muted"
+                size="sm"
+                elementType={Link}
+                to="/notifications/settings"
+                target="_blank"
+              >
+                <SettingsIcon />
+              </IconButton>
+            )
+          }
           rightAdornment={
             hasUnread && (
               <Button

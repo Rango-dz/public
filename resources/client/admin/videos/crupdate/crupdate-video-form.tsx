@@ -226,7 +226,7 @@ function DirectSourceField() {
 
 function QualitySelect() {
   const {streaming} = useSettings();
-  const qualities = JSON.parse(streaming?.qualities || '[]');
+  const qualities = streaming?.qualities || [];
   return (
     <FormSelect
       name="quality"

@@ -1,5 +1,5 @@
 import {Link, Navigate, Outlet, useLocation} from 'react-router-dom';
-import {Fragment, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {IconButton} from '../../ui/buttons/icon-button';
 import {CloseIcon} from '../../icons/material/Close';
 import {Button} from '../../ui/buttons/button';
@@ -74,17 +74,16 @@ function Sidebar({values}: SidebarProps) {
   );
 
   return (
-    <Fragment>
-      <div className="relative z-10 h-full w-full border-r bg shadow-lg md:w-320">
-        {values ? <AppearanceForm defaultValues={values} /> : spinner}
-      </div>
-    </Fragment>
+    <div className="relative z-10 h-full w-full border-r bg shadow-lg @container md:w-320">
+      {values ? <AppearanceForm defaultValues={values} /> : spinner}
+    </div>
   );
 }
 
 interface AppearanceFormProps {
   defaultValues: AppearanceValues;
 }
+
 function AppearanceForm({defaultValues}: AppearanceFormProps) {
   const form = useForm<AppearanceValues>({defaultValues});
   const {watch, reset} = form;

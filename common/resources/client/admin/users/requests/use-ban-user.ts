@@ -23,9 +23,9 @@ export function useBanUser(
 ) {
   return useMutation({
     mutationFn: (payload: BanUserPayload) => banUser(userId, payload),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast(message('User suspended'));
-      queryClient.invalidateQueries({queryKey: ['users']});
+      await queryClient.invalidateQueries({queryKey: ['users']});
     },
     onError: r => onFormQueryError(r, form),
   });

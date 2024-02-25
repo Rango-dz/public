@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Common\Core\BaseController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserWatchlistController extends BaseController
 {
@@ -17,16 +18,14 @@ class UserWatchlistController extends BaseController
         $list = Auth::user()
             ->watchlist()
             ->firstOrFail();
-        
-        $list->loadContent([
-            'paginate' => 'simple',
-        ]);
 
-        $items = $list->content
+        $items = DB::table('channelables')
+            ->where('channel_id', $list->id)
+            ->pluck('channelable_type', 'channelable_id')
             ->map(
-                fn($item) => [
-                    'id' => $item->id,
-                    'type' => $item->model_type,
+                fn($modelType, $itemId) => [
+                    'id' => $itemId,
+                    'type' => $modelType,
                 ],
             )
             ->groupBy('type')
@@ -38,9 +37,11 @@ class UserWatchlistController extends BaseController
                 ),
             );
 
-        return $this->success(['watchlist' => [
-            'id' => $list->id,
-            'items' => $items,
-        ]]);
+        return $this->success([
+            'watchlist' => [
+                'id' => $list->id,
+                'items' => $items,
+            ],
+        ]);
     }
 }

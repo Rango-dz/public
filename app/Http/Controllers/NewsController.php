@@ -48,9 +48,11 @@ class NewsController extends BaseController
         return $this->success(['pagination' => $pagination]);
     }
 
-    public function show(int $id)
+    public function show($slugOrId)
     {
-        $article = NewsArticle::findOrFail($id);
+        $article = NewsArticle::where('id', $slugOrId)
+            ->orWhere('slug', $slugOrId)
+            ->firstOrFail();
 
         $this->authorize('show', $article);
 

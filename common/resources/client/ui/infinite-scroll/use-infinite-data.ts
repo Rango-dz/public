@@ -94,7 +94,7 @@ export function useInfiniteData<T, E extends object = {}>(
   const query = useInfiniteQuery({
     placeholderData: willSortOrFilter ? keepPreviousData : undefined,
     queryKey,
-    queryFn: ({pageParam}) => {
+    queryFn: ({pageParam, signal}) => {
       const params: GetDatatableDataParams = {
         ...queryParams,
         perPage: initialPage?.per_page || queryParams?.perPage,
@@ -107,7 +107,7 @@ export function useInfiniteData<T, E extends object = {}>(
       } else {
         params.page = pageParam || 1;
       }
-      return fetchData<T>(endpoint, params, transformResponse);
+      return fetchData<T>(endpoint, params, transformResponse, signal);
     },
     initialPageParam: paginate === 'cursor' ? '' : 1,
     getNextPageParam: lastResponse => {
@@ -158,15 +158,21 @@ export function useInfiniteData<T, E extends object = {}>(
   } as UseInfiniteDataResult<T, E>;
 }
 
-function fetchData<T>(
+async function fetchData<T>(
   endpoint: string,
   params: GetDatatableDataParams,
   transformResponse?: UseInfiniteDataProps<T>['transformResponse'],
+  signal?: AbortSignal,
 ): Promise<Response<T>> {
-  return apiClient.get(endpoint, {params}).then(r => {
-    if (transformResponse) {
-      return transformResponse(r.data);
-    }
-    return r.data;
-  });
+  if (params.query) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  return apiClient
+    .get(endpoint, {params, signal: params.query ? signal : undefined})
+    .then(r => {
+      if (transformResponse) {
+        return transformResponse(r.data);
+      }
+      return r.data;
+    });
 }

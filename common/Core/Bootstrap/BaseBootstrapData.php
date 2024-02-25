@@ -10,6 +10,7 @@ use Common\Localizations\LocalizationsRepository;
 use Common\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Jenssegers\Agent\Agent;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class BaseBootstrapData implements BootstrapData
@@ -63,8 +64,9 @@ class BaseBootstrapData implements BootstrapData
 
     public function init(): self
     {
-        $this->data['settings'] = $this->settings->getUnflattened();
+        $this->data['settings'] = settings()->getUnflattened();
         $this->data['csrf_token'] = csrf_token();
+        $this->data['is_mobile_device'] = app(Agent::class)->isMobile();
         $this->data['settings']['base_url'] = config('app.url');
         $this->data['settings']['asset_url'] = config('app.asset_url');
         $this->data['settings']['html_base_uri'] = app(
@@ -78,7 +80,7 @@ class BaseBootstrapData implements BootstrapData
         $this->data['i18n'] =
             $this->localizationsRepository->getByNameOrCode(
                 app()->getLocale(),
-                $this->settings->get('i18n.enable', true),
+                settings('i18n.enable', true),
             ) ?:
             null;
         $this->data['themes'] = $this->getThemes();
@@ -94,7 +96,7 @@ class BaseBootstrapData implements BootstrapData
         }
 
         $alreadyAccepted =
-            !$this->settings->get('cookie_notice.enable') ||
+            !settings('cookie_notice.enable') ||
             (bool) Arr::get($_COOKIE, 'cookie_notice', false);
         $this->data['show_cookie_notice'] =
             !$alreadyAccepted && $this->isCookieLawCountry();
@@ -106,15 +108,18 @@ class BaseBootstrapData implements BootstrapData
 
     public function getThemes(): array
     {
-        $themes = app(CssTheme::class)
-            ->where('default_dark', true)
+        $themes = CssTheme::where('default_dark', true)
             ->orWhere('default_light', true)
             ->get();
+
+        if ($themes->isEmpty()) {
+            $themes = CssTheme::limit(2)->get();
+        }
 
         $selectedTheme = null;
 
         // first, get theme from cookie or url param, if theme change by user is enabled
-        if ($this->settings->get('themes.user_change')) {
+        if (settings('themes.user_change')) {
             if ($themeFromUrl = $this->request->get('beThemeId')) {
                 $selectedTheme = $themes->find($themeFromUrl);
             } else {
@@ -125,10 +130,7 @@ class BaseBootstrapData implements BootstrapData
         }
 
         // if no theme was selected, get default theme specified by admin
-        if (
-            !$selectedTheme &&
-            ($defaultId = $this->settings->get('themes.default_id'))
-        ) {
+        if (!$selectedTheme && ($defaultId = settings('themes.default_id'))) {
             $selectedTheme = $themes->find($defaultId);
         }
 
@@ -152,7 +154,7 @@ class BaseBootstrapData implements BootstrapData
         if ($user) {
             // load user subscriptions, if billing is enabled
             if (
-                app(Settings::class)->get('billing.enable') &&
+                settings('billing.enable') &&
                 !$user->relationLoaded('subscriptions')
             ) {
                 $user->load('subscriptions.price');
@@ -171,9 +173,17 @@ class BaseBootstrapData implements BootstrapData
         return $user;
     }
 
-    protected function getDefaultMetaTags()
+    protected function getDefaultMetaTags(): string
     {
-        return view('seo.landing-page.seo-tags')->render();
+        $pageName = 'landing-page';
+        $customPath = storage_path(
+            "app/editable-views/seo-tags/$pageName.blade.php",
+        );
+        if (file_exists($customPath)) {
+            return view("editable-views::seo-tags.$pageName")->render();
+        } else {
+            return view("seo.$pageName.seo-tags")->render();
+        }
     }
 
     protected function isCookieLawCountry(): bool
@@ -184,7 +194,7 @@ class BaseBootstrapData implements BootstrapData
         ]);
     }
 
-    protected function logActiveSession()
+    protected function logActiveSession(): void
     {
         if ($this->data['user']) {
             $token = $this->data['user']->currentAccessToken();

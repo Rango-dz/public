@@ -101,11 +101,9 @@ class MetaTags implements Arrayable
 
     public function getMenu(string $position): array
     {
-        $menus = $this->settings->getJson('menus');
         $default = ['items' => []];
-
         return Arr::first(
-            $menus,
+            settings('menus'),
             fn($menu) => in_array($position, $menu['positions']),
             $default,
         );

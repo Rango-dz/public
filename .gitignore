@@ -27,6 +27,7 @@ Thumbs.db
 
 # misc
 /storage/tntsearch/*.index
+/storage/framework/maintenance.php
 .htaccess
 public/.htaccess
 public/favicon

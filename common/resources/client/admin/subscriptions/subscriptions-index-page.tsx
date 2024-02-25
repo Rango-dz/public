@@ -35,13 +35,14 @@ const columnConfig: ColumnConfig<Subscription>[] = [
     width: 'flex-3 min-w-200',
     visibleInMode: 'all',
     header: () => <Trans message="Customer" />,
-    body: subscriptions => (
-      <NameWithAvatar
-        image={subscriptions.user!.avatar}
-        label={subscriptions.user!.display_name}
-        description={subscriptions.user!.email}
-      />
-    ),
+    body: subscription =>
+      subscription.user && (
+        <NameWithAvatar
+          image={subscription.user.avatar}
+          label={subscription.user.display_name}
+          description={subscription.user.email}
+        />
+      ),
   },
   {
     key: 'status',
@@ -69,7 +70,7 @@ const columnConfig: ColumnConfig<Subscription>[] = [
     body: subscription => subscription.product?.name,
   },
   {
-    key: 'gateway',
+    key: 'gateway_name',
     allowsSorting: true,
     header: () => <Trans message="Gateway" />,
     body: subscription => (

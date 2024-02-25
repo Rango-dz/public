@@ -21,7 +21,6 @@ class TransformData
     public const BACKDROP_BASE_URI = 'https://image.tmdb.org/t/p/w1280';
     public const PROFILE_BASE_URI = 'https://image.tmdb.org/t/p/w185';
     public const YOUTUBE_BASE_URI = 'https://youtube.com/embed/';
-    public const REMOTESTRAM_BASE_URI= "https://remotestream.cc/movies?tmdb=";
     public const SERIES_ENDED_STATUS = ['Ended', 'Canceled'];
 
     public function __construct(private Settings $settings)
@@ -55,7 +54,6 @@ class TransformData
             $type === Title::MOVIE_TYPE ? 'release_date' : 'first_air_date';
         $releaseDate = $this->getReleaseDate($releaseKey, $data);
         $name = $this->getTitle($data);
-        $tmdbId = $data['id'];
 
         $transformed = [
             'id' => $this->encodeTmdbId('tmdb', $type, $data['id']),
@@ -79,7 +77,9 @@ class TransformData
             'budget' => Arr::get($data, 'budget') ?: null,
             'revenue' => Arr::get($data, 'revenue') ?: null,
             'runtime' => $this->getRuntime($data),
-            'videos' => $this->getVideos($data, $tmdbId),
+            'videos' => $this->formatVideos(
+                Arr::get($data, 'videos.results', []),
+            ),
             'images' => $this->transformImages($data),
             'backdrop' => $this->getBackdrop($data),
             'genres' => $this->getGenres($data),
@@ -145,7 +145,11 @@ class TransformData
         $sNum = Arr::get($data, 'season_number');
 
         return [
-            'id' => $this->encodeTmdbId('tmdb', Episode::MODEL_TYPE, $data['id']),
+            'id' => $this->encodeTmdbId(
+                'tmdb',
+                Episode::MODEL_TYPE,
+                $data['id'],
+            ),
             'model_type' => Episode::MODEL_TYPE,
             'poster' => $this->getPoster(Arr::get($data, 'still_path')),
             'release_date' => $releaseDate,
@@ -202,7 +206,11 @@ class TransformData
         );
 
         $transformedData = [
-            'id' => $this->encodeTmdbId('tmdb', Season::MODEL_TYPE, $data['id']),
+            'id' => $this->encodeTmdbId(
+                'tmdb',
+                Season::MODEL_TYPE,
+                $data['id'],
+            ),
             'model_type' => Season::MODEL_TYPE,
             'poster' => $this->getPoster(Arr::get($data, 'poster_path')),
             'release_date' => $releaseDate,
@@ -286,7 +294,11 @@ class TransformData
         ];
 
         // "known_for" credits will only be returned from "search" tmdb api call.
-        if (!$hasCredits && $hasKnownForCredits && isset($tmdbPerson['known_for'][0])) {
+        if (
+            !$hasCredits &&
+            $hasKnownForCredits &&
+            isset($tmdbPerson['known_for'][0])
+        ) {
             $data['primary_credit'] = $this->transformMediaItem(
                 $tmdbPerson['known_for'][0],
             );
@@ -415,55 +427,32 @@ class TransformData
         );
     }
 
-    public const REMOTESTREAM_API_KEY = 'Hhj4ci3cpw5yeRI2McwoBvXKYS2Y8bL5';
-    public const REMOTESTREAM_BASE_URI = "https://remotestream.cc/";
-
-
-    private function getVideos(array $tmdbTitle, int $tmdbId): array {
-        $videos = Arr::get($tmdbTitle, 'videos.results', []);
-    
-        $videos = array_map(function ($video) use ($tmdbId) {
-
-            $videoUrl = self::REMOTESTREAM_BASE_URI . "e/?tmdb=$tmdbId&apikey=" . self::REMOTESTREAM_API_KEY;
-    
-            // Check if the video is available at the TMDB URL
-            $src = $this->hasVideoInHtml($videoUrl) ? $videoUrl : "https://www.youtube.com/watch?v=" . $video['key'];
-            $categories = $this->hasVideoInHtml($videoUrl) ? 'full' : 'trailer';
-    
-            return [
+    public function formatVideos(array $videos): array
+    {
+        $videos = array_map(
+            fn($video) => [
                 'name' => trim($video['name']),
-                'src' => $src,
+                'src' => self::YOUTUBE_BASE_URI . $video['key'],
                 'type' => Video::VIDEO_TYPE_EMBED,
                 'origin' => 'tmdb',
-                'category' => strtolower(Arr::get($video, 'type', $categories)),
-            ];
-        }, $videos);
-    
-        // Sort videos, placing trailers first
+                'category' => strtolower(Arr::get($video, 'type', 'trailer')),
+            ],
+            $videos,
+        );
+
+        // show trailers first
         usort($videos, function ($a, $b) {
-            return $a['category'] === 'trailer' ? -1 : 0;
+            if ($a['category'] === 'trailer') {
+                return -1;
+            } elseif ($b['category'] === 'trailer') {
+                return 1;
+            } else {
+                return 0;
+            }
         });
-    
+
         return $videos;
     }
-    
-    /**
-     * Check if the video URL contains a video tag in HTML format.
-     *
-     * @param string $url
-     * @return bool
-     */
-    private function hasVideoInHtml(string $url): bool
-    {
-        $htmlContent = file_get_contents($url);
-
-        if (strpos($htmlContent, '<video') !== false) {
-            return false;
-        }
-
-        return true;
-    }
-
 
     /**
      * @param array $data

@@ -132,7 +132,7 @@ function DeleteButton({title, season}: DeleteButtonProps) {
         }
       }}
     >
-      <IconButton size="xs" radius="rounded" variant="outline">
+      <IconButton size="xs" variant="outline">
         <DeleteIcon />
       </IconButton>
       <ConfirmationDialog

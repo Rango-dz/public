@@ -15,7 +15,6 @@ export function ListButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Bulleted list" />}>
         <IconButton
           size={size}
-          radius="rounded"
           color={bulletActive ? 'primary' : null}
           onClick={() => {
             editor.commands.focus();
@@ -28,7 +27,6 @@ export function ListButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Numbered list" />}>
         <IconButton
           size={size}
-          radius="rounded"
           color={orderedActive ? 'primary' : null}
           onClick={() => {
             editor.commands.focus();

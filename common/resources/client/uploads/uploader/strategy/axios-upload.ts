@@ -8,7 +8,7 @@ export class AxiosUpload implements UploadStrategy {
   private abortController: AbortController;
   constructor(
     private file: UploadedFile,
-    private config: UploadStrategyConfig
+    private config: UploadStrategyConfig,
   ) {
     this.abortController = new AbortController();
   }
@@ -18,6 +18,7 @@ export class AxiosUpload implements UploadStrategy {
     const {onSuccess, onError, onProgress, metadata} = this.config;
 
     formData.set('file', this.file.native);
+    formData.set('workspaceId', `12`);
     if (metadata) {
       Object.entries(metadata).forEach(([key, value]) => {
         formData.set(key, `${value}`);
@@ -63,7 +64,7 @@ export class AxiosUpload implements UploadStrategy {
 
   static async create(
     file: UploadedFile,
-    config: UploadStrategyConfig
+    config: UploadStrategyConfig,
   ): Promise<AxiosUpload> {
     return new AxiosUpload(file, config);
   }

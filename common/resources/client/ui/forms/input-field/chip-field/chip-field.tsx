@@ -64,7 +64,7 @@ export type ChipFieldProps<T> = Omit<
 
 function ChipFieldInner<T>(
   props: ChipFieldProps<T>,
-  ref: Ref<HTMLInputElement>
+  ref: Ref<HTMLInputElement>,
 ) {
   const fieldRef = useRef<HTMLDivElement>(null);
   const inputRef = useObjectRef(ref);
@@ -79,7 +79,7 @@ function ChipFieldInner<T>(
     onItemSelected,
     placeholder,
     onOpenChange,
-    chipSize = 'md',
+    chipSize = 'sm',
     openMenuOnFocus = true,
     showEmptyMessage,
     value: propsValue,
@@ -180,7 +180,7 @@ function ListWrapper({
       }
       return newItems;
     },
-    [items, setItems]
+    [items, setItems],
   );
 
   return (
@@ -199,10 +199,10 @@ function ListWrapper({
             const newItems = removeItem(item.id);
             if (newItems.length) {
               // focus previous chip
-              manager.focusPrevious({tabbable: true});
+              manager?.focusPrevious({tabbable: true});
             } else {
               // focus input
-              manager.focusLast();
+              manager?.focusLast();
             }
           }}
         >
@@ -265,7 +265,7 @@ function ChipInput<T>(props: ChipInputProps<T>) {
       }
       setChips([...chips, ...items]);
     },
-    [chips, setChips, validateWith]
+    [chips, setChips, validateWith],
   );
 
   const listbox = useListbox<T>({
@@ -350,7 +350,7 @@ function ChipInput<T>(props: ChipInputProps<T>) {
           onPaste: e => {
             const paste = e.clipboardData.getData('text');
             const emails = paste.match(
-              /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi
+              /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi,
             );
             if (emails) {
               e.preventDefault();
@@ -411,7 +411,7 @@ function ChipInput<T>(props: ChipInputProps<T>) {
               activeIndex == null &&
               chips.length
             ) {
-              manager.focusPrevious({tabbable: true});
+              manager?.focusPrevious({tabbable: true});
               return;
             }
 
@@ -451,18 +451,18 @@ function useChipFieldValueState({
       const newValue = valueKey ? value.map(v => v[valueKey]) : value;
       onChange?.(newValue as any);
     },
-    [onChange, valueKey]
+    [onChange, valueKey],
   );
 
   return useControlledState<ChipValue[]>(
     !propsValue ? undefined : propsValue,
     propsDefaultValue || [],
-    handleChange
+    handleChange,
   );
 }
 
 function mixedValueToChipValue(
-  value?: (string | number | ChipValue)[] | null
+  value?: (string | number | ChipValue)[] | null,
 ): ChipValue[] | undefined {
   if (value == null) {
     return undefined;
@@ -474,5 +474,5 @@ function mixedValueToChipValue(
 }
 
 export const ChipField = React.forwardRef(ChipFieldInner) as <T>(
-  props: ChipFieldProps<T> & {ref?: Ref<HTMLInputElement>}
+  props: ChipFieldProps<T> & {ref?: Ref<HTMLInputElement>},
 ) => ReactElement;

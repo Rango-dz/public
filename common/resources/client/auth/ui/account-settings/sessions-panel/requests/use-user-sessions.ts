@@ -13,6 +13,7 @@ export interface ActiveSession {
   token?: string;
   is_current_device: boolean;
   last_active: string;
+  created_at: string;
 }
 
 interface Response extends BackendResponse {

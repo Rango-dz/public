@@ -21,7 +21,6 @@ import {useAuth} from '@common/auth/use-auth';
 import {TitlePageEpisodeGrid} from '@app/titles/pages/title-page/sections/title-page-episode-grid';
 import {TitlePageSections} from '@app/titles/pages/title-page/sections/title-page-sections';
 import {Title} from '@app/titles/models/title';
-import {useConfiguredTitlePageSections} from '@app/titles/pages/title-page/sections/use-configured-title-page-sections';
 import {AdHost} from '@common/admin/ads/ad-host';
 
 interface Props {
@@ -30,7 +29,7 @@ interface Props {
 }
 export function TitlePageMainContent({data, className}: Props) {
   const {title, credits} = data;
-  const sections = useConfiguredTitlePageSections();
+  const {title_page} = useSettings();
   return (
     <main className={clsx(className, '@container')}>
       {title.genres?.length ? (
@@ -53,7 +52,7 @@ export function TitlePageMainContent({data, className}: Props) {
       <TruncatedDescription className="mt-16" description={title.description} />
       <CompactCredits credits={credits} />
       <AdHost slot="title_top" className="pt-48" />
-      {sections.map(name => (
+      {title_page?.sections?.map(name => (
         <TitlePageSection key={name} name={name} title={title} data={data} />
       ))}
     </main>

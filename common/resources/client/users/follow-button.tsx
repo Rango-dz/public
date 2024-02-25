@@ -9,14 +9,20 @@ import clsx from 'clsx';
 
 interface Props extends Omit<ButtonProps, 'onClick' | 'disabled'> {
   user: User;
+  minWidth?: string | null;
 }
-export function FollowButton({user, className, ...buttonProps}: Props) {
+export function FollowButton({
+  user,
+  className,
+  minWidth = 'min-w-82',
+  ...buttonProps
+}: Props) {
   const {user: currentUser} = useAuth();
   const {isFollowing, isLoading} = useIsUserFollowing(user);
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
 
-  const mergedClassName = clsx(className, 'min-w-82');
+  const mergedClassName = clsx(className, minWidth);
 
   if (isFollowing) {
     return (

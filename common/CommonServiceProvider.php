@@ -286,11 +286,6 @@ class CommonServiceProvider extends ServiceProvider
             app('path.common') . '/resources/config/services.php',
             'services',
         );
-
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/seo/custom-page/show.php',
-            'seo.custom-page.show',
-        );
         $this->mergeConfigFrom(
             app('path.common') . '/resources/config/seo/common.php',
             'seo.common',
@@ -363,7 +358,7 @@ class CommonServiceProvider extends ServiceProvider
             EnableDebugIfLoggedInAsAdmin::class,
         );
         $this->app['router']->pushMiddlewareToGroup(
-            'api',
+            'web',
             EnableDebugIfLoggedInAsAdmin::class,
         );
         $this->app['router']->pushMiddlewareToGroup(

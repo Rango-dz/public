@@ -1,29 +1,29 @@
 {
-  "_BookmarkBorder-15eeac1c.js": {
-    "file": "assets/BookmarkBorder-15eeac1c.js",
+  "_BookmarkBorder-210f2d11.js": {
+    "file": "assets/BookmarkBorder-210f2d11.js",
     "imports": [
       "resources/client/main.tsx"
     ]
   },
-  "_CalendarToday-2c78fcec.js": {
-    "file": "assets/CalendarToday-2c78fcec.js",
+  "_CalendarToday-addd0284.js": {
+    "file": "assets/CalendarToday-addd0284.js",
     "imports": [
       "resources/client/main.tsx"
     ]
   },
-  "_OpenInNew-ae355b91.js": {
-    "file": "assets/OpenInNew-ae355b91.js",
+  "_OpenInNew-1e2ef22f.js": {
+    "file": "assets/OpenInNew-1e2ef22f.js",
     "imports": [
       "resources/client/main.tsx"
     ]
   },
-  "_TaskAlt-ad27943f.js": {
-    "file": "assets/TaskAlt-ad27943f.js",
+  "_TaskAlt-0bd304d3.js": {
+    "file": "assets/TaskAlt-0bd304d3.js",
     "imports": [
       "resources/client/main.tsx"
     ]
   },
-  "_admin-routes-56ab005b.js": {
+  "_admin-routes-eb5146cb.js": {
     "assets": [
       "assets/team-de984127.svg",
       "assets/dropdown-menu-c9b3bd6a.svg",
@@ -37,7 +37,8 @@
       "assets/reviews-b904b01e.svg",
       "assets/video-files-a4728f55.svg",
       "assets/movie-night-f53006ef.svg",
-      "assets/awards-411fec7f.svg"
+      "assets/awards-411fec7f.svg",
+      "assets/font-a5a81d1a.svg"
     ],
     "dynamicImports": [
       "common/resources/client/ui/icon-picker/icon-list.tsx",
@@ -49,24 +50,33 @@
       "common/resources/client/article-editor/article-body-editor.tsx",
       "common/resources/client/admin/analytics/admin-report-page.tsx"
     ],
-    "file": "assets/admin-routes-56ab005b.js",
+    "file": "assets/admin-routes-eb5146cb.js",
     "imports": [
       "resources/client/main.tsx",
-      "_user-profile-link-c5f5adbb.js",
-      "_OpenInNew-ae355b91.js",
-      "_use-resume-subscription-75108435.js"
+      "_user-profile-link-50cc4618.js",
+      "_OpenInNew-1e2ef22f.js",
+      "_use-resume-subscription-54861040.js"
     ],
     "isDynamicEntry": true
   },
-  "_billing-redirect-message-34c4d8dc.js": {
-    "file": "assets/billing-redirect-message-34c4d8dc.js",
+  "_billing-redirect-message-1f98a41b.js": {
+    "file": "assets/billing-redirect-message-1f98a41b.js",
     "imports": [
       "resources/client/main.tsx",
-      "_TaskAlt-ad27943f.js"
+      "_TaskAlt-0bd304d3.js"
     ]
   },
-  "_index-868eb834.js": {
-    "file": "assets/index-868eb834.js",
+  "_highlight-material-palenight-0f67fbad.js": {
+    "css": [
+      "assets/highlight-material-palenight-c0ff5600.css"
+    ],
+    "file": "assets/highlight-material-palenight-0f67fbad.js",
+    "imports": [
+      "resources/client/main.tsx"
+    ]
+  },
+  "_index-bedbf86a.js": {
+    "file": "assets/index-bedbf86a.js",
     "imports": [
       "resources/client/main.tsx"
     ]
@@ -74,13 +84,13 @@
   "_linkify.es-ff711e62.js": {
     "file": "assets/linkify.es-ff711e62.js"
   },
-  "_use-resume-subscription-75108435.js": {
-    "file": "assets/use-resume-subscription-75108435.js",
+  "_use-resume-subscription-54861040.js": {
+    "file": "assets/use-resume-subscription-54861040.js",
     "imports": [
       "resources/client/main.tsx"
     ]
   },
-  "_user-profile-link-c5f5adbb.js": {
+  "_user-profile-link-50cc4618.js": {
     "assets": [
       "assets/playlist-9920c7a8.svg",
       "assets/todo-ec93dd23.svg"
@@ -89,10 +99,10 @@
       "common/resources/client/player/providers/hls-provider.tsx",
       "common/resources/client/player/providers/dash-provider.tsx"
     ],
-    "file": "assets/user-profile-link-c5f5adbb.js",
+    "file": "assets/user-profile-link-50cc4618.js",
     "imports": [
       "resources/client/main.tsx",
-      "_OpenInNew-ae355b91.js"
+      "_OpenInNew-1e2ef22f.js"
     ]
   },
   "common/resources/client/ace-editor/ace-editor.tsx": {
@@ -102,22 +112,22 @@
       "assets/worker-php-47e5dfe7.js",
       "assets/worker-javascript-c4599136.js"
     ],
-    "file": "assets/ace-editor-3d536b15.js",
+    "file": "assets/ace-editor-433f9afb.js",
     "imports": [
       "resources/client/main.tsx",
-      "_index-868eb834.js"
+      "_index-bedbf86a.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/ace-editor/ace-editor.tsx"
   },
   "common/resources/client/admin/analytics/admin-report-page.tsx": {
-    "file": "assets/admin-report-page-1e43e1f3.js",
+    "file": "assets/admin-report-page-cac5f162.js",
     "imports": [
       "resources/client/main.tsx",
-      "_admin-routes-56ab005b.js",
-      "_user-profile-link-c5f5adbb.js",
-      "_OpenInNew-ae355b91.js",
-      "_use-resume-subscription-75108435.js"
+      "_admin-routes-eb5146cb.js",
+      "_user-profile-link-50cc4618.js",
+      "_OpenInNew-1e2ef22f.js",
+      "_use-resume-subscription-54861040.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/admin/analytics/admin-report-page.tsx"
@@ -154,18 +164,12 @@
     "file": "assets/around-the-world-df9b11c5.svg",
     "src": "common/resources/client/admin/translations/around-the-world.svg"
   },
-  "common/resources/client/article-editor/article-body-editor.css": {
-    "file": "assets/article-body-editor-9b538493.css",
-    "src": "common/resources/client/article-editor/article-body-editor.css"
-  },
   "common/resources/client/article-editor/article-body-editor.tsx": {
-    "css": [
-      "assets/article-body-editor-9b538493.css"
-    ],
-    "file": "assets/article-body-editor-1124d249.js",
+    "file": "assets/article-body-editor-64d38ff0.js",
     "imports": [
       "resources/client/main.tsx",
-      "_linkify.es-ff711e62.js"
+      "_linkify.es-ff711e62.js",
+      "_highlight-material-palenight-0f67fbad.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/article-editor/article-body-editor.tsx"
@@ -186,14 +190,14 @@
     "assets": [
       "assets/paypal-c2a77c63.svg"
     ],
-    "file": "assets/billing-page-routes-4c1ca115.js",
+    "file": "assets/billing-page-routes-2bb36310.js",
     "imports": [
       "resources/client/main.tsx",
-      "_OpenInNew-ae355b91.js",
-      "_billing-redirect-message-34c4d8dc.js",
-      "_use-resume-subscription-75108435.js",
-      "_CalendarToday-2c78fcec.js",
-      "_TaskAlt-ad27943f.js"
+      "_OpenInNew-1e2ef22f.js",
+      "_billing-redirect-message-1f98a41b.js",
+      "_use-resume-subscription-54861040.js",
+      "_CalendarToday-addd0284.js",
+      "_TaskAlt-0bd304d3.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/billing/billing-page/billing-page-routes.tsx"
@@ -203,17 +207,17 @@
     "src": "common/resources/client/billing/billing-page/panels/paypal.svg"
   },
   "common/resources/client/billing/checkout/checkout-routes.tsx": {
-    "file": "assets/checkout-routes-4365224d.js",
+    "file": "assets/checkout-routes-ecf38485.js",
     "imports": [
       "resources/client/main.tsx",
-      "_billing-redirect-message-34c4d8dc.js",
-      "_TaskAlt-ad27943f.js"
+      "_billing-redirect-message-1f98a41b.js",
+      "_TaskAlt-0bd304d3.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/billing/checkout/checkout-routes.tsx"
   },
   "common/resources/client/charts/lazy-chart.tsx": {
-    "file": "assets/lazy-chart-f8f6e091.js",
+    "file": "assets/lazy-chart-8bd3edf3.js",
     "imports": [
       "resources/client/main.tsx"
     ],
@@ -229,21 +233,21 @@
     "src": "common/resources/client/notifications/empty-state/notify.svg"
   },
   "common/resources/client/player/providers/dash-provider.tsx": {
-    "file": "assets/dash-provider-89ff245c.js",
+    "file": "assets/dash-provider-df92be82.js",
     "imports": [
       "resources/client/main.tsx",
-      "_user-profile-link-c5f5adbb.js",
-      "_OpenInNew-ae355b91.js"
+      "_user-profile-link-50cc4618.js",
+      "_OpenInNew-1e2ef22f.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/player/providers/dash-provider.tsx"
   },
   "common/resources/client/player/providers/hls-provider.tsx": {
-    "file": "assets/hls-provider-c9a69e72.js",
+    "file": "assets/hls-provider-79cd10f1.js",
     "imports": [
       "resources/client/main.tsx",
-      "_user-profile-link-c5f5adbb.js",
-      "_OpenInNew-ae355b91.js"
+      "_user-profile-link-50cc4618.js",
+      "_OpenInNew-1e2ef22f.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/player/providers/hls-provider.tsx"
@@ -256,25 +260,38 @@
     "css": [
       "assets/swagger-api-docs-page-34ffaf07.css"
     ],
-    "file": "assets/swagger-api-docs-page-3503db4d.js",
+    "file": "assets/swagger-api-docs-page-70cc7213.js",
     "imports": [
       "resources/client/main.tsx",
-      "_index-868eb834.js"
+      "_index-bedbf86a.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/swagger/swagger-api-docs-page.tsx"
   },
+  "common/resources/client/text-editor/highlight/highlight.ts": {
+    "file": "assets/highlight-a3862f0b.js",
+    "imports": [
+      "_highlight-material-palenight-0f67fbad.js",
+      "resources/client/main.tsx"
+    ],
+    "isDynamicEntry": true,
+    "src": "common/resources/client/text-editor/highlight/highlight.ts"
+  },
+  "common/resources/client/ui/font-selector/font.svg": {
+    "file": "assets/font-a5a81d1a.svg",
+    "src": "common/resources/client/ui/font-selector/font.svg"
+  },
   "common/resources/client/ui/icon-picker/icon-list.tsx": {
-    "file": "assets/icon-list-45e03283.js",
+    "file": "assets/icon-list-c8c4bb10.js",
     "imports": [
       "resources/client/main.tsx",
-      "_user-profile-link-c5f5adbb.js",
-      "_admin-routes-56ab005b.js",
-      "_BookmarkBorder-15eeac1c.js",
-      "_CalendarToday-2c78fcec.js",
-      "_OpenInNew-ae355b91.js",
-      "_TaskAlt-ad27943f.js",
-      "_use-resume-subscription-75108435.js"
+      "_user-profile-link-50cc4618.js",
+      "_admin-routes-eb5146cb.js",
+      "_BookmarkBorder-210f2d11.js",
+      "_CalendarToday-addd0284.js",
+      "_OpenInNew-1e2ef22f.js",
+      "_TaskAlt-0bd304d3.js",
+      "_use-resume-subscription-54861040.js"
     ],
     "isDynamicEntry": true,
     "src": "common/resources/client/ui/icon-picker/icon-list.tsx"
@@ -286,6 +303,10 @@
   "common/resources/client/ui/not-found-page/404-2.png": {
     "file": "assets/404-2-14c4a897.png",
     "src": "common/resources/client/ui/not-found-page/404-2.png"
+  },
+  "highlight-material-palenight.css": {
+    "file": "assets/highlight-material-palenight-c0ff5600.css",
+    "src": "highlight-material-palenight.css"
   },
   "node_modules/ace-builds/src-noconflict/worker-css.js": {
     "file": "assets/worker-css-b70c72a0.js",
@@ -348,7 +369,7 @@
     "src": "resources/client/admin/videos/video-files.svg"
   },
   "resources/client/main.css": {
-    "file": "assets/main-538054c9.css",
+    "file": "assets/main-91d3c7e5.css",
     "src": "resources/client/main.css"
   },
   "resources/client/main.tsx": {
@@ -366,26 +387,27 @@
       "assets/secure-files-17b4728d.svg"
     ],
     "css": [
-      "assets/main-538054c9.css"
+      "assets/main-91d3c7e5.css"
     ],
     "dynamicImports": [
+      "common/resources/client/text-editor/highlight/highlight.ts",
       "common/resources/client/billing/billing-page/billing-page-routes.tsx",
       "common/resources/client/billing/checkout/checkout-routes.tsx",
-      "_admin-routes-56ab005b.js",
+      "_admin-routes-eb5146cb.js",
       "common/resources/client/swagger/swagger-api-docs-page.tsx",
       "resources/client/site-routes.tsx"
     ],
-    "file": "assets/main-f444f7c5.js",
+    "file": "assets/main-8d7f1957.js",
     "isEntry": true,
     "src": "resources/client/main.tsx"
   },
   "resources/client/site-routes.tsx": {
-    "file": "assets/site-routes-c9ed4ea0.js",
+    "file": "assets/site-routes-0b57c700.js",
     "imports": [
       "resources/client/main.tsx",
-      "_user-profile-link-c5f5adbb.js",
-      "_BookmarkBorder-15eeac1c.js",
-      "_OpenInNew-ae355b91.js",
+      "_user-profile-link-50cc4618.js",
+      "_BookmarkBorder-210f2d11.js",
+      "_OpenInNew-1e2ef22f.js",
       "_linkify.es-ff711e62.js"
     ],
     "isDynamicEntry": true,

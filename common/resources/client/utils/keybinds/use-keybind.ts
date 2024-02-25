@@ -9,16 +9,17 @@ interface Options {
 }
 
 export function useKeybind(
-  el: HTMLElement | Window,
+  el: HTMLElement | 'window',
   shortcut: string,
   userCallback: (e: KeyboardEvent) => void,
-  {allowedInputSelector}: Options = {}
+  {allowedInputSelector}: Options = {},
 ) {
   const {addGlobalListener, removeAllGlobalListeners} = useGlobalListeners();
   const callback = useCallbackRef(userCallback);
 
   useEffect(() => {
-    addGlobalListener(el, 'keydown', (e: KeyboardEvent) => {
+    const target = el === 'window' ? window : el;
+    addGlobalListener(target, 'keydown', (e: KeyboardEvent) => {
       if (!shouldIgnoreActiveEl(allowedInputSelector) && isAnyInputFocused()) {
         return;
       }

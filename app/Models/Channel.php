@@ -31,7 +31,7 @@ class Channel extends BaseChannel
         if (!$builder && $this->restriction) {
             $builder = $this->restriction->titles();
         }
-        return app(PaginateTitles::class)->execute($params, $builder);
+        return (new PaginateTitles())->execute($params, $builder);
     }
 
     public function allMovies(array $params, $builder = null)
@@ -40,7 +40,7 @@ class Channel extends BaseChannel
             $builder = $this->restriction->titles();
         }
         $params['type'] = Title::MOVIE_TYPE;
-        return app(PaginateTitles::class)->execute($params, $builder);
+        return (new PaginateTitles())->execute($params, $builder);
     }
 
     public function allSeries(array $params, $builder = null)
@@ -49,7 +49,7 @@ class Channel extends BaseChannel
             $builder = $this->restriction->titles();
         }
         $params['type'] = Title::SERIES_TYPE;
-        return app(PaginateTitles::class)->execute($params, $builder);
+        return (new PaginateTitles())->execute($params, $builder);
     }
 
     public function titles(): MorphToMany

@@ -3,8 +3,6 @@ import {FormSelect} from '@common/ui/forms/select/select';
 import {Item} from '@common/ui/forms/listbox/item';
 import {SettingsPanel} from '@common/admin/settings/settings-panel';
 import {FormSwitch} from '@common/ui/forms/toggle/switch';
-import {useFormContext} from 'react-hook-form';
-import {AdminSettings} from '@common/admin/settings/admin-settings';
 import {JsonChipField} from '@common/admin/settings/json-chip-field';
 import {useTrans} from '@common/i18n/use-trans';
 
@@ -94,12 +92,6 @@ function SortingMethodSelect() {
 }
 
 function ShownVideoTypeSelect() {
-  const {watch} = useFormContext<AdminSettings>();
-
-  if (watch('client.titles.video_panel_mode') === 'hide') {
-    return null;
-  }
-
   return (
     <FormSelect
       className="mb-24"

@@ -18,7 +18,8 @@ interface Response extends BackendResponse {
   channel: Channel;
 }
 
-export interface CreateChannelPayload extends Omit<Channel, 'content'> {
+export interface CreateChannelPayload
+  extends Omit<Channel, 'content' | 'items'> {
   content: PaginationResponse<NormalizedModel>;
 }
 

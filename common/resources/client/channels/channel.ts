@@ -43,6 +43,6 @@ export interface Channel<T = ChannelContentItem> {
   items_count?: number;
   user?: User;
   updated_at?: string;
-  restriction?: {name: string; model_type: string};
+  restriction?: {id: number; name: string; model_type: string};
   content?: PaginationResponse<T>;
 }

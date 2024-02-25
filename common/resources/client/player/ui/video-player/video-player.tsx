@@ -117,7 +117,7 @@ function PlayerLayout({apiRef, rightActions}: PlayerLayoutProps) {
     <div
       className={clsx(
         'fullscreen-host relative isolate aspect-video bg-black',
-        !controlsVisible && 'cursor-none'
+        !controlsVisible && 'cursor-none',
       )}
       onClick={clickHandler}
       onPointerEnter={() => {
@@ -176,10 +176,15 @@ function OverlayButtons() {
     <div
       className={clsx(
         'absolute left-0 top-0 z-40 flex h-full w-full items-center justify-center transition-opacity',
-        showPlayButton ? 'opacity-100' : 'pointer-events-none opacity-0'
+        showPlayButton ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
     >
-      <IconButton color="primary" variant="raised" size="lg">
+      <IconButton
+        color="primary"
+        variant="raised"
+        size="lg"
+        radius="rounded-full"
+      >
         <MediaPlayIcon />
       </IconButton>
     </div>
@@ -197,7 +202,7 @@ function BottomGradient() {
     <div
       className={clsx(
         'player-bottom-gradient pointer-events-none absolute bottom-0 z-30 h-full w-full transition-opacity duration-300',
-        controlsVisible ? 'opacity-100' : 'opacity-0'
+        controlsVisible ? 'opacity-100' : 'opacity-0',
       )}
     />
   );

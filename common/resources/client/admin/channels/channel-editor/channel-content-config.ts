@@ -31,8 +31,11 @@ export interface ChannelContentConfig {
     string,
     {
       label: MessageDescriptor;
-      localOnly?: boolean;
-      tmdbOnly?: boolean;
+      provider?: string;
+      value?: {
+        label: MessageDescriptor;
+        inputType: 'text' | 'number';
+      };
     }
   >;
   userSelectableLayouts: string[];

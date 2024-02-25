@@ -28,11 +28,7 @@ export function LinkButton({editor, size}: MenubarButtonProps) {
   return (
     <DialogTrigger type="modal">
       <Tooltip label={<Trans message="Insert link" />}>
-        <IconButton
-          size={size}
-          radius="rounded"
-          className={clsx('flex-shrink-0')}
-        >
+        <IconButton size={size} className={clsx('flex-shrink-0')}>
           <LinkIcon />
         </IconButton>
       </Tooltip>
@@ -46,10 +42,11 @@ function LinkDialog({editor}: MenubarButtonProps) {
   const previousText = editor.state.doc.textBetween(
     editor.state.selection.from,
     editor.state.selection.to,
-    ''
+    '',
   );
+
   const form = useForm<FormValue>({
-    defaultValues: {href: previousUrl, text: previousText},
+    defaultValues: {href: previousUrl, text: previousText, target: '_blank'},
   });
   const {formId, close} = useDialogContext();
   return (

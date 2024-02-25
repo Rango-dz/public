@@ -1,6 +1,6 @@
 import {Navigate, RouteObject, useRoutes} from 'react-router-dom';
 import {AdminLayout} from './admin-layout';
-import {UserIndex} from './users/user-index';
+import {UserDatatable} from './users/user-datatable';
 import {AppearanceLayout} from './appearance/appearance-layout';
 import {MenuList} from './appearance/sections/menus/menu-list';
 import {MenuEditor} from './appearance/sections/menus/menu-editor';
@@ -18,7 +18,7 @@ import {SubscriptionSettings} from './settings/pages/subscription-settings';
 import {LocalizationSettings} from './settings/pages/localization-settings';
 import {AuthenticationSettings} from './settings/pages/authentication-settings';
 import {UploadingSettings} from './settings/pages/uploading-settings/uploading-settings';
-import {MailSettings} from './settings/pages/mail-settings/mail-settings';
+import {OutgoingEmailSettings} from './settings/pages/mail-settings/outgoing-email-settings';
 import {CacheSettings} from './settings/pages/cache-settings/cache-settings';
 import {LoggingSettings} from './settings/pages/logging-settings';
 import {QueueSettings} from './settings/pages/queue-settings';
@@ -48,6 +48,8 @@ import {AppAppearanceConfig} from '@app/admin/appearance/app-appearance-config';
 import {AppAdminRoutes} from '@app/admin/app-admin-routes';
 import {EditCustomPage} from '@common/admin/custom-pages/edit-custom-page';
 import {CreateCustomPage} from '@common/admin/custom-pages/create-custom-page';
+import {ThemeFontPanel} from '@common/admin/appearance/sections/themes/theme-font-panel';
+import {ThemeRadiusPanel} from '@common/admin/appearance/sections/themes/theme-radius-panel';
 
 const ReportsPage = React.lazy(() => import('./analytics/admin-report-page'));
 
@@ -66,6 +68,8 @@ const AdminRouteConfig: RouteObject[] = [
       {path: 'custom-code', element: <CustomCodeSection />},
       {path: 'themes', element: <ThemeList />},
       {path: 'themes/:themeIndex', element: <ThemeEditor />},
+      {path: 'themes/:themeIndex/font', element: <ThemeFontPanel />},
+      {path: 'themes/:themeIndex/radius', element: <ThemeRadiusPanel />},
       {path: 'menus', element: <MenuList />},
       {path: 'menus/:menuIndex', element: <MenuEditor />},
       {
@@ -73,7 +77,7 @@ const AdminRouteConfig: RouteObject[] = [
         element: <MenuItemEditor />,
       },
       ...Object.values(AppAppearanceConfig.sections).flatMap(
-        s => s.routes || []
+        s => s.routes || [],
       ),
     ],
   },
@@ -97,7 +101,7 @@ const AdminRouteConfig: RouteObject[] = [
         path: 'users',
         element: (
           <AuthRoute permission="users.update">
-            <UserIndex />
+            <UserDatatable />
           </AuthRoute>
         ),
       },
@@ -255,7 +259,7 @@ const AdminRouteConfig: RouteObject[] = [
           {path: 'localization', element: <LocalizationSettings />},
           {path: 'authentication', element: <AuthenticationSettings />},
           {path: 'uploading', element: <UploadingSettings />},
-          {path: 'mail', element: <MailSettings />},
+          {path: 'outgoing-email', element: <OutgoingEmailSettings />},
           {path: 'cache', element: <CacheSettings />},
           {path: 'analytics', element: <ReportsSettings />},
           {path: 'logging', element: <LoggingSettings />},

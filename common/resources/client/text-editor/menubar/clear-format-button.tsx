@@ -12,7 +12,6 @@ export function ClearFormatButton({editor, size}: MenubarButtonProps) {
       <IconButton
         className={clsx('flex-shrink-0')}
         size={size}
-        radius="rounded"
         onClick={() => {
           editor.chain().focus().clearNodes().unsetAllMarks().run();
         }}

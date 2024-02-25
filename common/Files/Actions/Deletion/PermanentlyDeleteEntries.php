@@ -6,7 +6,6 @@ use Common\Files\Events\FileEntriesDeleted;
 use Common\Files\FileEntry;
 use DB;
 use Illuminate\Support\Collection;
-use League\Flysystem\FileNotFoundException;
 
 class PermanentlyDeleteEntries extends SoftDeleteEntries
 {
@@ -24,7 +23,7 @@ class PermanentlyDeleteEntries extends SoftDeleteEntries
     /**
      * Delete file entries from database.
      */
-    private function deleteEntries(Collection|array $entries): void
+    private function deleteEntries(Collection $entries): void
     {
         $entryIds = $entries->pluck('id');
 

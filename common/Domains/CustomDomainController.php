@@ -8,6 +8,7 @@ use Common\Core\AppUrl;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Common\Domains\Actions\DeleteCustomDomains;
+use Common\Domains\Validation\HostIsNotBlacklisted;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -45,7 +46,13 @@ class CustomDomainController extends BaseController
         $this->authorize('store', get_class($this->customDomain));
 
         $this->validate($this->request, [
-            'host' => 'required|string|max:100|unique:custom_domains',
+            'host' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('custom_domains'),
+                new HostIsNotBlacklisted(),
+            ],
             'global' => 'boolean',
         ]);
 
@@ -67,6 +74,7 @@ class CustomDomainController extends BaseController
                 'string',
                 'max:100',
                 Rule::unique('custom_domains')->ignore($customDomain->id),
+                new HostIsNotBlacklisted(),
             ],
             'global' => 'boolean',
             'resource_id' => 'integer',
@@ -117,6 +125,7 @@ class CustomDomainController extends BaseController
                 'string',
                 'max:100',
                 Rule::unique('custom_domains')->ignore($domainId),
+                new HostIsNotBlacklisted(),
             ],
         ]);
 
@@ -131,7 +140,7 @@ class CustomDomainController extends BaseController
     public function validateDomainApi()
     {
         $this->validate($this->request, [
-            'host' => 'required|string',
+            'host' => ['required', 'string', new HostIsNotBlacklisted()],
         ]);
 
         $failReason = '';
@@ -161,7 +170,7 @@ class CustomDomainController extends BaseController
             $response = [];
             $failReason = 'serverNotConfigured';
         }
-        
+
         if (Arr::get($response, 'result') === 'connected') {
             return $response;
         } else {

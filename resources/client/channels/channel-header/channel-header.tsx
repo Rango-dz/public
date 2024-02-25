@@ -98,8 +98,8 @@ function ChannelTitle({channel, isNested, actions}: ChannelTitleProps) {
 
   const link =
     channel.config.restriction && urlParam
-      ? `/channel/${channel.slug}/${urlParam}`
-      : `/channel/${channel.slug}`;
+      ? `/${channel.slug}/${urlParam}`
+      : `/${channel.slug}`;
 
   return (
     <SiteSectionHeading

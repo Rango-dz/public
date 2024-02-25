@@ -20,19 +20,19 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       // only set icon size based on button size if "ButtonSize" is passed in and not custom className
       iconSize = size && size.length <= 3 ? size : 'md',
       variant = 'text',
-      radius = 'rounded-full',
+      radius = 'rounded-button',
       className,
       padding,
       equalWidth = true,
       badge,
       ...other
     },
-    ref
+    ref,
   ) => {
     const mergedClassName = clsx(
       getButtonSizeStyle(size, {padding, equalWidth, variant}),
       className,
-      badge && 'relative'
+      badge && 'relative',
     );
 
     return (
@@ -47,5 +47,5 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {badge}
       </ButtonBase>
     );
-  }
+  },
 );

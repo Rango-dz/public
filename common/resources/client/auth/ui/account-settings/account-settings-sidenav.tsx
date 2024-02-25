@@ -7,10 +7,11 @@ import {PhonelinkLockIcon} from '@common/icons/material/PhonelinkLock';
 import {LanguageIcon} from '@common/icons/material/Language';
 import {ApiIcon} from '@common/icons/material/Api';
 import {DangerousIcon} from '@common/icons/material/Dangerous';
-import {ReactNode} from 'react';
+import {ReactNode, useContext} from 'react';
 import {DevicesIcon} from '@common/icons/material/Devices';
 import {useAuth} from '@common/auth/use-auth';
 import {useSettings} from '@common/core/settings/use-settings';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
 
 export enum AccountSettingsId {
   AccountDetails = 'account-details',
@@ -28,13 +29,23 @@ export function AccountSettingsSidenav() {
 
   const {hasPermission} = useAuth();
   const {api, social} = useSettings();
+  const {auth} = useContext(SiteConfigContext);
 
   const socialEnabled =
     social?.envato || social?.google || social?.facebook || social?.twitter;
 
   return (
-    <aside className="flex-shrink-0 sticky top-10 hidden lg:block">
+    <aside className="sticky top-10 hidden flex-shrink-0 lg:block">
       <List padding="p-0">
+        {auth.accountSettingsPanels?.map(panel => (
+          <Item
+            key={panel.id}
+            icon={<panel.icon viewBox="0 0 50 50" />}
+            panel={panel.id as AccountSettingsId}
+          >
+            <Trans {...panel.label} />
+          </Item>
+        ))}
         <Item icon={<PersonIcon />} panel={p.AccountDetails}>
           <Trans message="Account details" />
         </Item>

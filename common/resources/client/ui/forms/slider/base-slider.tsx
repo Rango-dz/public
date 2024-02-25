@@ -2,6 +2,7 @@ import React, {ReactNode} from 'react';
 import clsx from 'clsx';
 import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
 import {UseSliderProps, UseSliderReturn} from './use-slider';
+import {InputSize} from '@common/ui/forms/input-field/input-size';
 
 export interface BaseSliderProps extends UseSliderProps {
   slider: UseSliderReturn;
@@ -43,7 +44,7 @@ export function BaseSlider(props: BaseSliderProps) {
   let maxLabelLength = Math.max(
     [...numberFormatter.format(minValue)].length,
     [...numberFormatter.format(maxValue)].length,
-    [...numberFormatter.format(step)].length
+    [...numberFormatter.format(step)].length,
   );
 
   if (getValueLabel) {
@@ -61,7 +62,7 @@ export function BaseSlider(props: BaseSliderProps) {
         Math.max(
           maxLabelLength,
           [...numberFormatter.format(minValue)].length,
-          [...numberFormatter.format(maxValue)].length
+          [...numberFormatter.format(maxValue)].length,
         );
   }
   const style = getInputFieldClassNames({
@@ -112,27 +113,40 @@ export function BaseSlider(props: BaseSliderProps) {
       )}
       <div
         ref={trackRef}
-        className="h-30 relative"
+        className="relative h-30"
         {...domProps}
         role="presentation"
       >
         <div
-          className={`absolute inset-0 m-auto h-4 rounded ${getTrackColor(
-            trackColor,
-            isDisabled
-          )}`}
+          className={clsx(
+            'absolute inset-0 m-auto rounded',
+            getTrackColor(trackColor, isDisabled),
+            getTrackHeight(size),
+          )}
         />
         <div
-          className={`absolute inset-0 my-auto h-4 rounded ${getFillColor(
-            fillColor,
-            isDisabled
-          )}`}
-          style={{width: `${getThumbPercent(0) * 100}%`}}
+          className={clsx(
+            'absolute inset-0 my-auto rounded',
+            getFillColor(fillColor, isDisabled),
+            getTrackHeight(size),
+          )}
+          style={{width: `${Math.max(getThumbPercent(0) * 100, 0)}%`}}
         />
         {children}
       </div>
     </div>
   );
+}
+
+function getTrackHeight(size: InputSize): string {
+  switch (size) {
+    case 'xs':
+      return 'h-2';
+    case 'sm':
+      return 'h-3';
+    default:
+      return 'h-4';
+  }
 }
 
 function getTrackColor(color: string, isDisabled: boolean): string {

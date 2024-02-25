@@ -64,7 +64,7 @@ return new class extends Migration {
             return;
         }
 
-        $value = $homepage['value'];
+        $value = json_encode($homepage['value']);
         $value = str_replace('client\/assets\/images\/', 'images\/', $value);
         $value = str_replace('client/assets/images/', 'images/', $value);
         $value = str_replace('landing-bg.svg', 'landing-bg.jpg', $value);
@@ -95,7 +95,7 @@ return new class extends Migration {
             return;
         }
 
-        $menus = json_decode($menus['value'], true);
+        $menus = $menus['value'];
 
         // convert menus "position" string to "positions" array
         foreach ($menus as $menuKey => $menu) {
@@ -134,6 +134,33 @@ return new class extends Migration {
                 if ($item['action'] === '/news') {
                     $menus[$menuKey]['items'][$itemKey]['action'] =
                         '/latest-news';
+                }
+
+                if ($item['action'] === '/help-center/tickets') {
+                    $menus[$menuKey]['items'][$itemKey]['action'] =
+                        '/hc/tickets';
+                    $menus[$menuKey]['items'][$itemKey]['roles'] = [2];
+                }
+
+                if ($item['action'] === '/mailbox/tickets') {
+                    $menus[$menuKey]['items'][$itemKey]['action'] =
+                        '/agent/tickets';
+                    $menus[$menuKey]['items'][$itemKey]['roles'] = [3];
+                }
+
+                if (
+                    isset($item['label']) &&
+                    $item['label'] === 'Agent mailbox'
+                ) {
+                    $menus[$menuKey]['items'][$itemKey]['action'] =
+                        '/agent/tickets';
+                    $menus[$menuKey]['items'][$itemKey]['roles'] = [3];
+                }
+
+                if (isset($item['label']) && $item['label'] === 'My tickets') {
+                    $menus[$menuKey]['items'][$itemKey]['action'] =
+                        '/hc/tickets';
+                    $menus[$menuKey]['items'][$itemKey]['roles'] = [2];
                 }
 
                 // migrate icons to svg path config from simple string
@@ -423,7 +450,7 @@ return new class extends Migration {
     {
         CssTheme::all()->each(function (CssTheme $theme) {
             $newColors = [];
-            $oldColors = $theme->colors;
+            $oldColors = json_decode($theme->getRawOriginal('colors'), true);
             $defaultColors = $theme->is_dark
                 ? config('common.themes.dark')
                 : config('common.themes.light');

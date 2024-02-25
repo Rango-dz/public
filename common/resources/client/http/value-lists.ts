@@ -96,7 +96,7 @@ export function prefetchValueLists(
   params?: Record<string, string | number | undefined>,
 ) {
   queryClient.prefetchQuery({
-    queryKey: ['ValueLists', names, params],
+    queryKey: ['value-lists', names, params],
     queryFn: () => fetchValueLists(names, params),
   });
 }

@@ -20,7 +20,7 @@ type InputFieldStyleProps = Omit<
 >;
 
 export function getInputFieldClassNames(
-  props: InputFieldStyleProps = {}
+  props: InputFieldStyleProps = {},
 ): InputFieldStyle {
   const {
     size = 'md',
@@ -79,7 +79,7 @@ export function getInputFieldClassNames(
       'first-letter:capitalize text-left whitespace-nowrap',
       disabled && 'text-disabled',
       sizeClass.font,
-      labelPosition === 'side' ? 'mr-16' : 'mb-4'
+      labelPosition === 'side' ? 'mr-16' : 'mb-4',
     ),
     input: clsx(
       'block text-left relative w-full appearance-none transition-shadow text',
@@ -94,7 +94,7 @@ export function getInputFieldClassNames(
       inputClassName,
       sizeClass.font,
       sizeClass.height,
-      getInputPadding(props)
+      getInputPadding(props),
     ),
     adornment: iconSizeClass(size),
     append: {
@@ -107,7 +107,7 @@ export function getInputFieldClassNames(
     inputWrapper: clsx(
       'isolate relative',
       inputWrapperClassName,
-      isInputGroup && 'flex items-stretch'
+      isInputGroup && 'flex items-stretch',
     ),
     size: sizeClass,
     description: `text-muted ${
@@ -145,12 +145,12 @@ function getInputPadding({
   if (inputRadius === 'rounded-full') {
     return clsx(
       startAdornment ? 'pl-54' : 'pl-28',
-      endAdornment ? 'pr-54' : 'pr-28'
+      endAdornment ? 'pr-54' : 'pr-28',
     );
   }
   return clsx(
     startAdornment ? 'pl-46' : 'pl-12',
-    endAdornment ? 'pr-46' : 'pr-12'
+    endAdornment ? 'pr-46' : 'pr-12',
   );
 }
 
@@ -166,7 +166,7 @@ function getRadius(props: InputFieldStyleProps): {
       input: clsx(
         !isInputGroup && 'rounded-full',
         startAppend && 'rounded-r-full rounded-l-none',
-        endAppend && 'rounded-l-full rounded-r-none'
+        endAppend && 'rounded-l-full rounded-r-none',
       ),
       append: startAppend ? 'rounded-l-full' : 'rounded-r-full',
     };
@@ -183,11 +183,11 @@ function getRadius(props: InputFieldStyleProps): {
   }
   return {
     input: clsx(
-      !isInputGroup && 'rounded',
-      startAppend && 'rounded-r rounded-l-none',
-      endAppend && 'rounded-l rounded-r-none'
+      !isInputGroup && 'rounded-input',
+      startAppend && 'rounded-input-r rounded-l-none',
+      endAppend && 'rounded-input-l rounded-r-none',
     ),
-    append: startAppend ? 'rounded-l' : 'rounded-r',
+    append: startAppend ? 'rounded-input-l' : 'rounded-input-r',
   };
 }
 

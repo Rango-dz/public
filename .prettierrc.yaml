@@ -4,7 +4,9 @@ phpVersion: "8.0"
 singleQuote: true
 
 plugins:
-  - prettier-plugin-php
+  - "@prettier/plugin-php"
+  - "prettier-plugin-tailwindcss"
+  - "prettier-plugin-blade"
 
 overrides:
   - files: "*.html"

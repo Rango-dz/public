@@ -6,7 +6,6 @@ use App\Actions\Titles\StoresMediaImages;
 use App\Models\Season;
 use App\Models\Title;
 use App\Models\Video;
-use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -121,28 +120,22 @@ class StoreTitleData
 
     private function persistVideos(array $values): void
     {
-        $exists = [];
-        $mediaItems = collect($values)
-            ->map(function ($value, $i) use (&$exists) {
-                $uniqueKey = strtolower($value['name']);
+        $videos = collect($values)
+            ->unique(fn($v) => strtolower($v['name']))
+            ->values()
+            ->map(function ($value, $i) {
                 $value['title_id'] = $this->title->id;
-                $value['order'] = $i;
-                $value['created_at'] = Carbon::now();
-                $value['updated_at'] = Carbon::now();
-                if (in_array($uniqueKey, $exists)) {
-                    return null;
-                } else {
-                    $exists[] = $uniqueKey;
-                    return $value;
-                }
-            })
-            ->filter();
+                $value['order'] = $i + 1;
+                $value['created_at'] = now();
+                $value['updated_at'] = now();
+                return $value;
+            });
 
         Video::where('origin', '!=', 'local')
             ->where('title_id', $this->title->id)
             ->whereNull('episode_num')
             ->delete();
 
-        Video::insert($mediaItems->toArray());
+        Video::insert($videos->toArray());
     }
 }

@@ -32,8 +32,7 @@ const defaultItems: SectionItem[] = [
 export function ContentSettingsTitlePagePanel() {
   const {getValues, setValue} = useFormContext<AdminSettings>();
   const getSavedValue = (): string[] => {
-    const savedJson = getValues('client.title_page.sections');
-    return savedJson ? JSON.parse(savedJson) : [];
+    return getValues('client.title_page.sections') || [];
   };
 
   const [items, setItems] = useState(() => {
@@ -63,7 +62,7 @@ export function ContentSettingsTitlePagePanel() {
             const newValue = checked
               ? [...savedValue, section.name]
               : savedValue.filter(x => x !== section.name);
-            setValue('client.title_page.sections', JSON.stringify(newValue));
+            setValue('client.title_page.sections', newValue as any);
           }}
           onSortEnd={(oldIndex, newIndex) => {
             const sortedItems = moveItemInNewArray(items, oldIndex, newIndex);
@@ -72,7 +71,7 @@ export function ContentSettingsTitlePagePanel() {
             const newValue = sortedItems
               .filter(x => savedValue.includes(x.name))
               .map(x => x.name);
-            setValue('client.title_page.sections', JSON.stringify(newValue));
+            setValue('client.title_page.sections', newValue);
           }}
         />
       ))}
@@ -100,8 +99,7 @@ function ListItemLayout({
   const previewRef = useRef<DragPreviewRenderer>(null);
   const {watch} = useFormContext<AdminSettingsWithFiles>();
 
-  const savedJson = watch('client.title_page.sections');
-  const savedValue: string[] = savedJson ? JSON.parse(savedJson) : [];
+  const savedValue = watch('client.title_page.sections') || [];
   const isChecked = savedValue.includes(section.name);
 
   const {sortableProps, dragHandleRef} = useSortable({
@@ -119,7 +117,7 @@ function ListItemLayout({
       <div
         className={clsx(
           'flex w-full items-center gap-8 border-b py-6',
-          isFirst && 'border-t border-t-transparent'
+          isFirst && 'border-t border-t-transparent',
         )}
         ref={ref}
         {...sortableProps}
@@ -132,8 +130,8 @@ function ListItemLayout({
         </div>
         <Checkbox
           checked={isChecked}
-          onChange={e => {
-            onToggle(section, e.target.checked);
+          onChange={() => {
+            onToggle(section, !isChecked);
           }}
         />
       </div>
@@ -154,5 +152,5 @@ const TabDragPreview = React.forwardRef<DragPreviewRenderer, DragPreviewProps>(
         )}
       </DragPreview>
     );
-  }
+  },
 );

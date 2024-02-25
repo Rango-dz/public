@@ -17,10 +17,13 @@ abstract class BaseChannel extends BaseModel
     const MODEL_TYPE = 'channel';
     protected $guarded = ['id'];
     protected $appends = ['model_type'];
-    protected $hidden = ['pivot'];
+    protected $hidden = ['pivot', 'internal'];
 
     protected $casts = [
         'id' => 'integer',
+        'public' => 'boolean',
+        'internal' => 'boolean',
+        'user_id' => 'integer',
     ];
 
     protected static function booted(): void
@@ -117,13 +120,16 @@ abstract class BaseChannel extends BaseModel
     {
         $restriction = null;
         $modelName = $this->config['restriction'];
-        $modelId = $this->config['restrictionModelId'];
-        $model = app(modelTypeToNamespace($modelName))
-            ->select(['id', 'name', 'display_name']);
+        $modelId = $this->config['restrictionModelId'] ?? null;
+        $model = app(modelTypeToNamespace($modelName))->select([
+            'id',
+            'name',
+            'display_name',
+        ]);
 
         if ($modelId === 'urlParam' && $urlParam) {
             $restriction = $model->where('name', $urlParam)->first();
-        } else if (isset($modelId) && $modelId !== 'urlParam') {
+        } elseif (isset($modelId) && $modelId !== 'urlParam') {
             $restriction = $model->find($modelId);
         }
 
@@ -136,7 +142,7 @@ abstract class BaseChannel extends BaseModel
 
     public function loadContent(array $params = [], self $parent = null): static
     {
-        $channelContent = app(LoadChannelContent::class)->execute(
+        $channelContent = (new LoadChannelContent())->execute(
             $this,
             $params,
             $parent,
@@ -163,7 +169,7 @@ abstract class BaseChannel extends BaseModel
         $method =
             $autoUpdateMethod ?? Arr::get($this->config, 'autoUpdateMethod');
 
-        if ( ! $method) {
+        if (!$method) {
             return;
         }
 
@@ -195,7 +201,31 @@ abstract class BaseChannel extends BaseModel
         $this->touch();
     }
 
+    public function shouldRestrictContent()
+    {
+        // when channel is set to auto update, content will be filtered when auto updating
+        return Arr::get($this->config, 'contentType') !== 'autoUpdate' &&
+            Arr::get($this->config, 'restriction');
+    }
+
     abstract protected function loadContentFromExternal(
         string $autoUpdateMethod,
     ): Collection|array|null;
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $type = request('channelType');
+        if (ctype_digit($value)) {
+            $channel = $this->when(
+                $type,
+                fn($q) => $q->where('type', $type),
+            )->findOrFail($value);
+        } else {
+            $channel = $this->where('slug', $value)
+                ->when($type, fn($q) => $q->where('type', $type))
+                ->firstOrFail();
+        }
+
+        return $channel;
+    }
 }

@@ -12,6 +12,7 @@ use Common\Settings\Settings;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class TmdbApi
 {
@@ -136,6 +137,18 @@ class TmdbApi
         $data = app(TransformData::class)
             ->execute([$response])
             ->first();
+
+        // fall back to english videos if there are no videos in the current language
+        if (!Str::startsWith($this->language, 'en') && empty($data['videos'])) {
+            $videos = $this->call("$uri/{$title->tmdb_id}/videos", [
+                'language' => 'en-US',
+            ]);
+            $videos = app(TransformData::class)->formatVideos(
+                $videos['results'],
+            );
+            $data['videos'] = $videos;
+        }
+
         $data['fully_synced'] = true;
         return $data;
     }
@@ -194,13 +207,16 @@ class TmdbApi
         $key = config('services.tmdb.key');
         $url = self::TMDB_BASE . "$uri?api_key=$key";
 
-        $queryParams = array_merge($queryParams, [
-            // need to send "true" and not "1" otherwise tmdb will not work
-            'include_adult' => $this->includeAdult ? 'true' : 'false',
-            'language' => $this->language,
-            'region' => 'US',
-            'include_image_language' => 'en,null',
-        ]);
+        $queryParams = array_merge(
+            [
+                // need to send "true" and not "1" otherwise tmdb will not work
+                'include_adult' => $this->includeAdult ? 'true' : 'false',
+                'language' => $this->language,
+                'region' => 'US',
+                'include_image_language' => 'en,null',
+            ],
+            $queryParams,
+        );
         $url .= '&' . urldecode(http_build_query($queryParams));
         return $this->http->get($url, [
             'verify' => false,

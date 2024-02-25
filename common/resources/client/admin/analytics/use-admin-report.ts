@@ -4,13 +4,15 @@ import {apiClient} from '../../http/query-client';
 import {VisitorsReportData} from './visitors-report-data';
 import {IconTree} from '../../icons/create-svg-icon';
 import {DateRangeValue} from '@common/ui/forms/input-field/date/date-range-picker/date-range-value';
+import {ReactElement} from 'react';
+import {SvgIconProps} from '@common/icons/svg-icon';
 
 const Endpoint = 'admin/reports';
 
 export interface HeaderDatum {
-  icon: IconTree[];
+  icon: IconTree[] | ReactElement<SvgIconProps>;
   name: string;
-  type?: 'number' | 'fileSize';
+  type?: 'number' | 'fileSize' | 'percentage';
   currentValue: number;
   previousValue?: number;
   percentageChange?: number;

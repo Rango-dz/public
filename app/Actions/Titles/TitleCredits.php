@@ -61,6 +61,7 @@ class TitleCredits
         Season $season = null,
         Episode $episode = null,
     ): Builder {
+        $prefix = DB::getTablePrefix();
         $builder = Person::join(
             'creditables',
             'people.id',
@@ -71,13 +72,17 @@ class TitleCredits
                 'people.id',
                 'people.name',
                 'people.poster',
-                DB::raw('creditables.id as pivot_id'),
-                DB::raw('creditables.creditable_id as pivot_creditable_id'),
-                DB::raw('creditables.creditable_type as pivot_creditable_type'),
-                DB::raw('creditables.job as pivot_job'),
-                DB::raw('creditables.department as pivot_department'),
-                DB::raw('creditables.order as pivot_order'),
-                DB::raw('creditables.character as pivot_character'),
+                DB::raw("{$prefix}creditables.id as pivot_id"),
+                DB::raw(
+                    "{$prefix}creditables.creditable_id as pivot_creditable_id",
+                ),
+                DB::raw(
+                    "{$prefix}creditables.creditable_type as pivot_creditable_type",
+                ),
+                DB::raw("{$prefix}creditables.job as pivot_job"),
+                DB::raw("{$prefix}creditables.department as pivot_department"),
+                DB::raw("{$prefix}creditables.order as pivot_order"),
+                DB::raw("{$prefix}creditables.character as pivot_character"),
             ])
             // Need to keep same person in different departments (as actor and producer for example)
             // while still removing duplicates when loading credits for title, season and episode

@@ -10,7 +10,8 @@ interface Response extends BackendResponse {
 }
 
 interface Payload {
-  ids: string[];
+  ids?: string[];
+  markAllAsUnread?: boolean;
 }
 
 export function useMarkNotificationsAsRead() {

@@ -15,6 +15,8 @@ class FetchContentFromTmdb
         string $modelType,
         ?array $filters = [],
     ): Collection {
+        Title::disableSearchSyncing();
+        Person::disableSearchSyncing();
         if ($modelType === Person::MODEL_TYPE) {
             return $this->importPeople($method);
         } else {

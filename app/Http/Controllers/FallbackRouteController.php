@@ -9,17 +9,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class FallbackRouteController
 {
-    static array $defaultRoutes = [
-        'lists',
-        'titles',
-        'search',
-        'news',
-        'user',
-    ];
+    static array $defaultRoutes = ['lists', 'titles', 'search', 'news', 'user'];
 
     public function __invoke(string $path)
     {
         $parts = explode('/', $path);
+
         if (
             count($parts) > 2 ||
             count($parts) < 1 ||
@@ -32,6 +27,11 @@ class FallbackRouteController
         try {
             if ($parts[0] === 'lists' && isset($parts[1])) {
                 request()->merge(['channelType' => 'list']);
+                $parts[0] = $parts[1];
+                $parts[1] = null;
+            }
+
+            if ($parts[0] === 'channel' && isset($parts[1])) {
                 $parts[0] = $parts[1];
                 $parts[1] = null;
             }

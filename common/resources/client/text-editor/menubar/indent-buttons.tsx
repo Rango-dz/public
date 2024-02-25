@@ -13,7 +13,6 @@ export function IndentButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Decrease indent" />}>
         <IconButton
           size={size}
-          radius="rounded"
           onClick={() => {
             editor.commands.focus();
             editor.commands.outdent();
@@ -25,7 +24,6 @@ export function IndentButtons({editor, size}: MenubarButtonProps) {
       <Tooltip label={<Trans message="Increase indent" />}>
         <IconButton
           size={size}
-          radius="rounded"
           onClick={() => {
             editor.commands.focus();
             editor.commands.indent();

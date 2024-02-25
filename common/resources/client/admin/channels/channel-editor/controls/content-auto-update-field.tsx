@@ -6,14 +6,17 @@ import {Fragment, ReactNode} from 'react';
 import {LearnMoreLink} from '@common/admin/settings/learn-more-link';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {FormTextField} from '@common/ui/forms/input-field/text-field/text-field';
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode;
   config: ChannelContentConfig;
 }
 export function ContentAutoUpdateField({children, config}: Props) {
   const {watch, setValue} = useFormContext<UpdateChannelPayload>();
   const modelConfig = config.models[watch('config.contentModel')];
+  const selectedMethodConfig =
+    config.autoUpdateMethods[watch('config.autoUpdateMethod')!];
 
   if (
     watch('config.contentType') !== 'autoUpdate' ||
@@ -23,17 +26,18 @@ export function ContentAutoUpdateField({children, config}: Props) {
   }
 
   return (
-    <div className="md:flex items-end my-24 gap-14">
+    <div className="my-24 items-end gap-14 md:flex">
       <FormSelect
         required
         className="flex-auto"
         selectionMode="single"
         name="config.autoUpdateMethod"
         onSelectionChange={value => {
-          if (config.autoUpdateMethods[value].localOnly) {
-            setValue('config.autoUpdateProvider', 'local');
-          } else if (config.autoUpdateMethods[value].tmdbOnly) {
-            setValue('config.autoUpdateProvider', 'tmdb');
+          if (config.autoUpdateMethods[value].provider) {
+            setValue(
+              'config.autoUpdateProvider',
+              config.autoUpdateMethods[value].provider,
+            );
           }
         }}
         label={
@@ -58,6 +62,15 @@ export function ContentAutoUpdateField({children, config}: Props) {
           </Option>
         ))}
       </FormSelect>
+      {selectedMethodConfig?.value ? (
+        <FormTextField
+          name="config.autoUpdateValue"
+          required
+          className="flex-auto"
+          label={<Trans {...selectedMethodConfig?.value.label} />}
+          type={selectedMethodConfig?.value.inputType}
+        />
+      ) : null}
       {children}
     </div>
   );

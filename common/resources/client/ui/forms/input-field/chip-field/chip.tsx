@@ -55,11 +55,11 @@ export function Chip(props: ChipProps) {
     switch (e.key) {
       case 'ArrowRight':
       case 'ArrowDown':
-        focusManager.focusNext({tabbable: true});
+        focusManager?.focusNext({tabbable: true});
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
-        focusManager.focusPrevious({tabbable: true});
+        focusManager?.focusPrevious({tabbable: true});
         break;
       case 'Backspace':
       case 'Delete':
@@ -113,7 +113,7 @@ export function Chip(props: ChipProps) {
       onClick={selectable ? handleClick : undefined}
       className={clsx(
         'relative flex flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none',
-        'after:pointer-events-none after:absolute after:inset-0',
+        'min-w-0 max-w-full after:pointer-events-none after:absolute after:inset-0',
         onClick && 'cursor-pointer',
         radius,
         colorClassName(props),
@@ -121,17 +121,19 @@ export function Chip(props: ChipProps) {
         !disabled &&
           selectable &&
           'hover:after:bg-black/5 focus:after:bg-black/10',
-        className
+        className,
       )}
     >
       {adornment}
-      {children}
+      <div className="flex-auto overflow-hidden overflow-ellipsis">
+        {children}
+      </div>
       {onRemove && (
         <ButtonBase
           ref={deleteButtonRef}
           className={clsx(
             'text-black/30 dark:text-white/50',
-            sizeStyle.closeButton
+            sizeStyle.closeButton,
           )}
           onClick={e => {
             e.stopPropagation();

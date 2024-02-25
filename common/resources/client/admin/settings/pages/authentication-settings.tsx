@@ -64,10 +64,30 @@ export function AuthenticationSettings() {
   );
 }
 
-function EmailConfirmationSection() {
+export function MailNotSetupWarning() {
   const {watch} = useFormContext<AdminSettings>();
   const mailSetup = watch('server.mail_setup');
+  if (mailSetup) return null;
+  return (
+    <p className="mt-10 text-danger">
+      <Trans
+        message="Outgoing mail method needs to be setup before enabling this setting. <a>Fix now</a>"
+        values={{
+          a: text => (
+            <Link
+              className="block font-bold underline"
+              to="/admin/settings/mail#outgoing-emails"
+            >
+              {text}
+            </Link>
+          ),
+        }}
+      />
+    </p>
+  );
+}
 
+function EmailConfirmationSection() {
   return (
     <FormSwitch
       className="mb-30"
@@ -75,23 +95,7 @@ function EmailConfirmationSection() {
       description={
         <Fragment>
           <Trans message="Require newly registered users to validate their email address before being able to login." />
-          {!mailSetup && (
-            <p className="mt-10 text-danger">
-              <Trans
-                message="Outgoing mail method needs to be setup before enabling this setting. <a>Fix now</a>"
-                values={{
-                  a: text => (
-                    <Link
-                      className="font-bold block underline"
-                      to="/admin/settings/mail#outgoing-emails"
-                    >
-                      {text}
-                    </Link>
-                  ),
-                }}
-              />
-            </p>
-          )}
+          <MailNotSetupWarning />
         </Fragment>
       }
     >
@@ -102,10 +106,10 @@ function EmailConfirmationSection() {
 
 function EnvatoSection() {
   const {watch} = useFormContext<AdminSettings>();
-  const {envato} = useSettings();
+  const settings = useSettings();
   const envatoLoginEnabled = watch('client.social.envato.enable');
 
-  if (!envato?.enable) return null;
+  if (!(settings as any).envato?.enable) return null;
 
   return (
     <SettingsErrorGroup separatorBottom={false} name="envato_group">
@@ -120,7 +124,7 @@ function EnvatoSection() {
           >
             <Trans message="Envato login" />
           </FormSwitch>
-          {envatoLoginEnabled && (
+          {!!envatoLoginEnabled && (
             <>
               <FormTextField
                 invalid={isInvalid}
@@ -168,7 +172,7 @@ function GoogleSection() {
           >
             <Trans message="Google login" />
           </FormSwitch>
-          {googleLoginEnabled && (
+          {!!googleLoginEnabled && (
             <>
               <FormTextField
                 invalid={isInvalid}
@@ -208,7 +212,7 @@ function FacebookSection() {
           >
             <Trans message="Facebook login" />
           </FormSwitch>
-          {facebookLoginEnabled && (
+          {!!facebookLoginEnabled && (
             <>
               <FormTextField
                 invalid={isInvalid}
@@ -253,7 +257,7 @@ function TwitterSection() {
           >
             <Trans message="Twitter login" />
           </FormSwitch>
-          {twitterLoginEnabled && (
+          {!!twitterLoginEnabled && (
             <>
               <FormTextField
                 invalid={isInvalid}

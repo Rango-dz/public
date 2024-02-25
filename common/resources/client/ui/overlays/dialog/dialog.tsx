@@ -60,10 +60,10 @@ export function Dialog(props: DialogProps) {
     'mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden',
     background || 'bg-paper',
     type !== 'tray' && sizeStyle(size),
-    type === 'tray' && 'rounded-t',
+    type === 'tray' && 'rounded-t border-b-bg',
     size !== 'fullscreenTakeover' && `shadow-2xl border max-h-dialog`,
     !isTrayOrFullScreen && `${radius} ${maxWidth}`,
-    className
+    className,
   );
 
   return (

@@ -13,7 +13,7 @@ import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import {BackgroundColor} from '@common/text-editor/extensions/background-color';
 import {Indent} from '@common/text-editor/extensions/indent';
 import {Embed} from '@common/text-editor/extensions/embed';
-import {lowlight} from '@common/text-editor/lowlight';
+import {lowlight} from '@common/text-editor/highlight/lowlight';
 import {InfoBlock} from '@common/text-editor/extensions/info-block';
 import {useCallbackRef} from '@common/utils/hooks/use-callback-ref';
 import {Extension} from '@tiptap/core';
@@ -42,7 +42,13 @@ export default function ArticleBodyEditor({
       codeBlock: false,
     }),
     Underline,
-    LinkExtension,
+    LinkExtension.extend({
+      inclusive: false,
+      validate: {
+        // only linkify links that start with a protocol
+        url: (value: string) => /^https?:\/\//.test(value),
+      },
+    }),
     Image,
     Superscript,
     Subscript,

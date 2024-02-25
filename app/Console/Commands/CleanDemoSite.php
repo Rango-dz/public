@@ -49,7 +49,7 @@ class CleanDemoSite extends Command
         $admin->username = 'admin';
         $admin->first_name = 'Demo';
         $admin->last_name = 'Admin';
-        $admin->password = Hash::make('admin');
+        $admin->password = 'admin';
         $admin->email_verified_at = now()->subDays(10);
         $admin->save();
 

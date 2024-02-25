@@ -53,7 +53,7 @@ class SettingsTableSeeder extends Seeder
                     }
                 }
                 $setting['value'] = json_encode($value);
-             }
+            }
 
             return $setting;
         }, $defaultSettings);
@@ -78,10 +78,7 @@ class SettingsTableSeeder extends Seeder
     private function mergeMenusSetting(array $defaultSettings): void
     {
         $existing =
-            json_decode(
-                $this->setting->where('name', 'menus')->first()->value,
-                true,
-            ) ?? [];
+            $this->setting->where('name', 'menus')->first()->value ?? [];
         $new = json_decode(
             Arr::first(
                 $defaultSettings,
@@ -90,17 +87,18 @@ class SettingsTableSeeder extends Seeder
             true,
         );
 
-        foreach ($new as $menu) {
-            $alreadyHas = Arr::first($existing, function ($value) use ($menu) {
-                return $value['name'] === $menu['name'];
-            });
+        foreach ($new as $newMenu) {
+            $alreadyHas = Arr::first(
+                $existing,
+                fn($value) => $value['name'] === $newMenu['name'],
+            );
 
-            foreach ($menu['items'] as $index => $item) {
-                $menu['items'][$index]['order'] = $index;
+            foreach ($newMenu['items'] as $index => $item) {
+                $newMenu['items'][$index]['order'] = $index;
             }
 
             if (!$alreadyHas) {
-                $existing[] = $menu;
+                $existing[] = $newMenu;
             }
         }
 

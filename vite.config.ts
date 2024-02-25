@@ -24,7 +24,7 @@ export default defineConfig({
       host: '0.0.0.0',
     },
   },
-  base: 'build/test/hi',
+  base: '',
   resolve: {
     preserveSymlinks: true,
   },

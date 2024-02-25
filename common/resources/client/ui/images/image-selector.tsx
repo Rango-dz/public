@@ -148,7 +148,7 @@ export function ImageSelector({
   ) : null;
 
   const useDefaultButton =
-    defaultValue && value !== defaultValue ? (
+    defaultValue != null && value !== defaultValue ? (
       <Button
         variant="outline"
         color="primary"
@@ -263,7 +263,7 @@ function InputVariant({
           <img
             className={clsx(
               'mx-auto h-full rounded',
-              stretchPreview ? 'object-cover' : 'object-contain'
+              stretchPreview ? 'object-cover' : 'object-contain',
             )}
             onClick={() => handleUpload()}
             src={imageUrl}
@@ -291,7 +291,7 @@ function InputVariant({
     className: clsx(
       inputFieldClassNames.input,
       'py-8',
-      'file:bg-primary file:text-on-primary file:border-none file:rounded file:text-sm file:font-semibold file:px-10 file:h-24 file:mr-10'
+      'file:bg-primary file:text-on-primary file:border-none file:rounded file:text-sm file:font-semibold file:px-10 file:h-24 file:mr-10',
     ),
   });
 }
@@ -317,7 +317,7 @@ function SquareVariant({
           previewRadius,
           !imageUrl && 'border',
           'group z-20 flex flex-col items-center justify-center gap-14 bg-fg-base/8 bg-center bg-no-repeat',
-          stretchPreview ? 'bg-cover' : 'bg-contain p-6'
+          stretchPreview ? 'bg-cover' : 'bg-contain p-6',
         )}
         style={imageUrl ? {backgroundImage: `url(${imageUrl})`} : undefined}
         onClick={() => handleUpload()}
@@ -330,7 +330,7 @@ function SquareVariant({
           color="white"
           size="xs"
           className={clsx(
-            showEditButtonOnHover && 'invisible group-hover:visible'
+            showEditButtonOnHover && 'invisible group-hover:visible',
           )}
           disabled={disabled}
         >
@@ -371,7 +371,7 @@ function AvatarVariant({
         viewBox="0 0 48 48"
         className={clsx(
           'h-full w-full bg-primary-light/40 text-primary/40',
-          previewRadius
+          previewRadius,
         )}
       />
     );
@@ -398,6 +398,7 @@ function AvatarVariant({
             variant="outline"
             size="sm"
             color="primary"
+            radius="rounded-full"
           >
             <AddAPhotoIcon />
           </IconButton>

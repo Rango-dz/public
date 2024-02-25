@@ -4,7 +4,6 @@ use App\Models\User;
 use Common\Auth\Permissions\Permission;
 use Common\Auth\Permissions\Traits\HasPermissionsRelation;
 use Common\Auth\Roles\Role;
-use Common\Auth\Traits\Bannable;
 use Common\Auth\Traits\HasAvatarAttribute;
 use Common\Auth\Traits\HasDisplayNameAttribute;
 use Common\Billing\Billable;
@@ -14,7 +13,6 @@ use Common\Files\FileEntry;
 use Common\Files\FileEntryPivot;
 use Common\Files\Traits\SetsAvailableSpaceAttribute;
 use Common\Notifications\NotificationSubscription;
-use Common\Settings\Settings;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -24,14 +22,17 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Scout\Searchable;
@@ -57,8 +58,7 @@ abstract class BaseUser extends BaseModel implements
 
     const MODEL_TYPE = 'user';
 
-    // prevent avatar from being set along with other user details
-    protected $guarded = ['id', 'avatar'];
+    protected $guarded = ['id'];
     protected $hidden = [
         'password',
         'remember_token',
@@ -86,8 +86,7 @@ abstract class BaseUser extends BaseModel implements
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->billingEnabled =
-            app(Settings::class)->get('billing.enable') || false;
+        $this->billingEnabled = (bool) settings('billing.enable');
     }
 
     public function toArray(bool $showAll = false): array
@@ -128,7 +127,7 @@ abstract class BaseUser extends BaseModel implements
         return $this->belongsToMany(Role::class, 'user_role');
     }
 
-    public function routeNotificationForSlack(): string
+    public function routeNotificationForSlack()
     {
         return config('services.slack.webhook_url');
     }
@@ -178,6 +177,18 @@ abstract class BaseUser extends BaseModel implements
             ->orderBy('file_entry_models.created_at', 'asc');
     }
 
+    public function activeSessions(): HasMany
+    {
+        return $this->hasMany(ActiveSession::class);
+    }
+
+    public function lastLogin(): HasOne
+    {
+        return $this->hasOne(ActiveSession::class)
+            ->latest()
+            ->select(['id', 'user_id', 'session_id', 'created_at']);
+    }
+
     public function followedUsers(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -217,13 +228,49 @@ abstract class BaseUser extends BaseModel implements
             $this->attributes['password'];
     }
 
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if (!$value) {
+                    return null;
+                }
+                if (Hash::isHashed($value)) {
+                    return $value;
+                }
+                return Hash::make($value);
+            },
+        );
+    }
+
+    protected function availableSpace(): Attribute
+    {
+        return Attribute::make(
+            set: fn($value) => !is_null($value) ? (int) $value : null,
+        );
+    }
+
+    protected function emailVerifiedAt(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if ($value === true) {
+                    return now();
+                } elseif ($value === false) {
+                    return null;
+                }
+                return $value;
+            },
+        );
+    }
+
     public function loadPermissions($force = false): self
     {
         if (!$force && $this->relationLoaded('permissions')) {
             return $this;
         }
 
-        $query = app(Permission::class)->join(
+        $query = Permission::join(
             'permissionables',
             'permissions.id',
             'permissionables.permission_id',

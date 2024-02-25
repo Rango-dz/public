@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'remote_file_visibility' => env('REMOTE_FILE_VISIBILITY', 'public'),
+    'remote_file_visibility' => env('REMOTE_FILE_VISIBILITY', 'private'),
     'disable_thumbnail_creation' => env('DISABLE_THUMBNAIL_CREATION', false),
     'use_presigned_s3_urls' => env('USE_PRESIGNED_S3_URLS', true),
     'static_file_delivery' => env('STATIC_FILE_DELIVERY', null),
@@ -31,4 +31,5 @@ return [
     'ssr_enabled' => env('SSR_ENABLED', false),
     'ssr_url' => env('SSR_URL', 'http://127.0.0.1:13714'),
     'disable_csrf' => env('DISABLE_CSRF', false),
+    'demo_password' => env('DEMO_ADMIN_PASSWORD'),
 ];

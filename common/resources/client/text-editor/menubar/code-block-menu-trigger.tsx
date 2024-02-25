@@ -26,7 +26,6 @@ export function CodeBlockMenuTrigger({editor, size}: MenubarButtonProps) {
           className={clsx('flex-shrink-0')}
           size={size}
           color={language ? 'primary' : null}
-          radius="rounded"
         >
           <CodeIcon />
         </IconButton>

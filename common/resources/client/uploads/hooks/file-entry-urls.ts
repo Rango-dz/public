@@ -9,7 +9,7 @@ export const FileEntryUrlsContext = React.createContext<
 
 export function useFileEntryUrls(
   entry?: FileEntry,
-  options?: {thumbnail?: boolean; downloadHashes?: string[]}
+  options?: {thumbnail?: boolean; downloadHashes?: string[]},
 ): {previewUrl?: string; downloadUrl?: string} {
   const {base_url} = useSettings();
   const urlSearchParams = useContext(FileEntryUrlsContext);
@@ -39,7 +39,7 @@ export function useFileEntryUrls(
         urls.previewUrl = addParams(
           urls.previewUrl,
           {...urlSearchParams, thumbnail: options?.thumbnail ? 'true' : ''},
-          base_url
+          base_url,
         );
       }
 

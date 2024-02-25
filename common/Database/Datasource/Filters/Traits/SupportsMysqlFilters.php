@@ -105,6 +105,10 @@ trait SupportsMysqlFilters
         // use left join to check if model has any of specified relations
         if ($filter['value'] === '*') {
             $query
+                // prevent null values from being returned when using left join
+                ->when(empty($query->getQuery()->getColumns()), function ($q) {
+                    $q->select($q->getModel()->getTable() . '.*');
+                })
                 ->leftJoin($related, $foreignKey, '=', $parentKey)
                 ->where(
                     $foreignKey,
@@ -137,22 +141,22 @@ trait SupportsMysqlFilters
             $values = is_array($filter['value'])
                 ? $filter['value']
                 : [$filter['value']];
-            $query
-                ->join(
-                    $relation->getTable(),
-                    $relation->getQualifiedParentKeyName(),
-                    '=',
-                    $relation->getQualifiedForeignPivotKeyName(),
-                );
-            foreach ($values as $value) {
-                $query
-                    ->orWhere(
+            $query->join(
+                $relation->getTable(),
+                $relation->getQualifiedParentKeyName(),
+                '=',
+                $relation->getQualifiedForeignPivotKeyName(),
+            );
+
+            $query->where(function ($q) use ($values, $relation) {
+                foreach ($values as $value) {
+                    $q->orWhere(
                         $relation->getQualifiedRelatedPivotKeyName(),
                         '=',
                         $value,
-                    )
-                    ->groupBy($query->getModel()->getTable() . '.id');
-            }
+                    );
+                }
+            });
         } elseif ($filter['operator'] === 'doesntHave') {
             $table = $query->getModel()->getTable();
             $query->whereNotIn("$table.id", function (Builder $builder) use (

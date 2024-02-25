@@ -13,6 +13,8 @@ import {CustomMenuItem} from '../../menus/custom-menu';
 import {useRecaptcha} from '../../recaptcha/use-recaptcha';
 import {StaticPageTitle} from '../../seo/static-page-title';
 import {useSettings} from '../../core/settings/use-settings';
+import {useContext} from 'react';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
 
 export function RegisterPage() {
   const {
@@ -20,6 +22,7 @@ export function RegisterPage() {
     registration: {disable},
     social,
   } = useSettings();
+  const {auth} = useContext(SiteConfigContext);
   const {verify, isVerifying} = useRecaptcha('register');
 
   const {pathname} = useLocation();
@@ -99,6 +102,7 @@ export function RegisterPage() {
           label={<Trans message="Confirm password" />}
           required
         />
+        {auth?.registerFields ? <auth.registerFields /> : null}
         <PolicyCheckboxes />
         <Button
           className="block w-full"
@@ -137,7 +141,7 @@ function PolicyCheckboxes() {
         <FormCheckbox
           key={policy.id}
           name={policy.id}
-          className="block mb-4"
+          className="mb-4 block"
           required
         >
           <Trans

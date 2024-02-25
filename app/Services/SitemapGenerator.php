@@ -49,7 +49,7 @@ class SitemapGenerator extends BaseSitemapGenerator
 
     protected function getAppStaticUrls(): array
     {
-        return ['browse?type=series', 'browse?type=movie', 'people', 'news'];
+        return ['series', 'movies', 'people', 'news'];
     }
 
     protected function addTitleLine(

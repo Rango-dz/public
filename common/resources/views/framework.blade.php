@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ $bootstrapData->get('language') }}"
-    style="{{ $bootstrapData->getSelectedTheme()->getColorsForCss() }}"
+    style="{{ $bootstrapData->getSelectedTheme()->getCssVariables() }}"
     @class(['dark' => $bootstrapData->getSelectedTheme('is_dark')])
 >
     <head>
@@ -43,6 +43,14 @@
             data-keep="true"
         />
 
+        @if ($fontFamily = $bootstrapData->getSelectedTheme()->getFontFamily())
+            @if($bootstrapData->getSelectedTheme()->isGoogleFont())
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family={{$fontFamily}}:wght@400;500;600;700&display=swap" rel="stylesheet">
+            @endif
+        @endif
+
         <script>
             window.bootstrapData = {!! json_encode($bootstrapData->get()) !!};
         </script>
@@ -73,16 +81,12 @@
             <script
                 async
                 src="https://www.googletagmanager.com/gtag/js?id={{ settings('analytics.tracking_code') }}"
-            />
+            ></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
-
-                function gtag() {
-                    dataLayer.push(arguments);
-                }
-
+                function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '{{ settings('analytics.tracking_code') }}');
+                gtag('config', "{{ settings('analytics.tracking_code') }}");
             </script>
         @endif
 

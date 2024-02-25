@@ -50,7 +50,6 @@ export function ArticleBodyEditorMenubar({
             className="flex-shrink-0"
             color={extendedVisible ? 'primary' : null}
             size={size}
-            radius="rounded"
             onClick={() => {
               setExtendedVisible(!extendedVisible);
             }}
@@ -71,7 +70,7 @@ export function ArticleBodyEditorMenubar({
             className={clsx(
               MenubarRowClassName,
               justify,
-              'absolute flex h-full w-full'
+              'absolute flex h-full w-full',
             )}
             initial={{y: '-100%'}}
             animate={{y: 0}}

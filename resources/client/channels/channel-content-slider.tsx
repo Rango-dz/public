@@ -55,7 +55,6 @@ export function ChannelContentSlider({
             <div className="absolute left-8 hidden md:left-14 md:block">
               <IconButton
                 variant="outline"
-                radius="rounded"
                 size="lg"
                 color="white"
                 disabled={!canScrollBackward}
@@ -67,7 +66,6 @@ export function ChannelContentSlider({
             <div className="absolute right-8 hidden md:right-14 md:block">
               <IconButton
                 variant="outline"
-                radius="rounded"
                 size="lg"
                 color="white"
                 disabled={!canScrollForward}

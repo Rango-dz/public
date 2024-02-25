@@ -24,12 +24,12 @@ export function ContentModelField({config, className, exclude}: Props) {
           getValues('config.contentType') === 'autoUpdate' &&
           !modelConfig.autoUpdateMethods?.length
         ) {
-          setValue('config.contentType', 'manual');
+          (setValue as any)('config.contentType', 'manual');
         }
         setValue('config.autoUpdateMethod', modelConfig.autoUpdateMethods?.[0]);
         setValue(
           'config.contentOrder',
-          modelConfig.sortMethods[0] || 'channelables.order:asc'
+          modelConfig.sortMethods[0] || 'channelables.order:asc',
         );
         setValue('config.layout', modelConfig.layoutMethods[0]);
       }}

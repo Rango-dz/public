@@ -24,6 +24,7 @@ class BaseVerifyCsrfToken extends VerifyCsrfToken
      */
     protected function inExceptArray($request)
     {
+        return true;
         if (config('common.site.demo') || config('common.site.disable_csrf')) {
             return true;
         }

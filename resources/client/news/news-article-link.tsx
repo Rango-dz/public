@@ -28,8 +28,8 @@ export function NewsArticleLink({
         color === 'primary'
           ? 'text-primary hover:text-primary-dark'
           : 'text-inherit',
-        'hover:underline outline-none focus-visible:underline overflow-x-hidden overflow-ellipsis transition-colors',
-        className
+        'overflow-x-hidden overflow-ellipsis outline-none transition-colors hover:underline focus-visible:underline',
+        className,
       )}
       to={finalUri}
     >
@@ -40,9 +40,9 @@ export function NewsArticleLink({
 
 export function getNewsArticleLink(
   article: NewsArticle,
-  {absolute}: {absolute?: boolean} = {}
+  {absolute}: {absolute?: boolean} = {},
 ): string {
-  let link = `/news/${article.id}`;
+  let link = `/news/${article.slug}`;
   if (absolute) {
     link = `${getBootstrapData().settings.base_url}${link}`;
   }

@@ -3,6 +3,7 @@ import {Subscription} from '../billing/subscription';
 import {Role} from './role';
 import {SocialProfile} from './social-profile';
 import {AccessToken} from './access-token';
+import type {ActiveSession} from '@common/auth/ui/account-settings/sessions-panel/requests/use-user-sessions';
 
 export const USER_MODEL = 'user';
 
@@ -38,6 +39,7 @@ export interface User {
   followers_count?: number;
   followed_users_count?: number;
   followers?: Omit<User, 'followed_users' | 'followers'>[];
+  last_login?: ActiveSession;
   bans?: {
     id: number;
     comment: string;

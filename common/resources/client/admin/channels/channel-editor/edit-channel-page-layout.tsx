@@ -18,7 +18,7 @@ export function EditChannelPageLayout({children}: Props) {
   if (query.data) {
     return <PageContent channel={query.data.channel}>{children}</PageContent>;
   }
-  return <PageStatus query={query} />;
+  return <PageStatus query={query} loaderIsScreen={false} />;
 }
 
 interface PageContentProps {
