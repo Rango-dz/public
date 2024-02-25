@@ -9,7 +9,7 @@ return [
     ],
 
     // billing
-    ['name' => 'billing.enable', 'value' => false],
+    ['name' => 'billing.enable', 'value' => true],
 
     // menus
     [
