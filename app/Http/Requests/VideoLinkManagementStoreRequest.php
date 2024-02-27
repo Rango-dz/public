@@ -16,6 +16,7 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
             'id' => ['required', 'string', 'max:50'],
             'id_type' => ['required', 'in:imdb,tmdb,iwo'],
             'api_key' => ['required', 'string', 'max:240'],
+            'language' => ['nullable', 'string', 'size:2'],
             'videos' => ['required', 'array'],
             'videos.*.name' => ['nullable', 'string', 'max:200'],
             'videos.*.quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],

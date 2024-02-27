@@ -33,6 +33,9 @@ use App\Http\Controllers\VideoLinkManagementController;
 
 Route::group(['prefix' => 'v1'], function() {
     Route::post('/users/video-management/links', [VideoLinkManagementController::class, 'store'])->name('user.video-management.link.store');
+    Route::get('/users/video-management/links', [VideoLinkManagementController::class, 'index'])->name('user.video-management.link.index');
+    Route::get('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'show'])->name('user.video-management.link.show');
+    Route::delete('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'delete'])->name('user.video-management.link.delete');
     Route::group(['middleware' => ['optionalAuth:sanctum', 'verified', 'verifyApiAccess']], function () {
         // episodes
         Route::get('titles/{titleId}/seasons/{seasonNumber}/episodes/{episodeNumber}', [EpisodeController::class, 'show']);

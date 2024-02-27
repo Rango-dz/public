@@ -32,6 +32,37 @@ class VideoLinkManagementController extends BaseController
         ]);
     }
 
+
+    public function index()
+    {
+        //Need modification on that only user related titles and also add filters
+        return response()->json([
+            'data' => Title::with('videos')->get()
+        ]);
+    }
+
+
+    public function show(int $id)
+    {
+        //need modification on that this should only user related videos.
+        return response()->json([
+            'data' =>  Title::with('videos')->where('id', $id)->first() ?? []
+        ]);
+    }
+
+    public function delete(int $id)
+    {
+        //need modification this should only user related videos.
+        $title = Title::findOrFail($id);
+
+        $title->videos()->delete();
+        $title->delete();
+
+        return response()->json([
+            'data' => []
+        ]);
+    }
+
     /**
      * @param array $data
      * @return array
