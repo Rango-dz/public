@@ -5,7 +5,7 @@ return [
     [
         'name' => 'branding.site_description',
         'value' =>
-            "MTDb, the world's most popular and authoritative source for movie, TV and celebrity content.",
+            "iwatchonline, the world's most popular and authoritative source for movie, TV and celebrity content.",
     ],
 
     // billing
@@ -763,7 +763,7 @@ return [
             ],
             'footerTitle' => 'Start Your Streaming Journey Today!',
             'footerSubtitle' =>
-                'Unlock a World of Entertainment with MTDb Premium Streaming Service',
+                'Unlock a World of Entertainment with iwatchonline Premium Streaming Service',
             'footerImage' => 'images/landing/landing.jpg',
         ]),
     ],
