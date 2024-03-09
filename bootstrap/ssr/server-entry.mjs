@@ -11964,7 +11964,11 @@ const AdminRoutes = React.lazy(() => import("./assets/admin-routes-6affa834.mjs"
 const SwaggerApiDocs = React.lazy(
   () => import("./assets/swagger-api-docs-page-6890ff43.mjs")
 );
+<<<<<<< HEAD
 const SiteRoutes = React.lazy(() => import("./assets/site-routes-5fb59717.mjs"));
+=======
+const SiteRoutes = React.lazy(() => import("./assets/site-routes-142af644.mjs"));
+>>>>>>> b549380 (Updated TMDBAPI with new api source)
 function AppRoutes() {
   var _a;
   const { homepage, billing, notifications, require_email_confirmation, api } = useSettings();
