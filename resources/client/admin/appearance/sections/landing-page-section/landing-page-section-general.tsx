@@ -44,7 +44,7 @@ export function LandingPageSectionGeneral() {
 
 function HeaderSection() {
   const defaultImage = useAppearanceStore(
-    s => s.defaults?.settings.homepage?.appearance?.headerImage
+    s => s.defaults?.settings.homepage?.appearance?.headerImage,
   );
 
   return (
@@ -65,7 +65,7 @@ function HeaderSection() {
         name="settings.homepage.appearance.headerSubtitle"
         onFocus={() => {
           appearanceState().preview.setHighlight(
-            '[data-testid="headerSubtitle"]'
+            '[data-testid="headerSubtitle"]',
           );
         }}
       />
@@ -109,7 +109,7 @@ function FooterSection() {
   const defaultImage = useAppearanceStore(
     s =>
       (s.defaults?.settings.homepage?.appearance as LandingPageContent)
-        ?.footerImage
+        ?.footerImage,
   );
   return (
     <Fragment>
@@ -130,7 +130,7 @@ function FooterSection() {
         name="settings.homepage.appearance.footerSubtitle"
         onFocus={() => {
           appearanceState().preview.setHighlight(
-            '[data-testid="footerSubtitle"]'
+            '[data-testid="footerSubtitle"]',
           );
         }}
       />
@@ -154,7 +154,7 @@ function PricingSection() {
         name="settings.homepage.appearance.pricingTitle"
         onFocus={() => {
           appearanceState().preview.setHighlight(
-            '[data-testid="pricingTitle"]'
+            '[data-testid="pricingTitle"]',
           );
         }}
       />
@@ -164,7 +164,7 @@ function PricingSection() {
         name="settings.homepage.appearance.pricingSubtitle"
         onFocus={() => {
           appearanceState().preview.setHighlight(
-            '[data-testid="pricingSubtitle"]'
+            '[data-testid="pricingSubtitle"]',
           );
         }}
       />
@@ -193,11 +193,10 @@ function ColorPickerTrigger({label, formKey}: ColorPickerTriggerProps) {
 
   return (
     <DialogTrigger
-      currentValue={formValue}
+      value={formValue}
+      onValueChange={newValue => setColor(newValue)}
       type="popover"
-      onClose={value => {
-        setColor(value);
-      }}
+      onClose={value => setColor(value)}
     >
       <AppearanceButton
         className="capitalize"
@@ -211,12 +210,7 @@ function ColorPickerTrigger({label, formKey}: ColorPickerTriggerProps) {
       >
         {label}
       </AppearanceButton>
-      <ColorPickerDialog
-        defaultValue={formValue}
-        onChange={newValue => {
-          setColor(newValue);
-        }}
-      />
+      <ColorPickerDialog />
     </DialogTrigger>
   );
 }

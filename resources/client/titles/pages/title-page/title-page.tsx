@@ -29,7 +29,7 @@ interface PageContentProps {
 function PageContent({data}: PageContentProps) {
   return (
     <Fragment>
-      {/* <TitlePageHeaderImage title={data.title} /> */}
+      <TitlePageHeaderImage title={data.title} />
       <div className="container mx-auto mt-24 px-14 md:mt-40 md:px-24">
         <div className="items-start gap-54 md:flex">
           <TitlePageAside data={data} className="max-lg:hidden" />

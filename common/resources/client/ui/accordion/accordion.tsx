@@ -1,7 +1,6 @@
 import React, {
   cloneElement,
   isValidElement,
-  Key,
   ReactElement,
   ReactNode,
   useId,
@@ -18,9 +17,9 @@ type Props = {
   variant?: 'outline' | 'default' | 'minimal';
   children?: ReactNode;
   mode?: 'single' | 'multiple';
-  expandedValues?: Key[];
-  defaultExpandedValues?: Key[];
-  onExpandedChange?: (key: Key[]) => void;
+  expandedValues?: (string | number)[];
+  defaultExpandedValues?: (string | number)[];
+  onExpandedChange?: (key: (string | number)[]) => void;
   className?: string;
   isLazy?: boolean;
 };
@@ -53,8 +52,8 @@ export const Accordion = React.forwardRef<HTMLDivElement, Props>(
         <AnimatePresence>
           <FocusScope>
             {React.Children.map(children, (child, index) => {
-              if (!isValidElement<ClonedItemProps>(child)) return null;
-              return cloneElement<ClonedItemProps>(child, {
+              if (!isValidElement<AccordionItemProps>(child)) return null;
+              return cloneElement<AccordionItemProps>(child, {
                 key: child.key || index,
                 value: child.props.value || index,
                 isFirst: index === 0,
@@ -78,7 +77,7 @@ interface AccordionItemProps {
   disabled?: boolean;
   label: ReactNode;
   description?: ReactNode;
-  value?: Key;
+  value?: string | number;
   isFirst?: boolean;
   isLast?: boolean;
   bodyClassName?: string;
@@ -87,34 +86,40 @@ interface AccordionItemProps {
   chevronPosition?: 'left' | 'right';
   startIcon?: ReactElement;
   endAppend?: ReactElement;
-}
-interface ClonedItemProps extends AccordionItemProps {
   variant?: 'outline' | 'default' | 'minimal';
-  expandedValues: Key[];
-  setExpandedValues: (keys: Key[]) => void;
-  mode: 'single' | 'multiple';
-  value: Key;
+  expandedValues?: (string | number)[];
+  setExpandedValues?: (keys: (string | number)[]) => void;
+  mode?: 'single' | 'multiple';
+  footerContent?: ReactNode;
   isLazy?: boolean;
+  onHeaderMouseEnter?: () => void;
+  onHeaderMouseLeave?: () => void;
 }
-export function AccordionItem({
-  children,
-  label,
-  disabled,
-  bodyClassName,
-  labelClassName,
-  buttonPadding = 'py-10 pl-14 pr-10',
-  startIcon,
-  description,
-  endAppend,
-  chevronPosition = 'right',
-  isFirst,
-  isLast,
-  ...other
-}: AccordionItemProps) {
-  const {expandedValues, setExpandedValues, variant, value, mode, isLazy} =
-    other as ClonedItemProps;
+export function AccordionItem(props: AccordionItemProps) {
+  const {
+    children,
+    label,
+    disabled,
+    bodyClassName,
+    labelClassName,
+    buttonPadding = 'py-10 pl-14 pr-10',
+    startIcon,
+    description,
+    endAppend,
+    chevronPosition = 'right',
+    isFirst,
+    mode,
+    isLazy,
+    variant,
+    footerContent,
+    onHeaderMouseEnter,
+    onHeaderMouseLeave,
+  } = props;
+  const expandedValues = props.expandedValues || [];
+  const value = props.value || 0;
+  const setExpandedValues = props.setExpandedValues || (() => {});
   const ref = useRef<HTMLButtonElement>(null);
-  const isExpanded = !disabled && expandedValues.includes(value);
+  const isExpanded = !disabled && expandedValues!.includes(value!);
   const wasExpandedOnce = useRef(false);
   if (isExpanded) {
     wasExpandedOnce.current = true;
@@ -189,6 +194,8 @@ export function AccordionItem({
               : 'rounded-panel'
             : undefined,
         )}
+        onMouseEnter={onHeaderMouseEnter}
+        onMouseLeave={onHeaderMouseLeave}
       >
         <button
           disabled={disabled}
@@ -244,6 +251,7 @@ export function AccordionItem({
         <div className={clsx('p-16', bodyClassName)}>
           {!isLazy || wasExpandedOnce ? children : null}
         </div>
+        {footerContent}
       </m.div>
     </div>
   );

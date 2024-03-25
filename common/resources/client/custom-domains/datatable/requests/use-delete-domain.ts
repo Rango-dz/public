@@ -7,6 +7,7 @@ import {message} from '@common/i18n/message';
 import {toast} from '@common/ui/toast/toast';
 import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
 import {CustomDomain} from '@common/custom-domains/custom-domain';
+import {removeProtocol} from '@common/utils/urls/remove-protocol';
 
 interface Response extends BackendResponse {}
 
@@ -21,7 +22,9 @@ export function useDeleteDomain() {
     onSuccess: (response, props) => {
       toast.positive(
         trans(
-          message('“:domain” removed', {values: {domain: props.domain.host}}),
+          message('“:domain” removed', {
+            values: {domain: removeProtocol(props.domain.host)},
+          }),
         ),
       );
       queryClient.invalidateQueries({

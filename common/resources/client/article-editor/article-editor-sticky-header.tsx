@@ -22,6 +22,7 @@ interface StickyHeaderProps {
   backLink: string;
   isLoading?: boolean;
   slugPrefix?: string;
+  imageDiskPrefix?: string;
 }
 export function ArticleEditorStickyHeader({
   editor,
@@ -31,6 +32,7 @@ export function ArticleEditorStickyHeader({
   isLoading = false,
   backLink,
   slugPrefix = 'pages',
+  imageDiskPrefix,
 }: StickyHeaderProps) {
   const {isSticky, sentinelRef} = useStickySentinel();
   const isMobile = useIsMobileMediaQuery();
@@ -80,7 +82,11 @@ export function ArticleEditorStickyHeader({
           )}
           {saveButton}
         </div>
-        <ArticleBodyEditorMenubar editor={editor} size="sm" />
+        <ArticleBodyEditorMenubar
+          editor={editor}
+          size="sm"
+          imageDiskPrefix={imageDiskPrefix}
+        />
       </div>
     </Fragment>
   );

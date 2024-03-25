@@ -1,5 +1,6 @@
 <?php namespace Common\Settings;
 
+use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,7 +21,7 @@ class Setting extends Model
                 ) {
                     try {
                         $value = decrypt($value);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $value = '';
                     }
                 }

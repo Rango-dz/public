@@ -1,7 +1,7 @@
 @if ($item['model_type'] === 'title')
     <figure>
         <img
-            src="{{ $item['poster'] }}"
+            src="{{ urls()->image($item['poster']) }}"
             alt="{{ $item['name'] }} poster"
             width="270px"
         />
@@ -17,7 +17,7 @@
         <h3>{{$item['byline']}}</h3>
         <h4>{{$item['source']}}</h4>
         @if(isset($item['image']))
-            <img src="{{$item['image']}}" alt="Article image">
+            <img src="{{urls()->image($item['image'])}}" alt="Article image">
         @endif
         <p>
             {!!$item['body']!!}
@@ -26,7 +26,7 @@
 @else
     <figure>
         <img
-            src="{{ $item['poster'] }}"
+            src="{{ urls()->image($item['poster']) }}"
             alt="{{ $item['name'] }} poster"
             width="270px"
         />

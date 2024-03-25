@@ -168,7 +168,7 @@ function slugifyString(text2, replacement = "-", strict = false) {
     lower: true,
     replacement,
     strict,
-    remove: /[*+~.()'"!:@?\|/\\]/g
+    remove: /[*+~.()'"!:@?\|/\\#]/g
   });
   if (!slugified) {
     slugified = text2.replace(/\s+/g, "-").toLowerCase();
@@ -663,6 +663,9 @@ const Button = React.forwardRef(
     equalWidth = false,
     radius = "rounded-button",
     variant = "text",
+    disabled,
+    elementType,
+    to,
     ...other
   }, ref) => {
     const mergedClassName = clsx(
@@ -677,6 +680,9 @@ const Button = React.forwardRef(
         ref,
         radius,
         variant,
+        disabled,
+        to: disabled ? void 0 : to,
+        elementType: disabled ? void 0 : elementType,
         ...other,
         children: [
           startIcon && /* @__PURE__ */ jsx(InlineIcon, { position: "start", icon: startIcon, size: size2 }),
@@ -1215,9 +1221,9 @@ const listenForCookieChange = (name, callback) => {
   return () => {
   };
 };
-const getCookie = (name, initialValue = "") => {
+function getCookie(name, initialValue = "") {
   return initialValue;
-};
+}
 function useCookie(key, initialValue) {
   const [item, setItem] = useState(() => {
     return getCookie(key, initialValue);
@@ -1551,6 +1557,19 @@ function useAuth() {
     },
     [user == null ? void 0 : user.permissions, guest_role == null ? void 0 : guest_role.permissions, getPermission]
   );
+  const checkOverQuotaOrNoPermission = useCallback(
+    (permission, restrictionName, currentCount) => {
+      const noPermission = !hasPermission(permission);
+      const maxCount = getRestrictionValue(permission, restrictionName);
+      const overQuota = maxCount != null && currentCount >= maxCount;
+      return {
+        overQuota: maxCount != null && currentCount >= maxCount,
+        noPermission,
+        overQuotaOrNoPermission: overQuota || noPermission
+      };
+    },
+    [getRestrictionValue, hasPermission]
+  );
   const isSubscribed = ((_a = user == null ? void 0 : user.subscriptions) == null ? void 0 : _a.find((sub) => sub.valid)) != null;
   const getRedirectUri = useCallback(() => {
     const onboarding = getFromLocalStorage("be.onboarding.selected");
@@ -1571,6 +1590,7 @@ function useAuth() {
     hasPermission,
     getPermission,
     getRestrictionValue,
+    checkOverQuotaOrNoPermission,
     isLoggedIn: !!user,
     isSubscribed,
     hasRole,
@@ -2365,7 +2385,7 @@ function CookieNotice() {
     "div",
     {
       className: clsx(
-        "fixed z-50 flex w-full items-center justify-center gap-30 bg-toast p-14 text-sm text-white shadow",
+        "fixed z-50 flex w-full justify-center gap-14 bg-toast p-14 text-sm text-white shadow max-md:flex-col md:items-center md:gap-30",
         position == "top" ? "top-0" : "bottom-0"
       ),
       children: [
@@ -2382,6 +2402,7 @@ function CookieNotice() {
             variant: "flat",
             color: "primary",
             size: "xs",
+            className: "max-w-100",
             onClick: () => {
               setCookie("true", { days: 30, path: "/" });
               setAlreadyAccepted(true);
@@ -2466,10 +2487,13 @@ function GuestRoute({ children }) {
   const { isLoggedIn, getRedirectUri } = useAuth();
   const { isAppearanceEditorActive } = useAppearanceEditorMode();
   const redirectUri = getRedirectUri();
+  const { auth } = useContext(SiteConfigContext);
   const { pathname } = useLocation();
   if (isLoggedIn && !isAppearanceEditorActive) {
     if (redirectUri !== pathname) {
       return /* @__PURE__ */ jsx(Navigate, { to: redirectUri, replace: true });
+    } else if (auth.secondaryRedirectUri) {
+      return /* @__PURE__ */ jsx(Navigate, { to: auth.secondaryRedirectUri, replace: true });
     }
   }
   return children || /* @__PURE__ */ jsx(Outlet, {});
@@ -3003,9 +3027,7 @@ function onFormQueryError(r, form) {
   if (form && axios.isAxiosError(r) && r.response) {
     const response = r.response.data;
     if (!response.errors) {
-      toast.danger(
-        response.message ?? message("There was an issue. Please try again later.")
-      );
+      showHttpErrorToast(r);
     } else {
       Object.entries(response.errors || {}).forEach(([key, errors], index) => {
         if (typeof errors === "string") {
@@ -4210,7 +4232,7 @@ function useControlledSelection(props) {
     !selectionEnabled ? void 0 : props.onSelectionChange
   );
   const selectedValues = useMemo(() => {
-    if (stateValues == null) {
+    if (typeof stateValues === "undefined") {
       return [];
     }
     return Array.isArray(stateValues) ? stateValues : [stateValues];
@@ -4487,16 +4509,16 @@ function itemClassName({
     padding = userPadding;
   } else if (showCheckmark) {
     if (endIcon || endSection) {
-      padding = "pl-8 pr-8";
+      padding = "pl-8 pr-8 py-8";
     } else {
-      padding = "pl-8 pr-24";
+      padding = "pl-8 pr-24 py-8";
     }
   } else {
-    padding = "px-20";
+    padding = "px-20 py-8";
   }
   return clsx(
     "w-full select-none outline-none cursor-pointer",
-    "py-8 text-sm truncate flex items-center gap-10",
+    "text-sm truncate flex items-center gap-10",
     !isDisabled && "text-main",
     padding,
     state,
@@ -4803,6 +4825,7 @@ const MenuTrigger = forwardRef(
     return /* @__PURE__ */ jsx(
       Listbox,
       {
+        onClick: (e) => e.stopPropagation(),
         listbox,
         onKeyDownCapture: !showSearchField ? handleListboxTypeSelect : void 0,
         onKeyDown: handleListboxKeyboardNavigation,
@@ -4887,18 +4910,23 @@ function DialogTrigger(props) {
     moveFocusToDialog = true,
     returnFocusToTrigger = true,
     triggerOnHover = false,
-    currentValue,
     triggerOnContextMenu = false,
     usePortal = true,
-    mobileType
+    mobileType,
+    alwaysReturnCurrentValueOnClose
   } = props;
   const contextMenuTriggerRef = useRef(null);
   const triggerRef = triggerOnContextMenu && !props.triggerRef ? contextMenuTriggerRef : props.triggerRef;
-  const initialValueRef = useRef(currentValue);
+  const initialValueRef = useRef(props.value);
   const [isOpen, setIsOpen] = useControlledState(
     props.isOpen,
     props.defaultIsOpen,
     props.onOpenChange
+  );
+  const [value, setValue] = useControlledState(
+    props.value,
+    props.defaultValue,
+    props.onValueChange
   );
   const isMobile = useIsMobileMediaQuery();
   if (isMobile && type === "popover") {
@@ -4920,16 +4948,23 @@ function DialogTrigger(props) {
   const formId = `${id}-form`;
   const onClose = useCallbackRef(props.onClose);
   const close = useCallback(
-    (value) => {
-      onClose == null ? void 0 : onClose(value ?? initialValueRef.current);
+    (closeValue) => {
+      if (typeof closeValue === "undefined" && alwaysReturnCurrentValueOnClose) {
+        closeValue = value;
+      }
+      const finalValue = typeof closeValue !== "undefined" ? closeValue : initialValueRef.current;
+      onClose == null ? void 0 : onClose(finalValue, {
+        initialValue: initialValueRef.current,
+        valueChanged: finalValue !== initialValueRef.current
+      });
       setIsOpen(false);
     },
-    [onClose, setIsOpen]
+    [onClose, setIsOpen, value, alwaysReturnCurrentValueOnClose]
   );
   const open = useCallback(() => {
     setIsOpen(true);
-    initialValueRef.current = currentValue;
-  }, [currentValue, setIsOpen]);
+    initialValueRef.current = props.value;
+  }, [props.value, setIsOpen]);
   useLayoutEffect(() => {
     if ((triggerRef == null ? void 0 : triggerRef.current) && refs.reference.current !== triggerRef.current) {
       reference(triggerRef.current);
@@ -4957,9 +4992,22 @@ function DialogTrigger(props) {
       descriptionId,
       isDismissable,
       close,
+      value,
+      initialValue: initialValueRef.current,
+      setValue,
       formId
     };
-  }, [close, descriptionId, dialogProps, formId, labelId, type, isDismissable]);
+  }, [
+    close,
+    descriptionId,
+    dialogProps,
+    formId,
+    labelId,
+    type,
+    isDismissable,
+    value,
+    setValue
+  ]);
   triggerOnHover = triggerOnHover && type === "popover";
   const handleTriggerHover = {
     onPointerEnter: createEventHandler((e) => {
@@ -6357,7 +6405,7 @@ function CustomPageBody({ page }) {
       highlightCode(bodyRef.current);
     }
   }, []);
-  return /* @__PURE__ */ jsx("div", { className: "px-16 md:px-24", children: /* @__PURE__ */ jsxs("div", { className: "prose mx-auto my-50 dark:prose-invert", children: [
+  return /* @__PURE__ */ jsx("div", { className: "px-16 md:px-24", children: /* @__PURE__ */ jsxs("div", { className: "custom-page-body prose mx-auto my-50 dark:prose-invert", children: [
     /* @__PURE__ */ jsx("h1", { children: page.title }),
     /* @__PURE__ */ jsx(
       "div",
@@ -11271,7 +11319,7 @@ function AccountSettingsPage() {
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-alt", children: [
     /* @__PURE__ */ jsx(StaticPageTitle, { children: /* @__PURE__ */ jsx(Trans, { message: "Account Settings" }) }),
     /* @__PURE__ */ jsx(Navbar, { menuPosition: "account-settings-page" }),
-    /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsxs("div", { className: "container mx-auto my-24 px-24", children: [
+    /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsxs("div", { className: "container mx-auto px-24 py-24", children: [
       /* @__PURE__ */ jsx("h1", { className: "text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Account settings" }) }),
       /* @__PURE__ */ jsx("div", { className: "mb-40 text-base text-muted", children: /* @__PURE__ */ jsx(Trans, { message: "View and update your account details, profile and more." }) }),
       isLoading || !data ? /* @__PURE__ */ jsx(
@@ -11960,15 +12008,11 @@ function DialogStoreOutlet() {
     }
   );
 }
-const AdminRoutes = React.lazy(() => import("./assets/admin-routes-6affa834.mjs").then((n) => n.Y));
+const AdminRoutes = React.lazy(() => import("./assets/admin-routes-8d317180.mjs").then((n) => n.Y));
 const SwaggerApiDocs = React.lazy(
-  () => import("./assets/swagger-api-docs-page-6890ff43.mjs")
+  () => import("./assets/swagger-api-docs-page-4c89c83f.mjs")
 );
-<<<<<<< HEAD
-const SiteRoutes = React.lazy(() => import("./assets/site-routes-5fb59717.mjs"));
-=======
-const SiteRoutes = React.lazy(() => import("./assets/site-routes-142af644.mjs"));
->>>>>>> b549380 (Updated TMDBAPI with new api source)
+const SiteRoutes = React.lazy(() => import("./assets/site-routes-9f33ab74.mjs"));
 function AppRoutes() {
   var _a;
   const { homepage, billing, notifications, require_email_confirmation, api } = useSettings();

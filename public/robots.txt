@@ -1,6 +1,2 @@
 User-agent: *
 Disallow:
-<<<<<<< HEAD
-Sitemap: https://iwatchonline.cc/storage/sitemaps/sitemap-index.xml
-=======
->>>>>>> b549380 (Updated TMDBAPI with new api source)

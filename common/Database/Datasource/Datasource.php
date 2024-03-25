@@ -245,7 +245,7 @@ class Datasource
     private function limit(): int
     {
         if ($this->param('perPage')) {
-            return $this->param('perPage');
+            return (int) $this->param('perPage');
         } else {
             return $this->getQueryBuilder()->limit ?? 15;
         }

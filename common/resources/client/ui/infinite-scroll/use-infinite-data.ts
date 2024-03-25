@@ -98,7 +98,7 @@ export function useInfiniteData<T, E extends object = {}>(
       const params: GetDatatableDataParams = {
         ...queryParams,
         perPage: initialPage?.per_page || queryParams?.perPage,
-        query: searchQuery,
+        query: (queryParams?.query as string) ?? searchQuery,
         paginate,
         ...sortDescriptor,
       };

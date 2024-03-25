@@ -5,7 +5,7 @@ import {NormalizedModel} from '@common/datatable/filters/normalized-model';
 
 interface AutocompleteTitle extends NormalizedModel {
   seasons_count: number;
-  episodes_count: number;
+  episode_numbers: number[];
 }
 
 interface Response extends BackendResponse {

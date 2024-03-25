@@ -51,7 +51,7 @@ function getPluginsConfig(settings: Settings) {
                 // Replace site name
                 spec = spec.replaceAll(
                   'SITE_NAME',
-                  settings.branding.site_name,
+                  settings.branding.site_name.replace(':', ''),
                 );
                 // Replace site url
                 spec = spec.replaceAll('SITE_URL', settings.base_url);

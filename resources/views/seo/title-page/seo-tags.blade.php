@@ -12,7 +12,7 @@
 />
 
 @if ($title->poster)
-    <meta property="og:image" content="{{ $title->poster }}" />
+    <meta property="og:image" content="{{ urls()->image($title->poster) }}" />
     <meta property="og:width" content="300" />
     <meta property="og:height" content="450" />
 @endif
@@ -32,7 +32,7 @@
         'name' => $title->name,
         '@id' => urls()->title($title),
         'url' => urls()->title($title),
-        'image' => $title->poster,
+        'image' => urls()->image($title->poster),
         'description' => $title->description,
         'genre' => $title->genres->pluck('name')->toArray(),
         'keywords' => $title->keywords->pluck('name')->join(','),

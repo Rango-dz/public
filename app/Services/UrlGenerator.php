@@ -71,11 +71,25 @@ class UrlGenerator extends BaseUrlGenerator
     {
         if ($model['type'] === 'list') {
             return url("lists/{$model['id']}");
+        } elseif (
+            settings('homepage.type') === 'channels' &&
+            settings('homepage.value') === $model['id']
+        ) {
+            return url('/');
         } else {
-            if (settings('homepage.type') === 'channels' && settings('homepage.value') === $model['id']) {
-                return url('/');
+            $url = url($model['slug'] ?: slugify($model['name']));
+            if (isset($model['restriction'])) {
+                return "$url/{$model['restriction']['name']}";
             }
-            return url($model['slug'] ?: slugify($model['name']));
+            return $url;
         }
+    }
+
+    public function image($path)
+    {
+        if ($path && !str_starts_with($path, 'http')) {
+            return url($path);
+        }
+        return $path;
     }
 }

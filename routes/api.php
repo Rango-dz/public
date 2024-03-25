@@ -40,6 +40,7 @@ Route::group(['prefix' => 'v1'], function() {
 
         // seasons
         Route::get('titles/{titleId}/seasons/{seasonNumber}', [SeasonController::class, 'show']);
+        Route::get('titles/{titleId}/seasons/{seasonNumber}/episode-numbers', [SeasonController::class, 'episodeNumbers']);
         Route::post('titles/{titleId}/seasons', [SeasonController::class, 'store']);
         Route::delete('seasons/{seasonId}', [SeasonController::class, 'destroy']);
 

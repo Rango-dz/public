@@ -21,7 +21,9 @@ class MoveBillingPlansToProductsAndPricesTables extends Migration
                     'position' => $plan->position,
                     'uuid' => $plan->uuid,
                     'feature_list' => $plan->features
-                        ? json_encode($plan->features)
+                        ? (!is_string($plan->features)
+                            ? json_encode($plan->features)
+                            : $plan->features)
                         : null,
                     'created_at' => $plan->created_at,
                     'updated_at' => $plan->updated_at,

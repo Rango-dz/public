@@ -10,7 +10,7 @@
 />
 
 @if ($article->image)
-    <meta property="og:image" content="{{ $article->image }}" />
+    <meta property="og:image" content="{{ urls()->image($article->image) }}" />
     <meta property="og:width" content="300" />
     <meta property="og:height" content="450" />
 @endif

@@ -36,7 +36,7 @@
                     <li>
                         <figure>
                             <img
-                                src="{{ $episode['poster'] }}"
+                                src="{{ urls()->image($episode['poster']) }}"
                                 alt="Episode poster"
                                 width="270px"
                             />

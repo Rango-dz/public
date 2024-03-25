@@ -13,6 +13,15 @@ interface UseAuthReturn {
     permission: string,
     restriction: string,
   ) => string | number | boolean | undefined | null;
+  checkOverQuotaOrNoPermission: (
+    permission: string,
+    restrictionName: string,
+    currentCount: number,
+  ) => {
+    overQuota: boolean;
+    noPermission: boolean;
+    overQuotaOrNoPermission: boolean;
+  };
   hasRole: (roleId: number) => boolean;
   isLoggedIn: boolean;
   isSubscribed: boolean;
@@ -63,6 +72,22 @@ export function useAuth(): UseAuthReturn {
     [user?.permissions, guest_role?.permissions, getPermission],
   );
 
+  const checkOverQuotaOrNoPermission = useCallback(
+    (permission: string, restrictionName: string, currentCount: number) => {
+      const noPermission = !hasPermission(permission);
+      const maxCount = getRestrictionValue(permission, restrictionName) as
+        | number
+        | null;
+      const overQuota = maxCount != null && currentCount >= maxCount;
+      return {
+        overQuota: maxCount != null && currentCount >= maxCount,
+        noPermission,
+        overQuotaOrNoPermission: overQuota || noPermission,
+      };
+    },
+    [getRestrictionValue, hasPermission],
+  );
+
   const isSubscribed = user?.subscriptions?.find(sub => sub.valid) != null;
 
   const getRedirectUri = useCallback(() => {
@@ -85,6 +110,7 @@ export function useAuth(): UseAuthReturn {
     hasPermission,
     getPermission,
     getRestrictionValue,
+    checkOverQuotaOrNoPermission,
     isLoggedIn: !!user,
     isSubscribed,
     hasRole,

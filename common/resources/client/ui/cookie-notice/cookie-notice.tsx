@@ -25,8 +25,8 @@ export function CookieNotice() {
   return (
     <div
       className={clsx(
-        'fixed z-50 flex w-full items-center justify-center gap-30 bg-toast p-14 text-sm text-white shadow',
-        position == 'top' ? 'top-0' : 'bottom-0'
+        'fixed z-50 flex w-full justify-center gap-14 bg-toast p-14 text-sm text-white shadow max-md:flex-col md:items-center md:gap-30',
+        position == 'top' ? 'top-0' : 'bottom-0',
       )}
     >
       <Trans
@@ -38,6 +38,7 @@ export function CookieNotice() {
         variant="flat"
         color="primary"
         size="xs"
+        className="max-w-100"
         onClick={() => {
           setCookie('true', {days: 30, path: '/'});
           setAlreadyAccepted(true);

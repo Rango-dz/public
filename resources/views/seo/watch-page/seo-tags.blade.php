@@ -13,7 +13,7 @@
 />
 
 @if ($image = $video->image ?? $title->backdrop)
-    <meta property="og:image" content="{{ $image }}" />
+    <meta property="og:image" content="{{ urls()->image($image) }}" />
     <meta property="og:width" content="1280" />
     <meta property="og:height" content="720" />
 @endif
@@ -37,7 +37,7 @@
         'name' => $title->name . ' - ' . $video->name,
         'thumbnail' => [
             '@type' => 'ImageObject',
-            'url' => $video->image ?? $title->backdrop
+            'url' => urls()->image($video->image ?? $title->backdrop)
         ],
         'thumbnailUrl' => $video->image ?? $title->backdrop,
         'description' => $title->description,

@@ -1,6 +1,9 @@
-export function isAnyInputFocused(): boolean {
-  return document.activeElement
-    ? ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) ||
-        (document.activeElement as HTMLElement).isContentEditable
+export function isAnyInputFocused(doc?: Document): boolean {
+  if (!doc) {
+    doc = document;
+  }
+  return doc.activeElement
+    ? ['INPUT', 'TEXTAREA'].includes(doc.activeElement.tagName) ||
+        (doc.activeElement as HTMLElement).isContentEditable
     : false;
 }

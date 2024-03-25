@@ -31,7 +31,7 @@ class GenerateFavicon
 
     public function execute(string $filePath): void
     {
-        if (!str_starts_with($filePath, 'http') && !file_exists($filePath)) {
+        if (str_starts_with($filePath, 'http') || !file_exists($filePath)) {
             return;
         }
 

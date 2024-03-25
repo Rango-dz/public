@@ -10,7 +10,6 @@ import {NormalizedModel} from '@common/datatable/filters/normalized-model';
 import {useIsTouchDevice} from '@common/utils/hooks/is-touch-device';
 import {TableContext} from '@common/ui/tables/table-context';
 import {DragPreviewRenderer} from '@common/ui/interactions/dnd/use-draggable';
-import {useSortable} from '@common/ui/interactions/dnd/use-sortable';
 import {mergeProps} from '@react-aria/utils';
 import {DragPreview} from '@common/ui/interactions/dnd/drag-preview';
 import {useSortTitleCredits} from '@app/admin/titles/requests/use-sort-title-credits';
@@ -18,6 +17,7 @@ import {moveItemInNewArray} from '@common/utils/array/move-item-in-new-array';
 import {getCreditsEditorActionColumn} from '@app/admin/titles/title-editor/credits-editor/get-credits-editor-action-column';
 import {UseInfiniteDataResult} from '@common/ui/infinite-scroll/use-infinite-data';
 import {CreditsTableQueryIndicator} from '@app/admin/titles/title-editor/credits-editor/credits-table-query-indicator';
+import {useSortable} from '@common/ui/interactions/dnd/sortable/use-sortable';
 
 const columnConfig: ColumnConfig<TitleCredit>[] = [
   {
@@ -36,7 +36,7 @@ const columnConfig: ColumnConfig<TitleCredit>[] = [
     body: credit => (
       <div className="flex items-center gap-12">
         <PersonPoster rounded person={credit} size="w-44" />
-        <div className="overflow-hidden min-w-0">{credit.name}</div>
+        <div className="min-w-0 overflow-hidden">{credit.name}</div>
       </div>
     ),
   },
@@ -87,7 +87,7 @@ function CreditsTableRow({
     items: credits,
     type: 'cast-editor-item',
     preview: previewRef,
-    previewVariant: 'line',
+    strategy: 'line',
     onSortEnd: (oldIndex, newIndex) => {
       const ids = credits.map(item => item.pivot.id);
       const sortedIds = moveItemInNewArray(ids, oldIndex, newIndex);
@@ -117,7 +117,7 @@ const RowDragPreview = React.forwardRef<
   return (
     <DragPreview ref={ref}>
       {() => (
-        <div className="p-8 rounded shadow bg-chip text-sm">{item.name}</div>
+        <div className="rounded bg-chip p-8 text-sm shadow">{item.name}</div>
       )}
     </DragPreview>
   );

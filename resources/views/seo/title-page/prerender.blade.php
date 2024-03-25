@@ -10,7 +10,7 @@
     <h1>{{ $title->name }}</h1>
 
     @if ($title->poster)
-        <img src="{{ $title->poster }}" alt="Title poster" width="270px" />
+        <img src="{{ urls()->image($title->poster) }}" alt="Title poster" width="270px" />
     @endif
 
     @if ($seasonCount = $title->seasons_count)
@@ -90,7 +90,7 @@
                         <div>
                             @if ($credit['poster'])
                                 <img
-                                    src="{{ $credit['poster'] }}"
+                                    src="{{ urls()->image($credit['poster']) }}"
                                     alt="Credit poster"
                                     width="270px"
                                 />
@@ -130,7 +130,7 @@
                     <li>
                         <figure>
                             <img
-                                src="{{ $video['thumbnail'] ?: $title->poster }}"
+                                src="{{ urls()->image($video['thumbnail'] ?: $title->poster) }}"
                                 alt="Video thumbnail"
                                 width="180px"
                             />
@@ -153,7 +153,7 @@
                 @foreach ($images as $image)
                     <li>
                         <img
-                            src="{{ $image['url'] }}"
+                            src="{{ urls()->image($image['url']) }}"
                             alt="Media image"
                             width="270px"
                         />

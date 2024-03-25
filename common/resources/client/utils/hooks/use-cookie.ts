@@ -14,7 +14,7 @@ interface Options {
 const listeners = new Set<{name: string; callback: any}>();
 const listenForCookieChange = (
   name: string,
-  callback: (value: string) => void
+  callback: (value: string) => void,
 ) => {
   if (isSsr()) return () => {};
   const listener = {name, callback};
@@ -51,7 +51,7 @@ export const setCookie = (name: string, value: string, options?: Options) => {
   };
 
   const expires = new Date(
-    Date.now() + optionsWithDefaults.days * 864e5
+    Date.now() + optionsWithDefaults.days * 864e5,
   ).toUTCString();
 
   document.cookie =
@@ -69,16 +69,17 @@ export const setCookie = (name: string, value: string, options?: Options) => {
   });
 };
 
-export const getCookie = (name: string, initialValue = '') => {
+export function getCookie(name: string, initialValue = '') {
   return (
     (!isSsr() &&
+      document.cookie &&
       document.cookie.split('; ').reduce((r, v) => {
         const parts = v.split('=');
         return parts[0] === name ? decodeURIComponent(parts[1]) : r;
       }, '')) ||
     initialValue
   );
-};
+}
 
 export function useCookie(key: string, initialValue?: string) {
   const [item, setItem] = useState(() => {
@@ -96,7 +97,7 @@ export function useCookie(key: string, initialValue?: string) {
       setItem(value);
       setCookie(key, value, options);
     },
-    [key]
+    [key],
   );
 
   return [item, updateItem] as const;

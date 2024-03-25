@@ -25,13 +25,14 @@ const MenubarRowClassName =
 interface Props extends MenubarButtonProps {
   justify?: string;
   hideInsertButton?: boolean;
+  imageDiskPrefix?: string;
 }
-
 export function ArticleBodyEditorMenubar({
   editor,
   size = 'md',
   justify = 'justify-center',
   hideInsertButton = false,
+  imageDiskPrefix,
 }: Props) {
   const isMobile = useIsMobileMediaQuery();
   const [extendedVisible, setExtendedVisible] = useState(false);
@@ -61,6 +62,7 @@ export function ArticleBodyEditorMenubar({
             editor={editor}
             size={size}
             hideInsertButton={hideInsertButton}
+            imageDiskPrefix={imageDiskPrefix}
           />
         )}
       </div>
@@ -76,7 +78,11 @@ export function ArticleBodyEditorMenubar({
             animate={{y: 0}}
             exit={{y: '-100%'}}
           >
-            <ExtendedButtons editor={editor} size={size} />
+            <ExtendedButtons
+              editor={editor}
+              size={size}
+              imageDiskPrefix={imageDiskPrefix}
+            />
           </m.div>
         )}
       </AnimatePresence>
@@ -84,13 +90,18 @@ export function ArticleBodyEditorMenubar({
   );
 }
 
-function ExtendedButtons({editor, size = 'md', hideInsertButton}: Props) {
+function ExtendedButtons({
+  editor,
+  size = 'md',
+  hideInsertButton,
+  imageDiskPrefix,
+}: Props) {
   return (
     <Fragment>
       <ListButtons editor={editor} size={size} />
       <Divider />
       <LinkButton editor={editor} size={size} />
-      <ImageButton editor={editor} size={size} />
+      <ImageButton editor={editor} size={size} diskPrefix={imageDiskPrefix} />
       {!hideInsertButton && <InsertMenuTrigger editor={editor} size={size} />}
       <Divider />
       <ColorButtons editor={editor} size={size} />

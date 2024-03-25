@@ -15,7 +15,7 @@ import clsx from 'clsx';
 import {mergeProps, useLayoutEffect, useObjectRef} from '@react-aria/utils';
 import {useControlledState} from '@react-stately/utils';
 import {ChipList} from './chip-list';
-import {Field} from '../field';
+import {Field, FieldProps} from '../field';
 import {Input} from '../input';
 import {Chip, ChipProps} from './chip';
 import {NormalizedModel} from '@common/datatable/filters/normalized-model';
@@ -131,6 +131,7 @@ function ChipFieldInner<T>(
           chipSize={chipSize}
         />
         <ChipInput
+          size={props.size}
           showEmptyMessage={showEmptyMessage}
           inputProps={inputProps}
           inputValue={inputValue}
@@ -185,7 +186,10 @@ function ListWrapper({
 
   return (
     <ChipList
-      className="my-8 max-w-full flex-shrink-0 flex-wrap"
+      className={clsx(
+        'max-w-full flex-shrink-0 flex-wrap',
+        chipSize === 'xs' ? 'my-6' : 'my-8',
+      )}
       size={chipSize}
       selectable
     >
@@ -231,6 +235,7 @@ interface ChipInputProps<T> {
   setListboxIsOpen: (value: boolean) => void;
   allowCustomValue: boolean;
   children: ListBoxChildren<T>['children'];
+  size: FieldProps['size'];
 }
 function ChipInput<T>(props: ChipInputProps<T>) {
   const {
@@ -247,8 +252,8 @@ function ChipInput<T>(props: ChipInputProps<T>) {
     setListboxIsOpen,
     allowCustomValue,
     isLoading,
+    size,
   } = props;
-  const inputClassName = 'outline-none text-sm mx-8 my-4 h-30 flex-auto';
   const manager = useFocusManager();
 
   const addItems = useCallback(
@@ -341,7 +346,10 @@ function ChipInput<T>(props: ChipInputProps<T>) {
     >
       <input
         type="text"
-        className={clsx(inputClassName, 'bg-transparent')}
+        className={clsx(
+          'mx-8 my-4 min-w-30 flex-[1_1_60px] bg-transparent text-sm outline-none',
+          size === 'xs' ? 'h-20' : 'h-30',
+        )}
         placeholder={placeholder}
         {...mergeProps(inputProps, {
           ref: inputRef,

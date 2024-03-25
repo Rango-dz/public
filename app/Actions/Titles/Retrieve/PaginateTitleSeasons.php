@@ -23,5 +23,4 @@ class PaginateTitleSeasons
             ->orderBy('number', 'desc')
             ->paginate(Arr::get($params, 'perPage', 8));
     }
-
 }

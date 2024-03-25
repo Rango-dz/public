@@ -13,7 +13,7 @@
     <h3>{{$article->source}}</h3>
 
     @if($article->image)
-        <img src="{{$article->image}}" alt="Article image">
+        <img src="{{urls()->image($article->image)}}" alt="Article image">
     @endif
 
     <article>

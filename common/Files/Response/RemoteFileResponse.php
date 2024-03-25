@@ -14,14 +14,6 @@ class RemoteFileResponse implements FileResponse
      */
     public function make(FileEntry $entry, $options)
     {
-        //        if ($endpoint = config('common.site.file_preview_endpoint')) {
-        //            return redirect(
-        //                "$endpoint/uploads/{$entry->getStoragePath(
-        //                    false,
-        //                )}?ResponseContentType=application/octet-stream&ResponseContentDisposition=attachment;filename={$entry->name}",
-        //            );
-        //        }
-
         if ($options['disposition'] === 'attachment') {
             $fileName = rawurlencode($entry->name);
             return $this->getTemporaryUrl($entry, $options, [

@@ -310,7 +310,8 @@ function useControlledSelection(props: ListboxProps) {
   );
 
   const selectedValues = useMemo(() => {
-    if (stateValues == null) {
+    // allow specifying null as selected value, but not undefined
+    if (typeof stateValues === 'undefined') {
       return [];
     }
     return Array.isArray(stateValues) ? stateValues : [stateValues];

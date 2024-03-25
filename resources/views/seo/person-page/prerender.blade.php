@@ -10,7 +10,7 @@
     <h1>{{ $person->name }}</h1>
 
     <img
-        src="{{ $person->poster }}"
+        src="{{ urls()->image($person->poster) }}"
         alt="Poster"
         width="270px"
     />
@@ -52,7 +52,7 @@
                     <div>
                         @if ($credit['poster'])
                             <img
-                                src="{{ $credit['poster'] }}"
+                                src="{{ urls()->image($credit['poster']) }}"
                                 alt="Credit poster"
                                 width="270px"
                             />

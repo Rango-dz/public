@@ -23,6 +23,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       equalWidth = false,
       radius = 'rounded-button',
       variant = 'text',
+      disabled,
+      elementType,
+      to,
       ...other
     },
     ref,
@@ -38,6 +41,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         radius={radius}
         variant={variant}
+        disabled={disabled}
+        to={disabled ? undefined : to}
+        elementType={disabled ? undefined : elementType}
         {...other}
       >
         {startIcon && (

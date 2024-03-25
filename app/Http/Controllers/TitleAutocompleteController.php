@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Titles\LoadSeasonEpisodeNumbers;
+use App\Models\Season;
 use App\Models\Title;
 use Common\Core\BaseController;
 
@@ -24,20 +26,6 @@ class TitleAutocompleteController extends BaseController
             ->take(10)
             ->get(['id', 'name', 'poster', 'release_date']);
 
-        if ($selectedTitleId) {
-            $title = Title::withCount('seasons')->find($selectedTitleId);
-            if ($title) {
-                if ($seasonNumber) {
-                    $title->load([
-                        'season' => fn($query) => $query
-                            ->where('number', $seasonNumber)
-                            ->withCount('episodes'),
-                    ]);
-                }
-                $results = $results->prepend($title);
-            }
-        }
-
         $results = $results->map(function (Title $title) {
             $normalized = $title->toNormalizedArray();
             if ($title->relationLoaded('season')) {
@@ -47,6 +35,26 @@ class TitleAutocompleteController extends BaseController
             $normalized['seasons_count'] = $title->seasons_count;
             return $normalized;
         });
+
+        if ($selectedTitleId) {
+            $title = Title::find($selectedTitleId);
+            if ($title) {
+                $normalizedTitle = $title->toNormalizedArray();
+                $normalizedTitle['seasons_count'] = Season::where(
+                    'title_id',
+                    $title->id,
+                )->count();
+                if ($seasonNumber) {
+                    $normalizedTitle[
+                        'episode_numbers'
+                    ] = (new LoadSeasonEpisodeNumbers())->execute(
+                        $title->id,
+                        $seasonNumber,
+                    );
+                }
+                $results->prepend($normalizedTitle);
+            }
+        }
 
         return ['titles' => $results];
     }

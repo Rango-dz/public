@@ -30,12 +30,12 @@ class StoreMediaImageOnDisk
         foreach ($this->sizes as $key => $size) {
             if ($size) {
                 $img->scale($size);
-
-                Storage::disk('public')->put(
-                    "media-images/backdrops/$hash/$key.$extension",
-                    $extension === 'png' ? $img->toPng() : $img->toJpeg(),
-                );
             }
+
+            Storage::disk('public')->put(
+                "media-images/backdrops/$hash/$key.$extension",
+                $extension === 'png' ? $img->toPng() : $img->toJpeg(),
+            );
         }
 
         return "storage/media-images/backdrops/$hash/original.$extension";

@@ -137,17 +137,17 @@ function itemClassName({
     padding = userPadding;
   } else if (showCheckmark) {
     if (endIcon || endSection) {
-      padding = 'pl-8 pr-8';
+      padding = 'pl-8 pr-8 py-8';
     } else {
-      padding = 'pl-8 pr-24';
+      padding = 'pl-8 pr-24 py-8';
     }
   } else {
-    padding = 'px-20';
+    padding = 'px-20 py-8';
   }
 
   return clsx(
     'w-full select-none outline-none cursor-pointer',
-    'py-8 text-sm truncate flex items-center gap-10',
+    'text-sm truncate flex items-center gap-10',
     !isDisabled && 'text-main',
     padding,
     state,

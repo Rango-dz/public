@@ -52,6 +52,7 @@ class Settings
         'title_page.sections',
         'streaming.qualities',
         'builder.template_categories',
+        'publish.default_credentials',
     ];
 
     public static array $secretKeys = [
@@ -124,6 +125,7 @@ class Settings
     public function save(array $settings): void
     {
         $settings = $this->flatten($settings);
+
         foreach ($settings as $key => $value) {
             $setting = Setting::firstOrNew(['name' => $key]);
             $setting->value = $value;
@@ -159,11 +161,15 @@ class Settings
     /**
      * Flatten specified assoc array into dot array. (['billing.enable' => true])
      */
-    protected function flatten(array $settings): array
+    public function flatten(array $settings): array
     {
-        foreach ($settings as $key => $value) {
-            if (in_array($key, self::$jsonKeys) && !is_string($value)) {
-                $settings[$key] = json_encode($value);
+        // this will find all json keys, encode them and remove decoded version from original array
+        foreach (Settings::$jsonKeys as $key) {
+            if (Arr::has($settings, $key)) {
+                $value = Arr::pull($settings, $key);
+                $settings[$key] = is_array($value)
+                    ? json_encode($value)
+                    : $value;
             }
         }
 

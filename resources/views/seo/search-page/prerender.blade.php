@@ -14,7 +14,7 @@
             <li>
                 @if ($item['model_type'] === 'title')
                     <figure>
-                        <img src="{{ $item['poster'] }}" />
+                        <img src="{{ urls()->image($item['poster']) }}" />
                         <figcaption>
                             <a href="{{ urls()->title($item) }}">
                                 {{ $item['name'] }}
@@ -23,7 +23,7 @@
                     </figure>
                 @else
                     <figure>
-                        <img src="{{ $item['poster'] }}" />
+                        <img src="{{ urls()->image($item['poster']) }}" />
                         <figcaption>
                             <a href="{{ urls()->person($item) }}">
                                 {{ $item['name'] }}

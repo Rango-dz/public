@@ -38,3 +38,7 @@
         Header Set Service-Worker-allowed "/"
     </Files>
 </IfModule>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# php -- END cPanel-generated handler, do not edit
+

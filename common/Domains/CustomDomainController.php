@@ -77,16 +77,16 @@ class CustomDomainController extends BaseController
                 new HostIsNotBlacklisted(),
             ],
             'global' => 'boolean',
-            'resource_id' => 'integer',
-            'resource_type' => 'string',
+            'resource_id' => 'nullable|integer',
+            'resource_type' => 'nullable|string',
         ]);
 
         $data = $this->request->all();
         $data['user_id'] = Auth::id();
         $data['global'] = $this->request->get('global', $customDomain->global);
-        $domain = $customDomain->update($data);
+        $customDomain->update($data);
 
-        return $this->success(['domain' => $domain]);
+        return $this->success(['domain' => $customDomain]);
     }
 
     public function destroy(string $ids)
