@@ -21,6 +21,7 @@ class TransformData
     public const BACKDROP_BASE_URI = 'https://image.tmdb.org/t/p/w1280';
     public const PROFILE_BASE_URI = 'https://image.tmdb.org/t/p/w185';
     public const YOUTUBE_BASE_URI = 'https://youtube.com/embed/';
+    public const MULTIEMBED_BASE_URI = 'https://multiembed.mov/directstream.php?video_id=';
     public const SERIES_ENDED_STATUS = ['Ended', 'Canceled'];
 
     public function __construct(private Settings $settings)
@@ -78,7 +79,7 @@ class TransformData
             'revenue' => Arr::get($data, 'revenue') ?: null,
             'runtime' => $this->getRuntime($data),
             'videos' => $this->formatVideos(
-                Arr::get($data, 'videos.results', []),
+                Arr::get($data, 'videos.results', []),$data, $type
             ),
             'images' => $this->transformImages($data),
             'backdrop' => $this->getBackdrop($data),
@@ -427,32 +428,182 @@ class TransformData
         );
     }
 
-    public function formatVideos(array $videos): array
-    {
-        $videos = array_map(
-            fn($video) => [
-                'name' => trim($video['name']),
-                'src' => self::YOUTUBE_BASE_URI . $video['key'],
-                'type' => Video::VIDEO_TYPE_EMBED,
-                'origin' => 'tmdb',
-                'category' => strtolower(Arr::get($video, 'type', 'trailer')),
-            ],
-            $videos,
-        );
 
-        // show trailers first
-        usort($videos, function ($a, $b) {
-            if ($a['category'] === 'trailer') {
-                return -1;
-            } elseif ($b['category'] === 'trailer') {
-                return 1;
-            } else {
-                return 0;
-            }
-        });
+    public function formatVideos(array $videos, $data, $type): array
+{
+    $epNum = Arr::get($data, 'episode_number');
+    $sNum = Arr::get($data, 'season_number');
+    $mtdbid = $data['id'];
+    $videoTV  = self::MULTIEMBED_BASE_URI . $mtdbid . '&tmdb=1' . '&s=' . $sNum . '&e=' . $epNum;
+    $videomovie = self::MULTIEMBED_BASE_URI . $mtdbid . '&tmdb=1';
 
-        return $videos;
+    if ($type === Title::SERIES_TYPE) {
+        $videorigin =  $videoTV;
+        $this->checkForNotFound($videomovie);
+
+    } else {
+        $videorigin =  $videomovie;
+        $this->checkForNotFound($videomovie);
     }
+
+    $videos = array_map(function($video) use ($videorigin, $type) {
+        $namePrefix = 'watch ';
+        $namesufix = $type === Title::SERIES_TYPE ? ' full series' : ' full movie';
+        
+        return [
+            'name' => $namePrefix . ' ' . trim($video['name']) . ' ' . $namesufix,
+            'src' => $videorigin,
+            'type' => Video::VIDEO_TYPE_EMBED,
+            'origin' => 'tmdb',
+            'category' => strtolower(Arr::get($video, 'type', 'Full Movie or Episode')),
+        ];
+    }, $videos);
+
+    // show trailers first
+    usort($videos, function ($a, $b) {
+        if ($a['category'] === 'trailer') {
+            return -1;
+        } elseif ($b['category'] === 'trailer') {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+
+    return $videos;
+}
+
+function checkForNotFound($url) {
+    // Use cURL to fetch the content
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // Fail on errors
+  
+    $content = curl_exec($ch);
+    $curl_error = curl_error($ch);
+  
+    curl_close($ch);
+  
+    // Check for cURL errors or empty content
+    if ($curl_error || empty($content)) {
+      $message = "Error fetching content: " . $curl_error;
+      error_log($message, 0); // Log error message
+      return false;
+    }
+  
+    // Search for "Not Found!" using strpos (case-sensitive)
+    $found = strpos($content, "Not Found!") !== false;
+  
+    // Log the result to console
+    $message = "URL '$url': " . ($found ? 'Text "Not Found!" found' : 'Text "Not Found!" not found');
+    error_log($message, 0); // Log to console using error_log with no destination
+  
+    return $found;
+  }
+  
+  
+
+// public function videohascontent($videoURL)
+// {
+//     // Initialize Guzzle client
+//     $client = new Client();
+
+//     try {
+//         // Send GET request to video URL
+//         $response = $client->get($videoURL);
+
+//         // Get the response body (HTML content)
+//         $content = $response->getBody()->getContents();
+
+//         // Check if the content contains "Not found!"
+//         if (strpos($content, 'Not found!') !== false) {
+//             return false; // "Not found!" phrase exists
+//         } else {
+//             return true; // "Not found!" phrase not found
+//         }
+//     } catch (\Exception $e) {
+//         // Log or handle any exceptions
+//         return false; // Error occurred, treat as "Not found"
+//     }
+// }
+
+    // public function formatVideos(array $videos, $data, $type): array
+    // {
+    //     $epNum = Arr::get($data, 'episode_number');
+    //     $sNum = Arr::get($data, 'season_number');
+    //     $mtdbid = $data['id'];
+    //     $videoTV  = self::MULTIEMBED_BASE_URI . $mtdbid . 'tmdb=1' . '&s=' . $sNum . '&e=' . $epNum;
+    //     $videomovie = self::MULTIEMBED_BASE_URI . $mtdbid . '&tmdb=1';
+
+    //     if ($type === Title::SERIES_TYPE) {
+
+    //         // $videorigin =  $this->videohascontent($videoTV);
+            
+    //         $videos = array_map(
+    //             fn($video) => [
+    //                 'name' => 'watch ' . trim($video['name']) . ' full serie',
+    //                 'src' => $videorigin ? self::YOUTUBE_BASE_URI . $video['key'] : $videoTV,
+    //                 'type' => Video::VIDEO_TYPE_EMBED,
+    //                 'origin' => 'tmdb',
+    //                 'category' => strtolower(Arr::get($video, 'type', 'embed')),
+    //             ],
+
+    //             $videos,
+    //         );
+            
+    //     } else {
+    //         // $videorigin =  $this->videohascontent($videomovie);
+
+    //         $videos = array_map(
+    //             fn($video) => [
+    //                 'name' => 'watch ' . trim($video['name']) . ' full movie',
+    //                 'src' => $videorigin ? self::YOUTUBE_BASE_URI . $video['key'] : $videomovie,
+    //                 'type' => Video::VIDEO_TYPE_EMBED,
+    //                 'origin' => 'tmdb',
+    //                 'category' => strtolower(Arr::get($video, 'type', 'embed')),
+    //             ],
+
+    //             $videos,
+    //         );
+    //     }
+        
+
+    //     // show trailers first
+    //     usort($videos, function ($a, $b) {
+    //         if ($a['category'] === 'trailer') {
+    //             return -1;
+    //         } elseif ($b['category'] === 'trailer') {
+    //             return 1;
+    //         } else {
+    //             return 0;
+    //         }
+    //     });
+
+    //     return $videos;
+    // }
+
+//    public function videohascontent($videoURL)
+//     {
+//         // Initialize Guzzle client
+//         $client = new Client();
+    
+//         try {
+//             // Send GET request to video URL
+//             $response = $client->get($videoURL);
+    
+//             // Get the response body (HTML content)
+//             $content = $response->getBody()->getContents();
+    
+//             // Check if the content contains "Not found!"
+//             if (strpos($content, 'Not found!') !== false) {
+//                 return false; // "Not found!" phrase exists
+//             } else {
+//                 return true; // "Not found!" phrase not found
+//             }
+//         } catch (\Exception $e) {
+//             // Log or handle any exceptions
+//             return false; // Error occurred, treat as "Not found"
+//         }
+//     }
 
     /**
      * @param array $data
