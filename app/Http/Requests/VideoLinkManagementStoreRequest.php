@@ -11,18 +11,27 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:150'],
-            'type' => ['required', 'string', 'in:movie,series'],
-            'id' => ['required', 'string', 'max:50'],
-            'id_type' => ['required', 'in:imdb,tmdb,iwo'],
-            'api_key' => ['required', 'string', 'max:240'],
+            'title_id' => ['required_if:platform,web', 'integer', 'exists:titles,id'],
+            'platform' => ['required', 'string', 'in,web,api'],
+//            'api_key' => ['required_if:platform,api', 'string', 'max:240'],
             'language' => ['nullable', 'string', 'size:2'],
-            'videos' => ['required', 'array'],
-            'videos.*.name' => ['nullable', 'string', 'max:200'],
-            'videos.*.quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],
-            'videos.*.src' => ['required', 'url', new IsValidDomain()],
-            'videos.*.type' => ['required', 'string', 'in:embed,url,direct'],
-            'videos.*.category' => ['required', 'string', 'in:trailer,clip,movie,episode']
+            'quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],
+            'video_type' => ['required', 'string', 'in:embed,url,direct'],
+            'video_category' => ['required', 'string', 'in:trailer,clip,movie,episode'],
+            'src' => ['required', 'array'],
+            'src.*' => ['required', 'url']
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->src) {
+            $src = explode(",", $this->src);
+            $this->merge(['src' => $src]);
+        }
+
+        $this->merge([
+            'user_id' => $this->user()->id,
+        ]);
     }
 }

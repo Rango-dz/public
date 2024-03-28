@@ -44,6 +44,18 @@ return [
                         'label' => 'News',
                         'action' => '/latest-news',
                     ],
+                    [
+                        'id' => 'nVKgdI1',
+                        'type' => 'channel',
+                        'label' => 'Add Links',
+                        'action' => '/add-links',
+                    ],
+                    [
+                        'id' => 'nVKgdI2',
+                        'type' => 'channel',
+                        'label' => 'Requests',
+                        'action' => '/user-requests',
+                    ],
                 ],
             ],
 

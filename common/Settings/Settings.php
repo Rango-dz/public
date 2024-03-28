@@ -202,7 +202,6 @@ class Settings
                 }
             },
         );
-
         // add config keys that should be included
         foreach ($this->configKeys as $clientKey => $configKey) {
             $this->set($clientKey, config($configKey));

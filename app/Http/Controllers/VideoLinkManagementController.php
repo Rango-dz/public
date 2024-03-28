@@ -6,6 +6,7 @@ use App\Actions\Titles\Store\StoreTitleData;
 use App\Http\Requests\VideoLinkManagementStoreRequest;
 use App\Models\Title;
 use Common\Core\BaseController;
+use Illuminate\Http\Request;
 class VideoLinkManagementController extends BaseController
 {
 
@@ -15,21 +16,57 @@ class VideoLinkManagementController extends BaseController
 
         $options = [];
 
-        $options = $this->formatOptions($options, $data);
-        $options['videos']['user_id'] = $request->user()?->id;
+
+        $title = Title::where('id', $data['title_id'])->first();
+
+        if (is_null($title)) {
+            return response()->json([
+                'data' => $title
+            ]);
+        }
 
 
-        $title = app(StoreTitleData::class)->execute(
-            new Title(),
-            $this->formatData($data),
-            $options
-        );
+        $linksCount = $title->videos()->count();
+
+        if ($data['platform'] === 'api') {
+            $title->update(['name' =>  $request->clean_title]);
+            $title->refresh();
+        }
+
+        if ($linksCount < 5) {
+            $data['name'] = $title->name;
+            $options = $this->formatOptions($options, $data);
+            $title->videos()->createMany($options['videos']);
+        }
+
+
+//        $data['videos'] = $options['videos'];
+//
+//        unset($options['videos']);
+//
+//        $options['user_id'] = $request->user()->id;
+//
+//        $title = app(StoreTitleData::class)->execute(
+//            new Title(),
+//            $this->formatData($data),
+//            $options
+//        );
 
         $title->load('videos');
 
         return response()->json([
             'data' => $title
         ]);
+    }
+
+    public function searchTitle(Request $request)
+    {
+        $title = Title::where(function ($query) use ($request) {
+            return $query->where("name", "like", "%{$request->clean_title}%")
+                ->orWhere("name", "like", "%{$request->full_title}%");
+        })->first();
+
+        return response()->json(['data' => $title]);
     }
 
 
@@ -95,11 +132,15 @@ class VideoLinkManagementController extends BaseController
      */
     private function formatOptions(array $data, array $requestData): array
     {
-        $data['videos'] = [
-            'type' => $requestData['type'],
-            'name' => $requestData['name'],
-            'category' => 'full'
-        ];
+        foreach ($requestData['src'] as $key => $src) {
+            $data['videos'][] = [
+                'name' => $requestData['name'] . '-video-' . $key,
+                'type' => $requestData['video_type'],
+                'category' => $requestData['video_category'],
+                'src' => $src,
+                'quality' => $requestData['quality']
+            ];
+        }
 
         return $data;
     }

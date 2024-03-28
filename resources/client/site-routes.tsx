@@ -26,6 +26,10 @@ import {ProfileFollowersPanel} from '@app/profile/panels/profile-followers-panel
 import {ProfileFollowedUsersPanel} from '@app/profile/panels/profile-followed-users-panel';
 import {SearchPage} from '@app/search/search-page';
 import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
+import LinksList from './add-links/pages/LinksList';
+import AddRequest from './user-requests/pages/AddRequest';
+import AddLinks from './add-links/pages/AddLinks';
+import UserRequestList from './user-requests/pages/UserRequestList';
 
 const RouteConfig: RouteObject[] = [
   {
@@ -171,6 +175,18 @@ const RouteConfig: RouteObject[] = [
   {
     path: 'channel/:slugOrId/:restriction',
     element: <ChannelPage />,
+  },
+  {
+    path: '/add-links',
+    element : <AddLinks></AddLinks>,
+  },
+  {
+    path: '/user-requests',
+    element : <UserRequestList></UserRequestList>,
+  },
+  {
+    path: '/user-requests/new',
+    element : <AddRequest></AddRequest>,
   },
   {
     path: '*',

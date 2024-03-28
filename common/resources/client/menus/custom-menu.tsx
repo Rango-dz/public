@@ -43,7 +43,6 @@ export function CustomMenu({
 }: CustomMenuProps) {
   const menu = useCustomMenu(menuOrPosition);
   if (!menu) return null;
-
   return (
     <div
       className={clsx(

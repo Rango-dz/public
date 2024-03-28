@@ -1,38 +1,38 @@
 import './app.css';
 import React from 'react';
-import {createRoot, hydrateRoot} from 'react-dom/client';
-import {CommonProvider} from '@common/core/common-provider';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import { CommonProvider } from '@common/core/common-provider';
 import * as Sentry from '@sentry/react';
-import {rootEl} from '@common/core/root-el';
-import {getBootstrapData} from '@common/core/bootstrap-data/use-backend-bootstrap-data';
-import {ignoredSentryErrors} from '@common/errors/ignored-sentry-errors';
-import {UserLink} from '@app/profile/user-link';
-import {UserProfile} from '@app/profile/user-profile';
-import {LandingPageContent} from '@app/landing-page/landing-page-content';
-import {Title} from '@app/titles/models/title';
-import {GetTitleResponse} from '@app/titles/requests/use-title';
-import {BrowserRouter} from 'react-router-dom';
-import {AppRoutes} from '@app/app-routes';
-import {GetSeasonResponse} from '@app/seasons/requests/use-season';
-import {GetChannelResponse} from '@common/channels/requests/use-channel';
-import {Product} from '@common/billing/product';
-import {GetEpisodeResponse} from '@app/episodes/requests/use-episode';
-import {GetPersonResponse} from '@app/people/requests/use-person';
-import {SearchResponse} from '@app/search/requests/use-search-results';
-import {GetNewsArticleResponse} from '@app/admin/news/requests/use-news-article';
-import {UseWatchPageVideoResponse} from '@app/videos/requests/use-watch-page-video';
-import {FetchCustomPageResponse} from '@common/custom-page/use-custom-page';
-import {TitlePageSections} from '@app/titles/pages/title-page/sections/title-page-sections';
+import { rootEl } from '@common/core/root-el';
+import { getBootstrapData } from '@common/core/bootstrap-data/use-backend-bootstrap-data';
+import { ignoredSentryErrors } from '@common/errors/ignored-sentry-errors';
+import { UserLink } from '@app/profile/user-link';
+import { UserProfile } from '@app/profile/user-profile';
+import { LandingPageContent } from '@app/landing-page/landing-page-content';
+import { Title } from '@app/titles/models/title';
+import { GetTitleResponse } from '@app/titles/requests/use-title';
+import { BrowserRouter } from 'react-router-dom';
+import { AppRoutes } from '@app/app-routes';
+import { GetSeasonResponse } from '@app/seasons/requests/use-season';
+import { GetChannelResponse } from '@common/channels/requests/use-channel';
+import { Product } from '@common/billing/product';
+import { GetEpisodeResponse } from '@app/episodes/requests/use-episode';
+import { GetPersonResponse } from '@app/people/requests/use-person';
+import { SearchResponse } from '@app/search/requests/use-search-results';
+import { GetNewsArticleResponse } from '@app/admin/news/requests/use-news-article';
+import { UseWatchPageVideoResponse } from '@app/videos/requests/use-watch-page-video';
+import { FetchCustomPageResponse } from '@common/custom-page/use-custom-page';
+import { TitlePageSections } from '@app/titles/pages/title-page/sections/title-page-sections';
 
 declare module '@common/http/value-lists' {
   interface FetchValueListsResponse {
-    titleFilterLanguages: {value: string; name: string}[];
-    productionCountries: {value: string; name: string}[];
-    genres: {value: string; name: string}[];
-    keywords: {value: string; name: string}[];
-    titleFilterAgeRatings: {value: string; name: string}[];
-    tmdbLanguages: {name: string; code: string}[];
-    tmdbDepartments: {department: string; jobs: string[]}[];
+    titleFilterLanguages: { value: string; name: string }[];
+    productionCountries: { value: string; name: string }[];
+    genres: { value: string; name: string }[];
+    keywords: { value: string; name: string }[];
+    titleFilterAgeRatings: { value: string; name: string }[];
+    tmdbLanguages: { name: string; code: string }[];
+    tmdbDepartments: { department: string; jobs: string[] }[];
   }
 }
 
@@ -121,6 +121,7 @@ declare module '@common/auth/user' {
 }
 
 const data = getBootstrapData();
+console.log(data);
 const sentryDsn = data.settings.logging.sentry_public;
 if (sentryDsn && import.meta.env.PROD) {
   Sentry.init({

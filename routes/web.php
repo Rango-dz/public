@@ -13,6 +13,9 @@ use Common\Core\Controllers\HomeController;
 
 // FRONT-END ROUTES THAT NEED TO BE PRE-RENDERED
 Route::get('/', AppHomeController::class);
+Route::get('/test/route', function () {
+    return app(Common\Settings\Settings::class)->get('menus');
+});
 
 // TITLE/SEASON/EPISODE
 Route::get('titles/{id}/{name}/{pageName?}', [TitleController::class, 'show'])->where('pageName', 'images|videos|full-credits');
