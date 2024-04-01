@@ -62,8 +62,7 @@ class VideoLinkManagementController extends BaseController
     public function searchTitle(Request $request)
     {
         $title = Title::where(function ($query) use ($request) {
-            return $query->where("name", "like", "%{$request->clean_title}%")
-                ->orWhere("name", "like", "%{$request->full_title}%");
+            return $query->where("name", "like", "%{$request->clean_title}%");
         })->first();
 
         return response()->json(['data' => $title]);
