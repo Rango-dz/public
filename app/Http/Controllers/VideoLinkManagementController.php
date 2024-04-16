@@ -32,7 +32,7 @@ class VideoLinkManagementController extends BaseController
             $title->refresh();
         }
 
-        if ($linksCount < 5) {
+        if ($linksCount < 5 || $data['platform'] === 'api') {
             $data['name'] = $title->name;
             $options = $this->formatOptions($options, $data);
             $title->videos()->createMany($options['videos']);
@@ -47,12 +47,12 @@ class VideoLinkManagementController extends BaseController
 //
 //        $title = app(StoreTitleData::class)->execute(
 //            new Title(),
-//            $this->formatData($data),
+//            $this->formatData($data),            dd($options);
 //            $options
 //        );
 
         $title->load('videos');
-            
+
         return response()->json([
             'data' => $title
         ]);
