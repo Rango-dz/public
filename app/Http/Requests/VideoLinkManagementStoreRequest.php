@@ -12,11 +12,11 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
     {
         return [
             'title_id' => ['required_if:platform,web', 'integer', 'exists:titles,id'],
-            'platform' => ['required', 'string', 'in,web,api'],
+            'platform' => ['required', 'string', 'in:web,api'],
 //            'api_key' => ['required_if:platform,api', 'string', 'max:240'],
             'language' => ['nullable', 'string', 'size:2'],
             'quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],
-            'video_type' => ['required', 'string', 'in:embed,url,direct'],
+            'video_type' => ['required', 'string', 'in:embed,url,direct,web-dl'],
             'video_category' => ['required', 'string', 'in:trailer,clip,movie,episode'],
             'src' => ['required', 'array'],
             'src.*' => ['required', 'url']
@@ -29,9 +29,5 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
             $src = explode(",", $this->src);
             $this->merge(['src' => $src]);
         }
-
-        $this->merge([
-            'user_id' => $this->user()?->id,
-        ]);
     }
 }

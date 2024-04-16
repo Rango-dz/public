@@ -25,7 +25,6 @@ class VideoLinkManagementController extends BaseController
             ]);
         }
 
-
         $linksCount = $title->videos()->count();
 
         if ($data['platform'] === 'api') {
@@ -53,7 +52,7 @@ class VideoLinkManagementController extends BaseController
 //        );
 
         $title->load('videos');
-
+            
         return response()->json([
             'data' => $title
         ]);
