@@ -31,7 +31,7 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
         }
 
         $this->merge([
-            'user_id' => $this->user()->id,
+            'user_id' => $this->user()?->id,
         ]);
     }
 }
