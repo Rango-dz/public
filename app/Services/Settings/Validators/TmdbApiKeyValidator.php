@@ -2,10 +2,10 @@
 
 namespace App\Services\Settings\Validators;
 
-use Illuminate\Support\Arr;
 use App\Services\Data\Tmdb\TmdbApi;
-use GuzzleHttp\Exception\ClientException;
 use Common\Settings\Validators\SettingsValidator;
+use GuzzleHttp\Exception\ClientException;
+use Illuminate\Support\Arr;
 
 class TmdbApiKeyValidator implements SettingsValidator
 {
@@ -13,14 +13,22 @@ class TmdbApiKeyValidator implements SettingsValidator
 
     public function fails($values)
     {
-        if ($apiKey =  Arr::get($values, 'tmdb_api_key')) {
+        if ($apiKey = Arr::get($values, 'tmdb_api_key')) {
             config(['services.tmdb.key' => $apiKey]);
         }
 
         try {
             app(TmdbApi::class)->browse();
         } catch (ClientException $e) {
-            $errResponse = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+            $errResponse = json_decode(
+                $e
+                    ->getResponse()
+                    ->getBody()
+                    ->getContents(),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            );
             return $this->getMessage($errResponse);
         }
     }

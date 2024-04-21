@@ -29,6 +29,7 @@ use Common\Core\AppUrl;
 use Common\Core\Bootstrap\BaseBootstrapData;
 use Common\Core\Bootstrap\BootstrapData;
 use Common\Core\Commands\GenerateChecksums;
+use Common\Core\Commands\GenerateSitemap;
 use Common\Core\Commands\SeedCommand;
 use Common\Core\Commands\UpdateSimplePaginateTables;
 use Common\Core\Contracts\AppUrlGenerator;
@@ -472,6 +473,7 @@ class CommonServiceProvider extends ServiceProvider
             StartSsr::class,
             StopSsr::class,
             UpdateActionsCommand::class,
+            GenerateSitemap::class,
         ];
 
         if ($this->app->environment() !== 'production') {

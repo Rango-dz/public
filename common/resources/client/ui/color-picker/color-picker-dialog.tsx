@@ -13,7 +13,9 @@ export function ColorPickerDialog({
   hideFooter = false,
   showInput = true,
 }: ColorPickerDialogProps) {
-  const {close, value, setValue, initialValue} = useDialogContext();
+  const {close, value, setValue, initialValue} = useDialogContext<
+    string | null
+  >();
   // todo: remove this once pixie and bedrive are refactored to use dialogTrigger currentValue (use "currentValue" for defaultValue as well)
   //const initialValue = useRef(defaultValue);
 
@@ -21,10 +23,8 @@ export function ColorPickerDialog({
     <Dialog size="2xs">
       <ColorPicker
         showInput={showInput}
-        defaultValue={initialValue as string}
-        onChange={newValue => {
-          setValue(newValue);
-        }}
+        defaultValue={initialValue ? initialValue : ''}
+        onChange={newValue => setValue(newValue)}
       />
       {!hideFooter && (
         <DialogFooter dividerTop>

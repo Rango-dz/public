@@ -5,7 +5,6 @@ namespace Common\Core\Middleware;
 use Closure;
 use Common\Localizations\Localization;
 use Common\Localizations\UserLocaleController;
-use Common\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Negotiation\LanguageNegotiator;
@@ -14,17 +13,14 @@ class SetAppLocale
 {
     public function handle(Request $request, Closure $next)
     {
-        if (app(Settings::class)->get('i18n.enable')) {
+        if (settings('i18n.enable')) {
             // 1. Check if current user has manually selected a specific language
             $langCode =
                 $request->get('lang') ??
                 ($request->user()->language ??
                     Cookie::get(UserLocaleController::COOKIE_NAME));
 
-            $defaultLocale = app(Settings::class)->get(
-                'locale.default',
-                'auto',
-            );
+            $defaultLocale = settings('locale.default', 'auto');
 
             // 2. if admin manually selected a specific default locale, use that
             if (!$langCode && $defaultLocale && $defaultLocale !== 'auto') {

@@ -40,6 +40,7 @@ export function getInputFieldClassNames(
     descriptionPosition = 'bottom',
     inputRing,
     inputFontSize,
+    labelSuffix,
   } = {...props};
 
   if (unstyled) {
@@ -79,7 +80,7 @@ export function getInputFieldClassNames(
       'first-letter:capitalize text-left whitespace-nowrap',
       disabled && 'text-disabled',
       sizeClass.font,
-      labelPosition === 'side' ? 'mr-16' : 'mb-4',
+      labelSuffix ? '' : labelPosition === 'side' ? 'mr-16' : 'mb-4',
     ),
     input: clsx(
       'block text-left relative w-full appearance-none transition-shadow text',

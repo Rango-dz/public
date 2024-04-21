@@ -131,6 +131,7 @@ class Title extends BaseModel
                 ->each(
                     fn(Season $season) => $season->maybeUpdateFromExternal(
                         $this,
+                        $options,
                     ),
                 );
         }

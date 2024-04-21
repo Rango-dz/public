@@ -9,7 +9,6 @@ use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Matchish\ScoutElasticSearch\ElasticSearchServiceProvider;
 use Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine;
-use PDOException;
 use Throwable;
 
 class SearchConfigValidator
@@ -47,20 +46,14 @@ class SearchConfigValidator
             app()->register(ElasticSearchServiceProvider::class);
         }
 
-        try {
-            $results = $manager->engine($engineName)->search(
-                app(Builder::class, [
-                    'model' => new User(),
-                    'query' => 'test',
-                ]),
-            );
-            if (!$results) {
-                return $this->getDefaultErrorMessage();
-            }
-        } catch (PDOException $e) {
-            return ['search_group' => $e->getMessage()];
-        } catch (Exception | Throwable $e) {
-            return $this->getErrorMessage($e);
+        $results = $manager->engine($engineName)->search(
+            app(Builder::class, [
+                'model' => new User(),
+                'query' => 'test',
+            ]),
+        );
+        if (!$results) {
+            return $this->getDefaultErrorMessage();
         }
     }
 

@@ -7,7 +7,10 @@ import {
   BaseImageBg,
   ImageBackgrounds,
 } from '@common/background-selector/image-backgrounds';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {
+  BackgroundSelectorConfig,
+  EditableBackgroundProps,
+} from '@common/background-selector/background-selector-config';
 import {
   BaseColorBg,
   ColorBackgrounds,
@@ -45,7 +48,7 @@ function gradientConfigFromCssProps(
 
 function imageConfigFromCssProps(
   cssProps: CSSProperties | CSSStyleDeclaration,
-) {
+): BackgroundSelectorConfig {
   const preset =
     ImageBackgrounds.find(b =>
       compareCssStrings(b.backgroundImage, cssProps.backgroundImage),
@@ -54,13 +57,15 @@ function imageConfigFromCssProps(
     ...preset,
     backgroundImage: cssProps.backgroundImage,
     backgroundColor: cssProps.backgroundColor,
+    backgroundAttachment:
+      cssProps.backgroundAttachment as EditableBackgroundProps['backgroundAttachment'],
     color: cssProps.color,
   };
 }
 
 function solidColorConfigFromCssProps(
   cssProps: CSSProperties | CSSStyleDeclaration,
-) {
+): BackgroundSelectorConfig {
   const preset =
     ColorBackgrounds.find(b =>
       compareCssStrings(b.backgroundColor, cssProps.backgroundColor),

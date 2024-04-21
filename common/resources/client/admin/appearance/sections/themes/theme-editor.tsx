@@ -16,6 +16,7 @@ import {useFormContext} from 'react-hook-form';
 import {Trans} from '@common/i18n/trans';
 import {NavbarColorPicker} from '@common/admin/appearance/sections/themes/navbar-color-picker';
 import {message} from '@common/i18n/message';
+import {themeValueToHex} from '@common/ui/themes/utils/theme-value-to-hex';
 
 const colorList = [
   {
@@ -144,7 +145,7 @@ function ColorPickerTrigger({
 
   return (
     <DialogTrigger
-      value={selectedThemeValue}
+      value={themeValueToHex(selectedThemeValue)}
       type="popover"
       placement="right"
       offset={10}
@@ -155,7 +156,7 @@ function ColorPickerTrigger({
         if (newColor && valueChanged) {
           setValue(
             `appearance.themes.all.${+themeIndex!}.values.${colorName}`,
-            newColor,
+            colorToThemeValue(newColor),
             {shouldDirty: true},
           );
           setValue('appearance.themes.selectedThemeId', theme.id);

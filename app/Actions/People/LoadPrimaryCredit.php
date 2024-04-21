@@ -3,6 +3,7 @@
 namespace App\Actions\People;
 
 use App\Models\Title;
+use Illuminate\Database\QueryException;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -39,14 +40,19 @@ class LoadPrimaryCredit
                 fn($q) => $q->where('adult', false),
             );
 
-        $items = DB::table(
-            DB::raw("({$titleSelect->toSql()}) as laravel_table"),
-        )
-            ->select('*')
-            ->mergeBindings($titleSelect->getQuery())
-            ->where('laravel_row', '<=', 1)
-            ->orderBy('laravel_row')
-            ->get();
+        // cache syntax error, if mysql version does not support partition
+        try {
+            $items = DB::table(
+                DB::raw("({$titleSelect->toSql()}) as laravel_table"),
+            )
+                ->select('*')
+                ->mergeBindings($titleSelect->getQuery())
+                ->where('laravel_row', '<=', 1)
+                ->orderBy('laravel_row')
+                ->get();
+        } catch (QueryException $e) {
+            return;
+        }
 
         $credits = Title::hydrate($items->toArray());
 

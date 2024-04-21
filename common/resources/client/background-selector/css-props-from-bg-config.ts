@@ -1,18 +1,11 @@
-import {BackgroundSelectorConfig} from './background-selector-config';
-
-interface ReturnedProps {
-  backgroundImage?: string;
-  backgroundColor?: string;
-  backgroundAttachment?: string;
-  backgroundSize?: string;
-  backgroundRepeat?: string;
-  backgroundPosition?: string;
-  color?: string;
-}
+import {
+  BackgroundSelectorConfig,
+  EditableBackgroundProps,
+} from './background-selector-config';
 
 export function cssPropsFromBgConfig(
   bgConfig?: Partial<BackgroundSelectorConfig>,
-): ReturnedProps | undefined {
+): EditableBackgroundProps | undefined {
   if (bgConfig) {
     return {
       backgroundImage: bgConfig.backgroundImage,

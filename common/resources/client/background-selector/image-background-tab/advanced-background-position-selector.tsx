@@ -1,11 +1,16 @@
 import {message} from '@common/i18n/message';
 import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {
+  BackgroundSelectorConfig,
+  EditableBackgroundProps,
+} from '@common/background-selector/background-selector-config';
 import {Trans} from '@common/i18n/trans';
 import {RadioGroup} from '@common/ui/forms/radio-group/radio-group';
 import {Radio} from '@common/ui/forms/radio-group/radio';
 import {ButtonBase} from '@common/ui/buttons/button-base';
 import clsx from 'clsx';
+import {SegmentedRadio} from '@common/ui/forms/segmented-radio-group/segmented-radio';
+import {SegmentedRadioGroup} from '@common/ui/forms/segmented-radio-group/segmented-radio-group';
 
 const repeat = [
   {
@@ -58,10 +63,31 @@ export function AdvancedBackgroundPositionSelector({
   onChange,
 }: BgSelectorTabProps<BackgroundSelectorConfig>) {
   return (
-    <div className="mt-14 flex gap-60 border-t pt-14">
-      <RepeatSelector value={value} onChange={onChange} />
-      <SizeSelector value={value} onChange={onChange} />
-      <PositionSelector value={value} onChange={onChange} />
+    <div className="mt-14 border-t pt-14">
+      <div className="flex gap-60">
+        <RepeatSelector value={value} onChange={onChange} />
+        <SizeSelector value={value} onChange={onChange} />
+        <PositionSelector value={value} onChange={onChange} />
+      </div>
+      <SegmentedRadioGroup
+        size="xs"
+        className="mt-20"
+        value={value?.backgroundAttachment ?? 'scroll'}
+        onChange={newValue => {
+          onChange?.({
+            ...value!,
+            backgroundAttachment:
+              newValue as EditableBackgroundProps['backgroundAttachment'],
+          });
+        }}
+      >
+        <SegmentedRadio value="fixed">
+          <Trans message="Fixed" />
+        </SegmentedRadio>
+        <SegmentedRadio value="scroll">
+          <Trans message="Not fixed" />
+        </SegmentedRadio>
+      </SegmentedRadioGroup>
     </div>
   );
 }
@@ -84,7 +110,8 @@ function RepeatSelector({
             onChange={() => {
               onChange?.({
                 ...value!,
-                backgroundRepeat: repeatValue,
+                backgroundRepeat:
+                  repeatValue as EditableBackgroundProps['backgroundRepeat'],
               });
             }}
           >
@@ -114,7 +141,8 @@ function SizeSelector({
             onChange={() => {
               onChange?.({
                 ...value!,
-                backgroundSize: sizeValue,
+                backgroundSize:
+                  sizeValue as EditableBackgroundProps['backgroundSize'],
               });
             }}
           >

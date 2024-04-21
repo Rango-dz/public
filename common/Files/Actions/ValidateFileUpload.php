@@ -33,7 +33,7 @@ class ValidateFileUpload
         $allowedExtensions = settings('uploads.allowed_extensions');
 
         if (
-            !empty($extensions) &&
+            !empty($allowedExtensions) &&
             !$this->extensionMatches($allowedExtensions)
         ) {
             return __('Files of this type are not allowed');
@@ -47,7 +47,7 @@ class ValidateFileUpload
         $blockedExtensions = settings('uploads.blocked_extensions');
 
         if (
-            !empty($extensions) &&
+            !empty($blockedExtensions) &&
             $this->extensionMatches($blockedExtensions)
         ) {
             return __('Files of this type are not allowed');

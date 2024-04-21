@@ -9,7 +9,7 @@ class LoadChannelMenuItems
 {
     public function execute(): Collection
     {
-        return Channel::limit(20)
+        return Channel::limit(40)
             ->where('type', 'channel')
             ->get()
             ->map(

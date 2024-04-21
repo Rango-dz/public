@@ -16,10 +16,25 @@ export const InfoBlock = Node.create({
   content: 'inline*',
   defining: true,
 
+  addOptions() {
+    return {
+      types: ['important', 'warning', 'success'],
+      defaultType: 'success',
+    };
+  },
+
   addAttributes() {
     return {
       type: {
-        default: 'success',
+        default: this.options.defaultType,
+        parseHTML: element => {
+          for (const type of this.options.types) {
+            if (element.classList.contains(type)) {
+              return type;
+            }
+          }
+          return this.options.defaultType;
+        },
         renderHTML: attrs => {
           return {class: attrs.type};
         },
@@ -31,6 +46,7 @@ export const InfoBlock = Node.create({
     return [
       {
         tag: 'div',
+        contentElement: 'p',
         getAttrs: node =>
           (node as HTMLElement).classList.contains('info-block') && null,
       },

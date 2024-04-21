@@ -67,7 +67,10 @@ class ReviewsLoader
 
         $response['shared_review'] =
             $sharedReviewId && $page === 1
-                ? $reviewable->reviews()->find($sharedReviewId)
+                ? $reviewable
+                    ->reviews()
+                    ->find($sharedReviewId)
+                    ?->load('user')
                 : null;
 
         return $response;

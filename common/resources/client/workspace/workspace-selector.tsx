@@ -38,7 +38,7 @@ import {Trans} from '../i18n/trans';
 import {LeaveWorkspaceConfirmation} from './leave-workspace-confirmation';
 import {openDialog} from '@common/ui/overlays/store/dialog-store';
 import {useDialogContext} from '@common/ui/overlays/dialog/dialog-context';
-import {OverQuotaMessage} from '@common/billing/upgrade/over-quota-message';
+import {PolicyFailMessage} from '@common/billing/upgrade/policy-fail-message';
 
 interface WorkspaceSelectorProps {
   className?: string;
@@ -112,7 +112,7 @@ export function WorkspaceSelector({
               <CreateWorkspaceButton
                 onClick={() => setSelectorIsOpen(false)}
                 onCreated={id => onChange?.(id)}
-                workspaceCount={workspaces!.length - 1}
+                workspaceCount={workspaces ? workspaces.length - 1 : 0}
               />
             </div>
           </DialogBody>
@@ -162,7 +162,7 @@ function CreateWorkspaceButton({
         <Trans message="Create new workspace" />
       </Button>
       {overQuotaOrNoPermission && (
-        <OverQuotaMessage
+        <PolicyFailMessage
           size="sm"
           className="mt-12 max-w-288"
           resourceName={<Trans message="worksapces" />}

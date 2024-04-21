@@ -109,6 +109,7 @@ module.exports = {
       hover: `rgb(var(--be-foreground-base) / ${theme('opacity.hover')})`,
       selected: `rgb(var(--be-foreground-base) / ${theme('opacity.selected')})`,
       focus: `rgb(var(--be-foreground-base) / ${theme('opacity.focus')})`,
+      link: 'rgb(var(--be-link-color, var(--be-primary)) / <alpha-value>)',
       divider: `rgb(var(--be-foreground-base) / var(--be-divider-opacity))`,
       'disabled-bg':
         'rgb(var(--be-foreground-base) / var(--be-disabled-bg-opacity))',

@@ -105,7 +105,7 @@ abstract class BasePolicy
     protected function upgradeAction(): ?array
     {
         if ($this->settings->get('billing.enable')) {
-            return ['label' => __('Upgrade'), 'action' => '/billing/pricing'];
+            return ['label' => __('Upgrade'), 'action' => '/pricing'];
         } else {
             return null;
         }

@@ -37,7 +37,7 @@ function MobileNav() {
   return (
     <Select
       minWidth="min-w-none"
-      className="mb-24 w-full bg-paper"
+      className="mb-24 w-full bg"
       selectionMode="single"
       selectedValue={value}
       onSelectionChange={newPage => {

@@ -15,6 +15,7 @@ import {getWatchLink} from '@app/videos/watch-page/get-watch-link';
 import {useNavigate} from '@common/utils/hooks/use-navigate';
 import {isSameMedia} from '@common/player/utils/is-same-media';
 import {EpisodeSelector} from '@app/videos/watch-page/episode-selector';
+import {Trans} from '@common/i18n/trans';
 
 interface Props {
   video: Video;
@@ -69,12 +70,27 @@ interface EmberPlayerProps {
   autoPlay?: boolean;
 }
 const EmbedPlayer = memo(({src, autoPlay}: EmberPlayerProps) => {
-  const url = src.includes('<iframe') ? src.match(/src="([^"]*)"/)?.[1] : src;
-  const parsed = new URL(url || '');
-  parsed.searchParams.set('autoplay', autoPlay ? '1' : '0');
+  let finalSrc = '';
+  try {
+    const url = src.includes('<iframe') ? src.match(/src="([^"]*)"/)?.[1] : src;
+    const parsed = new URL(url || '');
+    parsed.searchParams.set('autoplay', autoPlay ? '1' : '0');
+    finalSrc = parsed.toString();
+  } catch {}
+
+  if (!finalSrc) {
+    return (
+      <div className="flex aspect-video w-full items-center justify-center">
+        <div className="rounded-panel border p-10">
+          <Trans message="There was an issue playting this video." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <iframe
-      src={parsed.toString()}
+      src={finalSrc}
       className="aspect-video w-full"
       allowFullScreen
       allow="autoplay; encrypted-media; picture-in-picture;"

@@ -32,4 +32,5 @@ return [
     'ssr_url' => env('SSR_URL', 'http://127.0.0.1:13714'),
     'disable_csrf' => env('DISABLE_CSRF', false),
     'demo_password' => env('DEMO_ADMIN_PASSWORD'),
+    'installed' => env('INSTALLED', false),
 ];

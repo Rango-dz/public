@@ -50,7 +50,7 @@ export function CustomMenu({
         'flex',
         gap,
         orientation === 'vertical' ? 'flex-col items-start' : 'items-center',
-        className
+        className,
       )}
       data-menu-id={menu.id}
     >
@@ -100,7 +100,7 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
       iconSize = 'sm',
       ...linkProps
     },
-    ref
+    ref,
   ) => {
     const label = <Trans message={item.label} />;
     const Icon = item.icon && createSvgIconFromTree(item.icon);
@@ -112,8 +112,7 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
     );
 
     const baseClassName =
-      !unstyled &&
-      'block whitespace-nowrap flex items-center justify-start gap-10';
+      !unstyled && 'whitespace-nowrap flex items-center justify-start gap-10';
 
     const focusClassNames = !unstyled && 'outline-none focus-visible:ring-2';
 
@@ -123,7 +122,7 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
           className={clsx(
             baseClassName,
             className?.({isActive: false}),
-            focusClassNames
+            focusClassNames,
           )}
           href={item.action}
           target={item.target}
@@ -154,5 +153,5 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
         {content}
       </NavLink>
     );
-  }
+  },
 );

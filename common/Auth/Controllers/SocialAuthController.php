@@ -11,11 +11,14 @@ use Illuminate\Support\Facades\Session;
 
 class SocialAuthController extends BaseController
 {
-    public function __construct(
-        protected Oauth $oauth,
-    ) {
-        $this->middleware('auth', ['only' => ['connect', 'disconnect']]);
-        $this->middleware('guest', ['only' => ['login']]);
+    public function __construct(protected Oauth $oauth)
+    {
+        $this->middleware('auth', [
+            'only' => ['connect', 'disconnect'],
+        ]);
+        $this->middleware('guest', [
+            'only' => ['login'],
+        ]);
     }
 
     /**

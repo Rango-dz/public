@@ -32,8 +32,8 @@ export function PricingTable({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center gap-24 overflow-x-auto overflow-y-visible pb-20 md:flex-row md:justify-center',
-        className
+        'flex flex-col items-stretch gap-24 overflow-x-auto overflow-y-visible pb-20 md:flex-row md:justify-center',
+        className,
       )}
     >
       <AnimatePresence initial={false} mode="wait">
@@ -81,10 +81,9 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
             key={plan.id}
             {...opacityAnimation}
             className={clsx(
-              'w-full rounded-lg border bg-paper px-28 shadow-lg md:min-w-240 md:max-w-350',
-              plan.recommended ? 'py-56' : 'py-28',
+              'w-full rounded-panel border bg px-28 py-28 shadow-lg md:min-w-240 md:max-w-350',
               isFirst && 'ml-auto',
-              isLast && 'mr-auto'
+              isLast && 'mr-auto',
             )}
           >
             <div className="mb-32">
@@ -93,7 +92,7 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
                 size="sm"
                 className={clsx(
                   'mb-20 w-min',
-                  !plan.recommended && 'invisible'
+                  !plan.recommended && 'invisible',
                 )}
               >
                 <Trans message="Most popular" />
@@ -120,7 +119,7 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
               )}
               <div className="mt-60">
                 <Button
-                  variant="flat"
+                  variant={plan.recommended ? 'flat' : 'outline'}
                   color="primary"
                   className="w-full"
                   size="md"
@@ -135,7 +134,11 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
                   }}
                   to={upgradeRoute}
                 >
-                  <ActionButtonText product={plan} />
+                  {plan.free ? (
+                    <Trans message="Get started" />
+                  ) : (
+                    <Trans message="Upgrade" />
+                  )}
                 </Button>
               </div>
               <ProductFeatureList product={plan} />
@@ -145,20 +148,6 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
       })}
     </Fragment>
   );
-}
-
-interface ActionButtonTextProps {
-  product: Product;
-}
-function ActionButtonText({product}: ActionButtonTextProps) {
-  const {isLoggedIn} = useAuth();
-  if (product.free && isLoggedIn) {
-    return <Trans message="You're on :plan" values={{plan: product.name}} />;
-  }
-  if (product.free || !isLoggedIn) {
-    return <Trans message="Get started" />;
-  }
-  return <Trans message="Upgrade" />;
 }
 
 function SkeletonLoader() {

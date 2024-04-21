@@ -14,7 +14,7 @@ import {message} from '@common/i18n/message';
 import {ProfilePageHeader} from '@app/profile/header/profile-page-header';
 
 const PageTabs = [
-  {uri: '', label: message('Lists')},
+  {uri: 'lists', label: message('Lists')},
   {uri: 'ratings', label: message('Ratings')},
   {uri: 'reviews', label: message('Reviews')},
   {uri: 'comments', label: message('Comments')},
@@ -42,7 +42,7 @@ interface PageContentProps {
 }
 function PageContent({user}: PageContentProps) {
   return (
-    <div className="container mx-auto mt-24 md:mt-40 px-14 md:px-24">
+    <div className="container mx-auto mt-24 px-14 md:mt-40 md:px-24">
       <ProfilePageHeader user={user} />
       <ProfileTabs user={user} />
     </div>

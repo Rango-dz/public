@@ -24,7 +24,7 @@ export function UpgradeDialog({message, messageSuffix}: UpgradeDialogProps) {
       </DialogHeader>
       <DialogBody>
         <div className="mb-20 text-center">
-          <SvgImage src={upgradeSvg} className="mx-auto h-100" />
+          <SvgImage src={upgradeSvg} className="mx-auto" height="h-100" />
         </div>
         <div>
           {message} {messageSuffix}

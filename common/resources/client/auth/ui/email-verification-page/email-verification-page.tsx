@@ -28,7 +28,7 @@ export function EmailVerificationPage() {
         />
       )}
       <div className="flex max-w-580 flex-col items-center rounded border bg-paper px-14 py-28 text-center shadow">
-        <SvgImage src={mailSentSvg} className="h-144" />
+        <SvgImage src={mailSentSvg} height="h-144" />
         <h1 className="mb-20 mt-40 text-3xl">
           <Trans message="Verify your email" />
         </h1>

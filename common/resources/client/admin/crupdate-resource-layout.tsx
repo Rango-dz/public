@@ -45,13 +45,13 @@ export function CrupdateResourceLayout<T extends FieldValues>({
       <div
         className={clsx(
           'sticky top-0 z-10 my-12 transition-shadow md:my-24',
-          isSticky && 'bg-paper shadow'
+          isSticky && 'bg shadow',
         )}
       >
         <div
           className={clsx(
             'flex items-center gap-24 py-14 md:items-start',
-            wrapInContainer && 'container mx-auto px-24'
+            wrapInContainer && 'container mx-auto px-24',
           )}
         >
           {backButton}

@@ -34,7 +34,7 @@ export interface BaseFieldProps {
   inputWrapperClassName?: string;
   inputClassName?: string;
   unstyled?: boolean;
-  background?: 'bg-transparent' | 'bg-alt' | 'bg-paper' | 'bg-white';
+  background?: 'bg-transparent' | 'bg-alt' | 'bg' | 'bg-white';
   inputTestId?: string;
 }
 

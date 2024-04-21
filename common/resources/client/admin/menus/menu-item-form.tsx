@@ -242,14 +242,6 @@ function PermissionSelector({prefixName}: NameProps) {
 }
 
 function TargetSelect({prefixName}: NameProps) {
-  const form = useFormContext<MenuItemConfig>();
-  const watchedType = form.watch(prefixName('type') as 'type');
-
-  // routes and pages can only be "_self"
-  if (watchedType !== 'link') {
-    return null;
-  }
-
   return (
     <FormSelect
       className="mt-20"

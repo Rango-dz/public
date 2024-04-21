@@ -11,8 +11,8 @@ import { createServer } from "http";
 import { QueryClient, useQuery, keepPreviousData, useMutation, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { StaticRouter } from "react-router-dom/server.mjs";
+import React, { forwardRef, memo, createContext, useContext, useMemo, Fragment, isValidElement, cloneElement, useCallback, useState, useEffect, StrictMode, useRef, useId, Children } from "react";
 import { LazyMotion, domAnimation, AnimatePresence, m } from "framer-motion";
-import React, { forwardRef, memo, createContext, useContext, useMemo, Fragment, isValidElement, cloneElement, useCallback, useState, useEffect, useRef, useId, Children } from "react";
 import slugify from "slugify";
 import deepMerge from "deepmerge";
 import clsx from "clsx";
@@ -666,6 +666,8 @@ const Button = React.forwardRef(
     disabled,
     elementType,
     to,
+    href,
+    download,
     ...other
   }, ref) => {
     const mergedClassName = clsx(
@@ -682,6 +684,8 @@ const Button = React.forwardRef(
         variant,
         disabled,
         to: disabled ? void 0 : to,
+        href: disabled ? void 0 : href,
+        download: disabled ? void 0 : download,
         elementType: disabled ? void 0 : elementType,
         ...other,
         children: [
@@ -1458,7 +1462,7 @@ function BootstrapDataProvider({ children }) {
 }
 const mergedConfig = deepMerge(BaseSiteConfig, SiteConfig);
 function CommonProvider({ children }) {
-  return /* @__PURE__ */ jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsx(LazyMotion, { features: domAnimation, children: /* @__PURE__ */ jsx(SiteConfigContext.Provider, { value: mergedConfig, children: /* @__PURE__ */ jsx(BootstrapDataProvider, { children: /* @__PURE__ */ jsx(ThemeProvider, { children }) }) }) }) });
+  return /* @__PURE__ */ jsx(StrictMode, { children: /* @__PURE__ */ jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsx(LazyMotion, { features: domAnimation, children: /* @__PURE__ */ jsx(SiteConfigContext.Provider, { value: mergedConfig, children: /* @__PURE__ */ jsx(BootstrapDataProvider, { children: /* @__PURE__ */ jsx(ThemeProvider, { children }) }) }) }) }) });
 }
 function useAppearanceEditorMode() {
   return {
@@ -1934,16 +1938,18 @@ function fetchUser(id, params) {
 }
 const mailSentSvg = "/assets/mail-sent-c2a25732.svg";
 function useResendVerificationEmail() {
+  const { user } = useAuth();
   return useMutation({
-    mutationFn: resendEmail,
+    mutationFn: (payload) => resendEmail(user, payload),
     onSuccess: () => {
       toast(message("Email sent"));
     },
     onError: (err) => showHttpErrorToast(err)
   });
 }
-function resendEmail(payload) {
-  return apiClient.post("auth/email/verification-notification", payload).then((response) => response.data);
+function resendEmail(loggedInUser, payload) {
+  const endpoint2 = loggedInUser.email === payload.email ? "auth/email/verification-notification" : `users/${loggedInUser.id}/resend-verification-email`;
+  return apiClient.post(endpoint2, payload).then((response) => response.data);
 }
 function useIsDarkMode() {
   const { selectedTheme } = useThemeSelector();
@@ -1994,7 +2000,7 @@ function EmailVerificationPage() {
       }
     ),
     /* @__PURE__ */ jsxs("div", { className: "flex max-w-580 flex-col items-center rounded border bg-paper px-14 py-28 text-center shadow", children: [
-      /* @__PURE__ */ jsx(SvgImage, { src: mailSentSvg, className: "h-144" }),
+      /* @__PURE__ */ jsx(SvgImage, { src: mailSentSvg, height: "h-144" }),
       /* @__PURE__ */ jsx("h1", { className: "mb-20 mt-40 text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Verify your email" }) }),
       /* @__PURE__ */ jsx("div", { className: "mb-24 text-sm", children: /* @__PURE__ */ jsx(
         Trans,
@@ -2335,7 +2341,7 @@ const CustomMenuItem = forwardRef(
       Icon && /* @__PURE__ */ jsx(Icon, { size: iconSize, className: iconClassName }),
       (!Icon || !onlyShowIcon) && label
     ] });
-    const baseClassName = !unstyled && "block whitespace-nowrap flex items-center justify-start gap-10";
+    const baseClassName = !unstyled && "whitespace-nowrap flex items-center justify-start gap-10";
     const focusClassNames = !unstyled && "outline-none focus-visible:ring-2";
     if (item.type === "link") {
       return /* @__PURE__ */ jsx(
@@ -2516,7 +2522,8 @@ function getInputFieldClassNames(props = {}) {
     inputShadow = "shadow-sm",
     descriptionPosition = "bottom",
     inputRing,
-    inputFontSize
+    inputFontSize,
+    labelSuffix
   } = { ...props };
   if (unstyled) {
     return {
@@ -2548,7 +2555,7 @@ function getInputFieldClassNames(props = {}) {
       "first-letter:capitalize text-left whitespace-nowrap",
       disabled && "text-disabled",
       sizeClass.font,
-      labelPosition === "side" ? "mr-16" : "mb-4"
+      labelSuffix ? "" : labelPosition === "side" ? "mr-16" : "mb-4"
     ),
     input: clsx(
       "block text-left relative w-full appearance-none transition-shadow text",
@@ -2788,19 +2795,28 @@ function Label({
     required && /* @__PURE__ */ jsx("span", { className: "text-danger", children: " *" })
   ] });
   if (labelSuffix) {
-    return /* @__PURE__ */ jsxs("div", { className: "flex w-full items-center gap-4", children: [
-      labelNode,
-      /* @__PURE__ */ jsx(
-        "div",
-        {
-          className: clsx(
-            "mb-4 text-xs text-muted",
-            labelSuffixPosition === "spaced" ? "ml-auto" : ""
-          ),
-          children: labelSuffix
-        }
-      )
-    ] });
+    return /* @__PURE__ */ jsxs(
+      "div",
+      {
+        className: clsx(
+          "mb-4 flex w-full gap-4",
+          labelSuffixPosition === "spaced" ? "items-end" : "items-center"
+        ),
+        children: [
+          labelNode,
+          /* @__PURE__ */ jsx(
+            "div",
+            {
+              className: clsx(
+                "text-xs text-muted",
+                labelSuffixPosition === "spaced" ? "ml-auto" : ""
+              ),
+              children: labelSuffix
+            }
+          )
+        ]
+      }
+    );
   }
   return labelNode;
 }
@@ -3014,7 +3030,7 @@ function Form({
     }
   ) });
 }
-const LinkStyle = "text-primary hover:underline hover:text-primary-dark focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 outline-none rounded transition-colors";
+const LinkStyle = "text-link hover:underline hover:text-primary-dark focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 outline-none rounded transition-colors";
 function ExternalLink({
   children,
   className,
@@ -3094,6 +3110,9 @@ function useTrans() {
 const translate = memoize(
   (props) => {
     let { lines, message: message2, values, localeCode } = props;
+    if (message2 == null) {
+      return "";
+    }
     message2 = (lines == null ? void 0 : lines[message2]) || (lines == null ? void 0 : lines[message2.toLowerCase()]) || message2;
     if (!values) {
       return message2;
@@ -3145,7 +3164,7 @@ function Dialog(props) {
   const isTrayOrFullScreen = size2 === "fullscreenTakeover" || type === "tray";
   const mergedClassName = clsx(
     "mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden",
-    background || "bg-paper",
+    background || "bg",
     type !== "tray" && sizeStyle(size2),
     type === "tray" && "rounded-t border-b-bg",
     size2 !== "fullscreenTakeover" && `shadow-2xl border max-h-dialog`,
@@ -3599,7 +3618,7 @@ const Popover = forwardRef(
     return /* @__PURE__ */ jsx(
       m.div,
       {
-        className: "z-popover isolate",
+        className: "isolate z-popover",
         role: "presentation",
         ref: objRef,
         style: { ...viewPortStyle, ...style, position: "fixed" },
@@ -4298,7 +4317,7 @@ function Listbox({
   } = listbox;
   const Overlay = !prepend && isMobile ? mobileOverlay : Popover;
   const className = clsx(
-    "text-base sm:text-sm outline-none bg-paper max-h-inherit flex flex-col",
+    "text-base sm:text-sm outline-none bg max-h-inherit flex flex-col",
     !prepend && "shadow-xl border py-4",
     listboxClassName,
     // tray will apply its own rounding and max width
@@ -5266,26 +5285,26 @@ function AuthLayout({ heading, children, message: message2 }) {
   return /* @__PURE__ */ jsxs(
     "main",
     {
-      className: "h-screen flex flex-col items-center bg-alt dark:bg-none pt-70 px-14 md:px-10vw overflow-y-auto",
+      className: "flex h-screen flex-col items-center overflow-y-auto bg-alt px-14 pt-70 dark:bg-none md:px-10vw",
       style: { backgroundImage: isDarkMode ? void 0 : `url("${authBgSvg}")` },
       children: [
         /* @__PURE__ */ jsx(
           Link,
           {
             to: "/",
-            className: "block flex-shrink-0 mb-40",
+            className: "mb-40 block flex-shrink-0",
             "aria-label": trans({ message: "Go to homepage" }),
             children: /* @__PURE__ */ jsx(
               "img",
               {
                 src: isDarkMode ? branding.logo_light : branding == null ? void 0 : branding.logo_dark,
-                className: "block h-42 w-auto m-auto",
+                className: "m-auto block h-42 w-auto",
                 alt: ""
               }
             )
           }
         ),
-        /* @__PURE__ */ jsxs("div", { className: "rounded-lg max-w-440 px-40 pt-40 pb-32 w-full mx-auto bg-paper shadow md:shadow-xl", children: [
+        /* @__PURE__ */ jsxs("div", { className: "mx-auto w-full max-w-440 rounded-lg bg px-40 pb-32 pt-40 shadow md:shadow-xl", children: [
           heading && /* @__PURE__ */ jsx("h1", { className: "mb-20 text-xl", children: heading }),
           children
         ] }),
@@ -5378,7 +5397,7 @@ const Checkbox = forwardRef(
             /* @__PURE__ */ jsx(
               "input",
               {
-                className: "focus-visible:ring ring-inset transition-shadow outline-none absolute left-0 top-0 w-24 h-24 rounded appearance-none",
+                className: "absolute left-0 top-0 h-24 w-24 appearance-none overflow-hidden rounded outline-none ring-inset transition-shadow focus-visible:ring",
                 type: "checkbox",
                 "aria-checked": isIndeterminate ? "mixed" : isSelected,
                 "aria-invalid": invalid || void 0,
@@ -6057,7 +6076,7 @@ function useDarkThemeVariables() {
   }
   return (_a = data.themes.all.find((theme) => theme.is_dark && theme.default_dark)) == null ? void 0 : _a.values;
 }
-function Logo({ color, logoColor, isDarkMode }) {
+function Logo({ color, logoColor, isDarkMode, className }) {
   const { trans } = useTrans();
   const { branding } = useSettings();
   let desktopLogo;
@@ -6076,7 +6095,10 @@ function Logo({ color, logoColor, isDarkMode }) {
     Link,
     {
       to: "/",
-      className: "mr-4 block h-full max-h-26 flex-shrink-0 md:mr-24 md:max-h-36",
+      className: clsx(
+        "mr-4 block h-full max-h-26 flex-shrink-0 md:mr-24 md:max-h-36",
+        className
+      ),
       "aria-label": trans({ message: "Go to homepage" }),
       children: /* @__PURE__ */ jsxs("picture", { children: [
         /* @__PURE__ */ jsx("source", { srcSet: mobileLogo || desktopLogo, media: "(max-width: 768px)" }),
@@ -6190,10 +6212,10 @@ function MobileMenu({ position }) {
   }
   const handleItemClick = (item) => {
     var _a;
-    if (item.type === "route") {
-      navigate(item.action);
-    } else {
+    if (isAbsoluteUrl(item.action)) {
       (_a = window.open(item.action, item.target)) == null ? void 0 : _a.focus();
+    } else {
+      navigate(item.action);
     }
   };
   return /* @__PURE__ */ jsxs(MenuTrigger, { children: [
@@ -6781,17 +6803,19 @@ function Skeleton({
   size: size2,
   className,
   display = "block",
-  radius = "rounded"
+  radius = "rounded",
+  style
 }) {
   return /* @__PURE__ */ jsx(
     "span",
     {
+      style,
       className: clsx(
-        "overflow-hidden relative bg-fg-base/4 bg-no-repeat will-change-transform skeleton",
+        "skeleton relative overflow-hidden bg-fg-base/4 bg-no-repeat will-change-transform",
         radius,
         skeletonSize({ variant, size: size2 }),
         display,
-        variant === "text" && "scale-y-[0.6] origin-[0_55%]",
+        variant === "text" && "origin-[0_55%] scale-y-[0.6]",
         variant === "avatar" && "flex-shrink-0",
         variant === "icon" && "mx-8 flex-shrink-0",
         animation === "wave" && "skeleton-wave",
@@ -7253,10 +7277,10 @@ function FormattedPrice({
 function ProductFeatureList({ product }) {
   if (!product.feature_list.length)
     return null;
-  return /* @__PURE__ */ jsxs("div", { className: "border-t pt-24 mt-32", children: [
-    /* @__PURE__ */ jsx("div", { className: "text-sm mb-10 font-semibold", children: /* @__PURE__ */ jsx(Trans, { message: "What's included" }) }),
-    product.feature_list.map((feature) => /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-10 text-sm py-6", children: [
-      /* @__PURE__ */ jsx(CheckIcon, { className: "text-positive", size: "sm" }),
+  return /* @__PURE__ */ jsxs("div", { className: "mt-32 border-t pt-24", children: [
+    /* @__PURE__ */ jsx("div", { className: "mb-10 text-sm font-semibold", children: /* @__PURE__ */ jsx(Trans, { message: "What's included" }) }),
+    product.feature_list.map((feature) => /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-10 py-6 text-sm", children: [
+      /* @__PURE__ */ jsx(CheckIcon, { className: "text-primary", size: "sm" }),
       /* @__PURE__ */ jsx(Trans, { message: feature })
     ] }, feature))
   ] });
@@ -7271,7 +7295,7 @@ function PricingTable({
     "div",
     {
       className: clsx(
-        "flex flex-col items-center gap-24 overflow-x-auto overflow-y-visible pb-20 md:flex-row md:justify-center",
+        "flex flex-col items-stretch gap-24 overflow-x-auto overflow-y-visible pb-20 md:flex-row md:justify-center",
         className
       ),
       children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, mode: "wait", children: query.data ? /* @__PURE__ */ jsx(
@@ -7307,8 +7331,7 @@ function PlanList({ plans, selectedPeriod }) {
       {
         ...opacityAnimation,
         className: clsx(
-          "w-full rounded-lg border bg-paper px-28 shadow-lg md:min-w-240 md:max-w-350",
-          plan.recommended ? "py-56" : "py-28",
+          "w-full rounded-panel border bg px-28 py-28 shadow-lg md:min-w-240 md:max-w-350",
           isFirst && "ml-auto",
           isLast && "mr-auto"
         ),
@@ -7342,7 +7365,7 @@ function PlanList({ plans, selectedPeriod }) {
             /* @__PURE__ */ jsx("div", { className: "mt-60", children: /* @__PURE__ */ jsx(
               Button,
               {
-                variant: "flat",
+                variant: plan.recommended ? "flat" : "outline",
                 color: "primary",
                 className: "w-full",
                 size: "md",
@@ -7357,7 +7380,7 @@ function PlanList({ plans, selectedPeriod }) {
                   });
                 },
                 to: upgradeRoute,
-                children: /* @__PURE__ */ jsx(ActionButtonText, { product: plan })
+                children: plan.free ? /* @__PURE__ */ jsx(Trans, { message: "Get started" }) : /* @__PURE__ */ jsx(Trans, { message: "Upgrade" })
               }
             ) }),
             /* @__PURE__ */ jsx(ProductFeatureList, { product: plan })
@@ -7367,16 +7390,6 @@ function PlanList({ plans, selectedPeriod }) {
       plan.id
     );
   }) });
-}
-function ActionButtonText({ product }) {
-  const { isLoggedIn } = useAuth();
-  if (product.free && isLoggedIn) {
-    return /* @__PURE__ */ jsx(Trans, { message: "You're on :plan", values: { plan: product.name } });
-  }
-  if (product.free || !isLoggedIn) {
-    return /* @__PURE__ */ jsx(Trans, { message: "Get started" });
-  }
-  return /* @__PURE__ */ jsx(Trans, { message: "Upgrade" });
 }
 function SkeletonLoader() {
   return /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -8050,7 +8063,7 @@ function AccountSettingsPanel({
     "section",
     {
       id,
-      className: "rounded-panel mb-24 w-full border bg-paper px-24 py-20",
+      className: "mb-24 w-full rounded-panel border bg px-24 py-20",
       children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-14 border-b pb-10", children: [
           /* @__PURE__ */ jsx("div", { className: "text-lg font-light", children: title }),
@@ -9140,13 +9153,19 @@ function createUpload(file, options) {
   };
 }
 enableMapSet();
+const initialState = {
+  concurrency: 3,
+  fileUploads: /* @__PURE__ */ new Map(),
+  activeUploadsCount: 0,
+  completedUploadsCount: 0
+};
 const createFileUploadStore = ({ settings }) => create()(
   immer((set, get) => {
     return {
-      concurrency: 3,
-      fileUploads: /* @__PURE__ */ new Map(),
-      activeUploadsCount: 0,
-      completedUploadsCount: 0,
+      ...initialState,
+      reset: () => {
+        set(initialState);
+      },
       getUpload: (uploadId) => {
         return get().fileUploads.get(uploadId);
       },
@@ -10736,9 +10755,6 @@ function DeleteTokenButton({ token }) {
     }
   );
 }
-function deleteAccount(userId) {
-  return apiClient.delete(`users/${userId}`, { params: { deleteCurrentUser: true } }).then((r) => r.data);
-}
 function useDeleteAccount() {
   const { user } = useAuth();
   const logout2 = useLogout();
@@ -10751,65 +10767,8 @@ function useDeleteAccount() {
     onError: (err) => showHttpErrorToast(err)
   });
 }
-function DangerZonePanel() {
-  const deleteAccount2 = useDeleteAccount();
-  return /* @__PURE__ */ jsx(
-    AccountSettingsPanel,
-    {
-      id: AccountSettingsId.DeleteAccount,
-      title: /* @__PURE__ */ jsx(Trans, { message: "Danger zone" }),
-      children: /* @__PURE__ */ jsxs(
-        DialogTrigger,
-        {
-          type: "modal",
-          onClose: (isConfirmed) => {
-            if (isConfirmed) {
-              deleteAccount2.mutate();
-            }
-          },
-          children: [
-            /* @__PURE__ */ jsx(Button, { variant: "flat", color: "danger", children: /* @__PURE__ */ jsx(Trans, { message: "Delete account" }) }),
-            /* @__PURE__ */ jsx(
-              ConfirmationDialog,
-              {
-                isDanger: true,
-                title: /* @__PURE__ */ jsx(Trans, { message: "Delete account?" }),
-                body: /* @__PURE__ */ jsx(Trans, { message: "Your account will be deleted immediately and permanently. Once deleted, accounts can not be restored." }),
-                confirm: /* @__PURE__ */ jsx(Trans, { message: "Delete" })
-              }
-            )
-          ]
-        }
-      )
-    }
-  );
-}
-function useEnableTwoFactor() {
-  return useMutation({
-    mutationFn: enable,
-    onError: (r) => showHttpErrorToast(r)
-  });
-}
-function enable() {
-  return apiClient.post("auth/user/two-factor-authentication").then((response) => response.data);
-}
-function TwoFactorStepperLayout({
-  title,
-  subtitle,
-  description,
-  actions,
-  children
-}) {
-  if (!subtitle) {
-    subtitle = /* @__PURE__ */ jsx(Trans, { message: "When two factor authentication is enabled, you will be prompted for a secure, random token during authentication. You may retrieve this token from your phone's Google Authenticator application." });
-  }
-  return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx("div", { className: "text-base font-medium mb-16", children: title }),
-    /* @__PURE__ */ jsx("div", { className: "text-sm mb-24", children: subtitle }),
-    /* @__PURE__ */ jsx("p", { className: "text-sm font-medium my-16", children: description }),
-    children,
-    /* @__PURE__ */ jsx("div", { className: "flex items-center gap-12", children: actions })
-  ] });
+function deleteAccount(userId) {
+  return apiClient.delete(`users/${userId}`, { params: { deleteCurrentUser: true } }).then((r) => r.data);
 }
 function usePasswordConfirmationStatus() {
   return useQuery({
@@ -10928,6 +10887,82 @@ function usePasswordConfirmedAction({ needsPassword } = {}) {
     isLoading,
     withConfirmedPassword
   };
+}
+function DangerZonePanel() {
+  const deleteAccount2 = useDeleteAccount();
+  const { withConfirmedPassword, isLoading: confirmingPassword } = usePasswordConfirmedAction();
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  return /* @__PURE__ */ jsxs(
+    AccountSettingsPanel,
+    {
+      id: AccountSettingsId.DeleteAccount,
+      title: /* @__PURE__ */ jsx(Trans, { message: "Danger zone" }),
+      children: [
+        /* @__PURE__ */ jsx(
+          DialogTrigger,
+          {
+            type: "modal",
+            isOpen: confirmDialogOpen,
+            onOpenChange: setConfirmDialogOpen,
+            onClose: (isConfirmed) => {
+              if (isConfirmed) {
+                deleteAccount2.mutate();
+              }
+            },
+            children: /* @__PURE__ */ jsx(
+              ConfirmationDialog,
+              {
+                isDanger: true,
+                title: /* @__PURE__ */ jsx(Trans, { message: "Delete account?" }),
+                body: /* @__PURE__ */ jsx(Trans, { message: "Your account will be deleted immediately and permanently. Once deleted, accounts can not be restored." }),
+                confirm: /* @__PURE__ */ jsx(Trans, { message: "Delete" })
+              }
+            )
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            variant: "flat",
+            color: "danger",
+            onClick: () => {
+              withConfirmedPassword(() => {
+                setConfirmDialogOpen(true);
+              });
+            },
+            children: /* @__PURE__ */ jsx(Trans, { message: "Delete account" })
+          }
+        )
+      ]
+    }
+  );
+}
+function useEnableTwoFactor() {
+  return useMutation({
+    mutationFn: enable,
+    onError: (r) => showHttpErrorToast(r)
+  });
+}
+function enable() {
+  return apiClient.post("auth/user/two-factor-authentication").then((response) => response.data);
+}
+function TwoFactorStepperLayout({
+  title,
+  subtitle,
+  description,
+  actions,
+  children
+}) {
+  if (!subtitle) {
+    subtitle = /* @__PURE__ */ jsx(Trans, { message: "When two factor authentication is enabled, you will be prompted for a secure, random token during authentication. You may retrieve this token from your phone's Google Authenticator application." });
+  }
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("div", { className: "text-base font-medium mb-16", children: title }),
+    /* @__PURE__ */ jsx("div", { className: "text-sm mb-24", children: subtitle }),
+    /* @__PURE__ */ jsx("p", { className: "text-sm font-medium my-16", children: description }),
+    children,
+    /* @__PURE__ */ jsx("div", { className: "flex items-center gap-12", children: actions })
+  ] });
 }
 function TwoFactorDisabledStep({ onEnabled }) {
   const enableTwoFactor = useEnableTwoFactor();
@@ -11610,7 +11645,7 @@ function ContactSection() {
 const BillingPageRoutes = React.lazy(
   () => import("./assets/billing-page-routes-452fd57e.mjs")
 );
-const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-388e4c47.mjs"));
+const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-ae4e6222.mjs"));
 const BillingRoutes = /* @__PURE__ */ jsxs(Fragment, { children: [
   /* @__PURE__ */ jsx(Route, { path: "/pricing", element: /* @__PURE__ */ jsx(PricingPage, {}) }),
   /* @__PURE__ */ jsx(
@@ -12008,11 +12043,11 @@ function DialogStoreOutlet() {
     }
   );
 }
-const AdminRoutes = React.lazy(() => import("./assets/admin-routes-8d317180.mjs").then((n) => n.Y));
+const AdminRoutes = React.lazy(() => import("./assets/admin-routes-cc06ec81.mjs").then((n) => n.Y));
 const SwaggerApiDocs = React.lazy(
   () => import("./assets/swagger-api-docs-page-4c89c83f.mjs")
 );
-const SiteRoutes = React.lazy(() => import("./assets/site-routes-9f33ab74.mjs"));
+const SiteRoutes = React.lazy(() => import("./assets/site-routes-e2eea1b8.mjs"));
 function AppRoutes() {
   var _a;
   const { homepage, billing, notifications, require_email_confirmation, api } = useSettings();

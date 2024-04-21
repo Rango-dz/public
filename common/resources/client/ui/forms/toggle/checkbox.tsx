@@ -71,7 +71,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     const [isSelected, setSelected] = useControlledState(
       props.checked,
-      props.defaultChecked || false
+      props.defaultChecked || false,
     );
 
     const updateChecked: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -79,14 +79,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         onChange?.(e);
         setSelected(e.target.checked);
       },
-      [onChange, setSelected]
+      [onChange, setSelected],
     );
 
     const mergedClassName = clsx(
       'select-none',
       className,
       invalid && 'text-danger',
-      !invalid && disabled && 'text-disabled'
+      !invalid && disabled && 'text-disabled',
     );
 
     let CheckboxIcon: ComponentType<SvgIconProps>;
@@ -109,11 +109,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           <div
             className={clsx(
               'relative flex items-center',
-              orientation === 'vertical' && 'flex-col flex-col-reverse'
+              orientation === 'vertical' && 'flex-col flex-col-reverse',
             )}
           >
             <input
-              className="focus-visible:ring ring-inset transition-shadow outline-none absolute left-0 top-0 w-24 h-24 rounded appearance-none"
+              className="absolute left-0 top-0 h-24 w-24 appearance-none overflow-hidden rounded outline-none ring-inset transition-shadow focus-visible:ring"
               type="checkbox"
               aria-checked={isIndeterminate ? 'mixed' : isSelected}
               aria-invalid={invalid || undefined}
@@ -129,7 +129,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               size={size}
               className={clsx(
                 'pointer-events-none',
-                disabled ? 'text-disabled' : checkboxColor
+                disabled ? 'text-disabled' : checkboxColor,
               )}
             />
             {children && (
@@ -137,7 +137,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                 className={clsx(
                   'first-letter:capitalize',
                   style.size.font,
-                  orientation === 'vertical' ? 'mb-6' : 'ml-6'
+                  orientation === 'vertical' ? 'mb-6' : 'ml-6',
                 )}
               >
                 {children}
@@ -148,7 +148,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         {errorMessage && <div className={style.error}>{errorMessage}</div>}
       </div>
     );
-  }
+  },
 );
 
 interface FormCheckboxProps extends CheckboxProps {

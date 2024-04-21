@@ -28,6 +28,11 @@ interface TranslateProps extends MessageDescriptor {
 const translate = memoize(
   (props: TranslateProps) => {
     let {lines, message, values, localeCode} = props;
+
+    if (message == null) {
+      return '';
+    }
+
     message = lines?.[message] || lines?.[message.toLowerCase()] || message;
 
     if (!values) {

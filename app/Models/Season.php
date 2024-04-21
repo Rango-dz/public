@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
 
 class Season extends Model
 {
@@ -49,9 +50,11 @@ class Season extends Model
             ->firstOrFail();
     }
 
-    public function maybeUpdateFromExternal(Title $title): self
-    {
-        if ($this->needsUpdating($title)) {
+    public function maybeUpdateFromExternal(
+        Title $title,
+        array $options = [],
+    ): self {
+        if ($this->needsUpdating($title, $options)) {
             $data = app(TmdbApi::class)->getSeason($title, $this->number);
             if ($data) {
                 app(StoreSeasonData::class)->execute($title, $data);
@@ -61,31 +64,41 @@ class Season extends Model
         return $this;
     }
 
-    protected function needsUpdating(Title $title): bool
+    protected function needsUpdating(Title $title, array $options = []): bool
     {
+        $isFullySynced = $options['forceAutomation'] ?? $this->fully_synced;
+        $tmdbImportingIsEnabled =
+            settings('content.title_provider') === 'tmdb' ||
+            Arr::get($options, 'forceAutomation');
+
         if (!$this->exists || !$title->tmdb_id) {
             return false;
         }
 
         // series ended and this season is already fully updated from external site
-        if ($title->series_ended && $this->fully_synced) {
+        if ($title->series_ended && $isFullySynced) {
             return false;
         }
 
         // season is fully synced, and it's not the latest season
-        if ($this->fully_synced && $title->season_count > $this->number) {
+        if ($isFullySynced && $title->season_count > $this->number) {
             return false;
         }
 
         if (
-            settings('content.title_provider') !== 'tmdb' &&
+            !$tmdbImportingIsEnabled &&
             // might need to fetch title seasons, even if automation is disabled because they can't be
             // fetched when importing multiple titles without hitting tmdb api rate limits
             !settings('content.force_season_update')
         ) {
             return false;
         }
-        if (!$this->fully_synced) {
+
+        if (!$isFullySynced) {
+            return true;
+        }
+
+        if (Arr::get($options, 'ignoreLastUpdate')) {
             return true;
         }
 

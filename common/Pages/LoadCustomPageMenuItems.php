@@ -9,7 +9,7 @@ class LoadCustomPageMenuItems
     public function execute(): Collection
     {
         return app(CustomPage::class)
-            ->limit(20)
+            ->limit(40)
             ->where('type', 'default')
             ->get()
             ->map(function (CustomPage $page) {

@@ -15,6 +15,7 @@ import {message} from '@common/i18n/message';
 import {VideoCaption} from '@app/titles/models/video';
 import {FormFileEntryField} from '@common/ui/forms/input-field/file-entry-field';
 import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {Disk} from '@common/uploads/types/backend-metadata';
 
 interface Props {
   caption?: VideoCaption;
@@ -51,6 +52,7 @@ export function CrupdateCaptionDialog({caption}: Props) {
               required={!caption}
               name="url"
               diskPrefix="captions"
+              disk={Disk.public}
               allowedFileTypes={['.vtt']}
               maxFileSize={1024 * 1024}
               label={<Trans message="Caption file" />}
