@@ -14,7 +14,7 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
             'title_id' => ['required_if:platform,web', 'integer', 'exists:titles,id'],
             'platform' => ['required', 'string', 'in:web,api'],
 //            'api_key' => ['required_if:platform,api', 'string', 'max:240'],
-            'language' => ['nullable', 'string', 'size:2'],
+            'language' => ['nullable', 'string'],
             'quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],
             'video_type' => ['required', 'string', 'in:embed,url,direct,web-dl'],
             'video_category' => ['required', 'string', 'in:trailer,clip,movie,episode'],

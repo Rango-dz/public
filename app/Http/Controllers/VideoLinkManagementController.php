@@ -27,6 +27,8 @@ class VideoLinkManagementController extends BaseController
 
         $linksCount = $title->videos()->count();
 
+        $data['links_count'] = $linksCount;
+
         if ($data['platform'] === 'api') {
             $title->update(['name' =>  $request->clean_title]);
             $title->refresh();
@@ -130,14 +132,18 @@ class VideoLinkManagementController extends BaseController
      */
     private function formatOptions(array $data, array $requestData): array
     {
-        foreach ($requestData['src'] as $key => $src) {
+        $count = $data['links_count'] + 1;
+
+        foreach ($requestData['src'] as $src) {
             $data['videos'][] = [
-                'name' => $requestData['name'] . '-video-' . $key,
+                'name' => $requestData['name'] . '-video-' . $count,
                 'type' => $requestData['video_type'],
                 'category' => $requestData['video_category'],
                 'src' => $src,
                 'quality' => $requestData['quality']
             ];
+
+            $count = $count + 1;
         }
 
         return $data;
