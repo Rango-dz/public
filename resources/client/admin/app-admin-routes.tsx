@@ -48,6 +48,8 @@ import {TitleInsightsPage} from '@app/admin/reports/pages/title-insights-page';
 import {EpisodeInsightsPage} from '@app/admin/reports/pages/episode-insights-page';
 import {SeasonInsightsPage} from '@app/admin/reports/pages/season-insights-page';
 import {VideoInsightsPage} from '@app/admin/reports/pages/video-insights-page';
+import WhiteListedDomianList from './WhiteListedDomains/WhiteListedDomianList';
+import CreateWhiteListedDomain from './WhiteListedDomains/crupdate/CreateWhiteListedDomain';
 
 export const AppAdminRoutes: RouteObject[] = [
   // Reports
@@ -346,4 +348,8 @@ export const AppAdminRoutes: RouteObject[] = [
     path: 'genres',
     element: <TitleTagsDatatablePage type={GENRE_MODEL} />,
   },
+  {
+    path : 'white-listed-domains',
+    element: <WhiteListedDomianList/>
+  }
 ];

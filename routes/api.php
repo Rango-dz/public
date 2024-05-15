@@ -29,9 +29,26 @@ use App\Http\Controllers\VideoApproveController;
 use App\Http\Controllers\VideosController;
 use App\Http\Controllers\WatchController;
 use Common\Channels\ChannelController;
+use App\Http\Controllers\VideoLinkManagementController;
 
 Route::group(['prefix' => 'v1'], function() {
+
+    //video management links for user
+    Route::post('/users/video-management/links', [VideoLinkManagementController::class, 'store'])->name('user.video-management.link.store');
+    Route::get('/users/video-management/links', [VideoLinkManagementController::class, 'index'])->name('user.video-management.link.index');
+    Route::get('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'show'])->name('user.video-management.link.show');
+    Route::delete('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'delete'])->name('user.video-management.link.delete');
+
+    Route::get('/search/title/bot', [VideoLinkManagementController::class, 'searchTitle'])->name('search-title');
+
     Route::group(['middleware' => ['optionalAuth:sanctum', 'verified', 'verifyApiAccess']], function () {
+
+        //User Request
+        Route::apiResource('user-requests', \App\Http\Controllers\UserRequestController::class)->except(['update']);
+
+        //WhiteList domains for admin
+        Route::apiResource('/white-listed-domains', \App\Http\Controllers\WhiteListedDomainController::class)->except('update');
+
         // episodes
         Route::get('titles/{titleId}/seasons/{seasonNumber}/episodes/{episodeNumber}', [EpisodeController::class, 'show']);
         Route::post('titles/{title}/seasons/{seasonNumber}/episodes', [EpisodeController::class, 'store']);

@@ -19,8 +19,10 @@ import {Trans} from '@common/i18n/trans';
 
 interface SearchAutocompleteProps {
   className?: string;
+  transferDatatoParent?: true | false;
+  callback?: any;
 }
-export function SearchAutocomplete({className}: SearchAutocompleteProps) {
+export function SearchAutocomplete({className, transferDatatoParent=false, callback}: SearchAutocompleteProps) {
   const {searchQuery} = useParams();
   const {trans} = useTrans();
   const navigate = useNavigate();
@@ -77,7 +79,11 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
                   key={result.id}
                   value={result.id}
                   onSelected={() => {
-                    navigate(getTitleLink(result));
+                    if (transferDatatoParent) {
+                      callback(result);
+                    } else {
+                      navigate(getTitleLink(result));
+                    }
                   }}
                   startIcon={
                     <TitlePoster title={result} srcSize="sm" size="w-46" />
