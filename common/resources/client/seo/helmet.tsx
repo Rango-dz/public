@@ -89,7 +89,7 @@ function removeOldTags() {
   if (isSsr()) return;
   document.head
     .querySelectorAll(
-      'meta:not([data-keep]), script meta:not([data-keep]), title, link[rel="canonical"]',
+      'meta:not([data-keep]), script[type="application/ld+json"]:not([data-keep]), title, link[rel="canonical"]',
     )
     .forEach(tag => {
       document.head.removeChild(tag);

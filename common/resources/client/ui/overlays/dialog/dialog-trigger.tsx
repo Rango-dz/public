@@ -41,9 +41,14 @@ type ModalProps = {
 type Props<T = any> = (PopoverProps | ModalProps) & {
   children: [ReactElement, (ctx: DialogContextValue) => void] | ReactNode;
   disableInitialTransition?: boolean;
-  onClose?: (value?: T) => void;
+  onClose?: (
+    value: T | undefined,
+    data: {initialValue: T; valueChanged: boolean},
+  ) => void;
   isDismissable?: boolean;
   isOpen?: boolean;
+  onValueChange?: (value: T) => void;
+  alwaysReturnCurrentValueOnClose?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   defaultIsOpen?: boolean;
   triggerRef?: RefObject<HTMLElement> | RefObject<VirtualElement>;
@@ -51,7 +56,8 @@ type Props<T = any> = (PopoverProps | ModalProps) & {
   returnFocusToTrigger?: boolean;
   triggerOnHover?: boolean;
   triggerOnContextMenu?: boolean;
-  currentValue?: T;
+  value?: T;
+  defaultValue?: T;
   usePortal?: boolean;
 };
 export function DialogTrigger(props: Props) {
@@ -63,10 +69,10 @@ export function DialogTrigger(props: Props) {
     moveFocusToDialog = true,
     returnFocusToTrigger = true,
     triggerOnHover = false,
-    currentValue,
     triggerOnContextMenu = false,
     usePortal = true,
     mobileType,
+    alwaysReturnCurrentValueOnClose,
   } = props;
 
   // for context menu we will set triggerRef to VirtualElement in "onContextMenu" event.
@@ -77,11 +83,18 @@ export function DialogTrigger(props: Props) {
     triggerOnContextMenu && !props.triggerRef
       ? contextMenuTriggerRef
       : props.triggerRef;
-  const initialValueRef = useRef(currentValue);
+  // initial value can be used to restore state to what it
+  // was before opening the dialog, for example in color picker
+  const initialValueRef = useRef(props.value);
   const [isOpen, setIsOpen] = useControlledState(
     props.isOpen,
     props.defaultIsOpen,
     props.onOpenChange,
+  );
+  const [value, setValue] = useControlledState(
+    props.value,
+    props.defaultValue,
+    props.onValueChange,
   );
 
   // On small devices, show a modal or tray instead of a popover.
@@ -112,19 +125,32 @@ export function DialogTrigger(props: Props) {
 
   const onClose = useCallbackRef(props.onClose);
   const close = useCallback(
-    (value?: any) => {
-      // initial value can be used to restore state to what it was before opening the dialog, for example in color picker
-      onClose?.(value ?? initialValueRef.current);
+    (closeValue?: any) => {
+      if (
+        typeof closeValue === 'undefined' &&
+        alwaysReturnCurrentValueOnClose
+      ) {
+        closeValue = value;
+      }
+      // if value is not provided (dialog cancel button or clicking outside of dialog), use initial value
+      const finalValue =
+        typeof closeValue !== 'undefined'
+          ? closeValue
+          : initialValueRef.current;
+      onClose?.(finalValue, {
+        initialValue: initialValueRef.current,
+        valueChanged: finalValue !== initialValueRef.current,
+      });
       setIsOpen(false);
     },
-    [onClose, setIsOpen],
+    [onClose, setIsOpen, value, alwaysReturnCurrentValueOnClose],
   );
 
   const open = useCallback(() => {
     setIsOpen(true);
     // set current value that is active at the time of opening dialog
-    initialValueRef.current = currentValue;
-  }, [currentValue, setIsOpen]);
+    initialValueRef.current = props.value;
+  }, [props.value, setIsOpen]);
 
   // position dropdown relative to provided ref, not the trigger
   useLayoutEffect(() => {
@@ -157,9 +183,22 @@ export function DialogTrigger(props: Props) {
       descriptionId,
       isDismissable,
       close,
+      value,
+      initialValue: initialValueRef.current,
+      setValue,
       formId,
     };
-  }, [close, descriptionId, dialogProps, formId, labelId, type, isDismissable]);
+  }, [
+    close,
+    descriptionId,
+    dialogProps,
+    formId,
+    labelId,
+    type,
+    isDismissable,
+    value,
+    setValue,
+  ]);
 
   triggerOnHover = triggerOnHover && type === 'popover';
 

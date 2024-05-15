@@ -17,11 +17,13 @@ class BaseExceptionHandler extends Handler
 {
     public function render($request, Throwable $e)
     {
-        if (
+        $isAuthException =
             $e instanceof AuthorizationException ||
-            ($e instanceof HttpException &&
-                $e->getStatusCode() === 403 &&
-                requestIsFromFrontend() &&
+            ($e instanceof HttpException && $e->getStatusCode() === 403);
+
+        if (
+            $isAuthException &&
+            (requestIsFromFrontend() &&
                 !$request->expectsJson() &&
                 !Auth::check())
         ) {
@@ -49,7 +51,7 @@ class BaseExceptionHandler extends Handler
         });
 
         configureScope(function (Scope $scope): void {
-            $scope->setExtra('app_name', config('app.name'));
+            $scope->setContext('app_name', ['value' => config('app.name')]);
             if ($user = Auth::user()) {
                 $scope->setUser(['email' => $user->email, 'id' => $user->id]);
             }

@@ -12,12 +12,12 @@ class RelatedTitlesController extends BaseController
     {
         $this->authorize('index', Title::class);
 
-        $title = Title::
-            with('keywords', 'genres')
-            ->findOrFail($id);
+        $title = Title::with('keywords', 'genres')->findOrFail($id);
 
-        $related = app(GetRelatedTitles::class)
-            ->execute($title, request()->all());
+        $related = app(GetRelatedTitles::class)->execute(
+            $title,
+            request()->all(),
+        );
 
         return $this->success(['titles' => $related]);
     }

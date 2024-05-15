@@ -105,7 +105,7 @@ class Video extends BaseModel
         if ($col === 'score') {
             $query->orderByWeightedScore();
         } elseif ($col === 'order') {
-            $query->orderBy('order', $dir);
+            $query->orderByRaw('`category` = "trailer" desc, `order` asc');
         } else {
             $query
                 ->orderBy(DB::raw('`category` = "trailer"'), 'desc')

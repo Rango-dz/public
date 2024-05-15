@@ -11,7 +11,7 @@ export interface UseReviewAdditionalData {
 
 export function reviewsQueryKey(
   reviewable?: Reviewable,
-  params?: Record<string, any>
+  params?: Record<string, any>,
 ) {
   const key: any[] = ['reviews'];
   if (reviewable) {
@@ -27,7 +27,7 @@ export function useReviews(reviewable: Reviewable) {
   const [searchParams] = useSearchParams();
   const [sort] = useLocalStorage(
     `reviewSort.${reviewable.model_type}`,
-    'created_at:desc'
+    'created_at:desc',
   );
   const [defaultOrderBy, defaultOrderDir] = sort.split(':');
   return useInfiniteData<Review, UseReviewAdditionalData>({

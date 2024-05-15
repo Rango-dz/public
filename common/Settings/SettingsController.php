@@ -4,13 +4,10 @@ use Common\Core\AppUrl;
 use Common\Core\BaseController;
 use Common\Settings\Events\SettingsSaved;
 use Common\Settings\Mail\ConnectGmailAccountController;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use ReflectionClass;
 
 class SettingsController extends BaseController
 {
@@ -120,23 +117,13 @@ class SettingsController extends BaseController
                 continue;
             }
 
-            try {
-                if ($messages = app($validator)->fails($values)) {
-                    return $this->error(
-                        __('Could not persist settings.'),
-                        $messages,
-                    );
-                }
-                // catch and display any generic error that might occur
-            } catch (Exception $e) {
-                // Common\Settings\Validators\GoogleLoginValidator => GoogleLoginValidator
-                $class = (new ReflectionClass($validator))->getShortName();
-                // GoogleLoginValidator => google-login-validator => google => google_group
-                $groupName = explode('-', Str::kebab($class))[0] . '_group';
-                return $this->error(__('Could not persist settings.'), [
-                    $groupName => Str::limit($e->getMessage(), 200),
-                ]);
+            if ($messages = app($validator)->fails($values)) {
+                return $this->error(
+                    __('Could not persist settings.'),
+                    $messages,
+                );
             }
+            // catch and display any generic error that might occur
         }
     }
 }

@@ -1,18 +1,12 @@
 import {useMutation} from '@tanstack/react-query';
-import {BackendResponse} from '../../../../http/backend-response/backend-response';
-import {useLogout} from '../../../requests/logout';
-import {toast} from '../../../../ui/toast/toast';
-import {useAuth} from '../../../use-auth';
-import {apiClient} from '../../../../http/query-client';
-import {showHttpErrorToast} from '../../../../utils/http/show-http-error-toast';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {useLogout} from '@common/auth/requests/logout';
+import {toast} from '@common/ui/toast/toast';
+import {useAuth} from '@common/auth/use-auth';
+import {apiClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/utils/http/show-http-error-toast';
 
 interface Response extends BackendResponse {}
-
-function deleteAccount(userId: number): Promise<Response> {
-  return apiClient
-    .delete(`users/${userId}`, {params: {deleteCurrentUser: true}})
-    .then(r => r.data);
-}
 
 export function useDeleteAccount() {
   const {user} = useAuth();
@@ -25,4 +19,10 @@ export function useDeleteAccount() {
     },
     onError: err => showHttpErrorToast(err),
   });
+}
+
+function deleteAccount(userId: number): Promise<Response> {
+  return apiClient
+    .delete(`users/${userId}`, {params: {deleteCurrentUser: true}})
+    .then(r => r.data);
 }

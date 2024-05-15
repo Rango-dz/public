@@ -10,7 +10,7 @@
     <h1>{{ $episode->name }}</h1>
 
     @if($episode->poster)
-        <img src="{{$episode->poster}}" alt="Episode poster" width="270px">
+        <img src="{{urls()->image($episode->poster)}}" alt="Episode poster" width="270px">
     @endif
 
     <dl>
@@ -35,7 +35,7 @@
                 <li>
                     <div>
                         @if($credit['poster'])
-                            <img src="{{$credit['poster']}}" alt="Credit poster" width="270px">
+                            <img src="{{urls()->image($credit['poster'])}}" alt="Credit poster" width="270px">
                         @endif
                         <div>
                             <dl>

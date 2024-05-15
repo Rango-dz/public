@@ -25,7 +25,10 @@ class LoadChannelContent
             $params['order'] = Arr::get($channel->config, 'contentOrder');
         }
 
-        if ($channel->shouldRestrictContent()) {
+        if (
+            $channel->shouldRestrictContent() &&
+            Arr::get($params, 'loader') !== 'editChannelPage'
+        ) {
             $this->applyRestriction($channel, $params, $parent);
             // If restriction could not be loaded bail. This is used to cancel content loading and return 404,
             // if, for example, loading genre channel, but specified genre does not exist.

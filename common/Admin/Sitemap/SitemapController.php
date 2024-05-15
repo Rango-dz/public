@@ -17,7 +17,7 @@ class SitemapController extends BaseController
         $sitemap = class_exists('App\Services\SitemapGenerator')
             ? app('App\Services\SitemapGenerator')
             : app(BaseSitemapGenerator::class);
-        app($sitemap->generate());
+        $sitemap->generate();
         return $this->success([]);
     }
 }

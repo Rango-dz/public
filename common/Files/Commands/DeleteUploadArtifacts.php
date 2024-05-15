@@ -103,6 +103,11 @@ class DeleteUploadArtifacts extends Command
             'table' => 'replies',
             'column' => 'body',
         ],
+        'category_images' => [
+            'type' => 'model',
+            'table' => 'categories',
+            'column' => 'image',
+        ],
         'article_images' => [
             'type' => 'model',
             'table' => 'articles',

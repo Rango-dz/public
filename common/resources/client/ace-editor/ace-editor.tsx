@@ -8,6 +8,7 @@ import AceEditorRender from 'react-ace';
 import ReactAce from 'react-ace';
 import 'ace-builds/src-noconflict/mode-css';
 import 'ace-builds/src-noconflict/mode-html';
+import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/mode-php_laravel_blade';
 import 'ace-builds/src-noconflict/theme-chrome';
 import 'ace-builds/src-noconflict/theme-tomorrow_night';
@@ -21,7 +22,7 @@ ace.config.setModuleUrl('ace/mode/php_worker', phpWorkerUrl);
 ace.config.setModuleUrl('ace/mode/javascript_worker', javascriptWorkerUrl);
 
 interface Props {
-  mode: 'css' | 'html' | 'php_laravel_blade';
+  mode: 'css' | 'html' | 'javascript' | 'php_laravel_blade';
   onChange: (value: string) => void;
   onIsValidChange: (isValid: boolean) => void;
   defaultValue: string;

@@ -90,10 +90,9 @@ class Channel extends BaseChannel
     public function newsArticles(): MorphToMany
     {
         return $this->channelableRelation(NewsArticle::class)->select([
-            'id',
-            'title',
-            'meta',
-            'created_at',
+            'news_articles.id',
+            'news_articles.title',
+            'news_articles.created_at',
         ]);
     }
 

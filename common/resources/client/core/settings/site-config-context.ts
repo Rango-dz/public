@@ -28,6 +28,8 @@ export interface HomepageOption {
 export interface SiteConfigContextValue {
   auth: {
     redirectUri: string;
+    // redirect uri to use when homepage is set to login page, to avoid infinite loop
+    secondaryRedirectUri?: string;
     adminRedirectUri: string;
     getUserProfileLink?: (user: User) => string;
     registerFields?: ComponentType;

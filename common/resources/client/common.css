@@ -5,6 +5,7 @@
 @import 'admin/ads/ad-host.css';
 @import 'uploads/file-type-colors.css';
 @import 'player/player-styles.css';
+@import "custom-page/custom-page-body.css";
 
 @layer base {
   html,

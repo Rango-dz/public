@@ -162,10 +162,10 @@ const contentSortingMethods: Record<
     label: message('Name (A-Z)'),
     contentTypes: ['manual'],
   },
-  [Sort.birthdayAsc]: {
+  [Sort.birthdayDesc]: {
     label: message('Youngest first'),
   },
-  [Sort.birthdayDesc]: {
+  [Sort.birthdayAsc]: {
     label: message('Oldest first'),
   },
   [Sort.budget]: {

@@ -2,19 +2,15 @@
 
 namespace Common\Auth\Fortify;
 
-use App\Models\User;
-use Hash;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Fortify;
-use Laravel\Fortify\LoginRateLimiter;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -53,39 +49,7 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('email', $request->email)->first();
-
-            if (!FortifyRegisterUser::emailIsValid($request->email)) {
-                $this->throwFailedAuthenticationException(
-                    $request,
-                    __('This domain is blacklisted.'),
-                );
-            }
-
-            if ($user?->isBanned()) {
-                $comment = $user->bans()->first()->comment;
-                $this->throwFailedAuthenticationException(
-                    $request,
-                    $comment
-                        ? __('Banned: :reason', ['reason' => $comment])
-                        : __('This user is banned.'),
-                );
-            }
-
-            if ($user && Hash::check($request->password, $user->password)) {
-                return $user;
-            }
+            return (new ValidateLoginCredentials())->execute($request);
         });
-    }
-
-    protected function throwFailedAuthenticationException(
-        Request $request,
-        string $message,
-    ) {
-        app(LoginRateLimiter::class)->increment($request);
-
-        throw ValidationException::withMessages([
-            Fortify::username() => [$message],
-        ]);
     }
 }

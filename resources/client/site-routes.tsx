@@ -102,6 +102,10 @@ const RouteConfig: RouteObject[] = [
         element: <ProfileListsPanel />,
       },
       {
+        path: 'lists',
+        element: <ProfileListsPanel />,
+      },
+      {
         path: 'ratings',
         element: <ProfileRatingsPanel />,
       },

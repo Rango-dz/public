@@ -100,11 +100,16 @@ function Label({
 
   if (labelSuffix) {
     return (
-      <div className="flex w-full items-center gap-4">
+      <div
+        className={clsx(
+          'mb-4 flex w-full gap-4',
+          labelSuffixPosition === 'spaced' ? 'items-end' : 'items-center',
+        )}
+      >
         {labelNode}
         <div
           className={clsx(
-            'mb-4 text-xs text-muted',
+            'text-xs text-muted',
             labelSuffixPosition === 'spaced' ? 'ml-auto' : '',
           )}
         >

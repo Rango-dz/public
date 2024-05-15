@@ -24,10 +24,10 @@ class MobileBootstrapData extends BaseBootstrapData
                 ->toArray(),
         ];
 
-        $themes['light']['values'] = $this->mapColorsToRgba(
+        $themes['light']['values'] = $this->transformValuesForFlutter(
             $themes['light']['values'],
         );
-        $themes['dark']['values'] = $this->mapColorsToRgba(
+        $themes['dark']['values'] = $this->transformValuesForFlutter(
             $themes['dark']['values'],
         );
 
@@ -36,12 +36,28 @@ class MobileBootstrapData extends BaseBootstrapData
             'user' => $this->getCurrentUser(),
             'menus' => $this->getMobileMenus(),
             'settings' => [
-                'social.google.enable' => (bool) $this->settings->get(
+                'social.google.enable' => (bool) settings(
                     'social.google.enable',
+                ),
+                'require_email_confirmation' => (bool) settings(
+                    'require_email_confirmation',
+                ),
+                'registration.disable' => (bool) settings(
+                    'registration.disable',
                 ),
             ],
             'locales' => Localization::get(),
         ];
+
+        if (settings('i18n.enable')) {
+            $langCode = request('activeLocale') ?: app()->getLocale();
+            foreach ($this->data['locales'] as $locale) {
+                if ($locale->language === $langCode) {
+                    $locale->loadLines();
+                    break;
+                }
+            }
+        }
 
         $this->logActiveSession();
 
@@ -50,7 +66,6 @@ class MobileBootstrapData extends BaseBootstrapData
 
     public function refreshToken(string $deviceName): self
     {
-        /* @var User $user */
         $user = $this->data['user'];
         if ($user) {
             $user['access_token'] = $user->refreshApiToken($deviceName);
@@ -61,7 +76,6 @@ class MobileBootstrapData extends BaseBootstrapData
 
     public function getCurrentUser(): ?User
     {
-        /* @var User $user */
         if ($user = $this->request->user()) {
             return $this->loadFcmToken($user);
         }
@@ -80,22 +94,29 @@ class MobileBootstrapData extends BaseBootstrapData
         );
     }
 
-    private function mapColorsToRgba(array $colors): array
+    private function transformValuesForFlutter(array $colors): array
     {
         if (!class_exists(Hex::class)) {
             return $colors;
         }
 
-        $valuesToSkip = [
-            '--be-navbar-color',
+        $radiusValues = [
             '--be-button-radius',
             '--be-input-radius',
             '--be-panel-radius',
         ];
 
+        $valuesToSkip = ['--be-navbar-color'];
+
         return collect($colors)
-            ->map(function ($value, $name) use ($valuesToSkip) {
-                if (in_array($name, $valuesToSkip)) {
+            ->map(function ($value, $name) use ($valuesToSkip, $radiusValues) {
+                if (in_array($name, $radiusValues)) {
+                    if (str_ends_with($value, 'rem')) {
+                        return (float) str_replace('rem', '', $value) * 16;
+                    } else {
+                        return (float) str_replace('px', '', $value);
+                    }
+                } elseif (in_array($name, $valuesToSkip)) {
                     return $value;
                 } elseif (str_ends_with($value, '%')) {
                     return (int) str_replace('%', '', $value);

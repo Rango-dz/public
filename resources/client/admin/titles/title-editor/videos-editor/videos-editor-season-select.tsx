@@ -7,7 +7,7 @@ import {useTrans} from '@common/i18n/use-trans';
 import {useParams} from 'react-router-dom';
 import {useNavigate} from '@common/utils/hooks/use-navigate';
 import {Title} from '@app/titles/models/title';
-import {useSeason} from '@app/seasons/requests/use-season';
+import {useSeasonEpisodeNumbers} from '@app/seasons/requests/use-season-episode-numbers';
 
 interface Props {
   title: Title;
@@ -76,7 +76,7 @@ interface EpisodeSelectProps {
 }
 function EpisodeSelect({value, onChange}: EpisodeSelectProps) {
   const {trans} = useTrans();
-  const {data} = useSeason('season');
+  const {data} = useSeasonEpisodeNumbers();
   return (
     <Select
       placeholder={trans(message('Episode'))}
@@ -89,8 +89,7 @@ function EpisodeSelect({value, onChange}: EpisodeSelectProps) {
       <Option key="none" value="">
         <Trans message="All episodes" />
       </Option>
-      {[...new Array(data?.season.episodes_count).keys()].map(i => {
-        const number = i + 1;
+      {data?.episodeNumbers.map(number => {
         return (
           <Option key={number} value={number}>
             <Trans message="Episode :number" values={{number}} />

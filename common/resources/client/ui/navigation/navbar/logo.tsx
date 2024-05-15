@@ -2,13 +2,15 @@ import {useTrans} from '@common/i18n/use-trans';
 import {useSettings} from '@common/core/settings/use-settings';
 import {Link} from 'react-router-dom';
 import {NavbarProps} from '@common/ui/navigation/navbar/navbar';
+import clsx from 'clsx';
 
 interface LogoProps {
   color?: NavbarProps['color'];
   logoColor?: NavbarProps['logoColor'];
   isDarkMode?: boolean;
+  className?: string;
 }
-export function Logo({color, logoColor, isDarkMode}: LogoProps) {
+export function Logo({color, logoColor, isDarkMode, className}: LogoProps) {
   const {trans} = useTrans();
   const {branding} = useSettings();
 
@@ -33,7 +35,10 @@ export function Logo({color, logoColor, isDarkMode}: LogoProps) {
   return (
     <Link
       to="/"
-      className="mr-4 block h-full max-h-26 flex-shrink-0 md:mr-24 md:max-h-36"
+      className={clsx(
+        'mr-4 block h-full max-h-26 flex-shrink-0 md:mr-24 md:max-h-36',
+        className,
+      )}
       aria-label={trans({message: 'Go to homepage'})}
     >
       <picture>

@@ -12,12 +12,12 @@ import {DragHandleIcon} from '@common/icons/material/DragHandle';
 import {Tooltip} from '@common/ui/tooltip/tooltip';
 import {CloseIcon} from '@common/icons/material/Close';
 import React, {useRef} from 'react';
-import {useSortable} from '@common/ui/interactions/dnd/use-sortable';
 import {useIsTouchDevice} from '@common/utils/hooks/is-touch-device';
 import {DragPreviewRenderer} from '@common/ui/interactions/dnd/use-draggable';
 import {DragPreview} from '@common/ui/interactions/dnd/drag-preview';
 import {Video, VideoCaption} from '@app/titles/models/video';
 import {SettingsIcon} from '@common/icons/material/Settings';
+import {useSortable} from '@common/ui/interactions/dnd/sortable/use-sortable';
 
 export function CaptionsPanel() {
   const {watch} = useFormContext<CreateVideoPayload>();
@@ -34,7 +34,7 @@ export function CaptionsPanel() {
 
   return (
     <div className="mt-24">
-      <div className="flex items-center gap-24 justify-between">
+      <div className="flex items-center justify-between gap-24">
         <div className="text-xl font-medium">
           <Trans message="Captions" />
         </div>
@@ -108,21 +108,21 @@ function CaptionItem({
     items: captions,
     type: 'captionItem',
     preview: previewRef,
-    previewVariant: 'line',
+    strategy: 'line',
     onSortEnd: (oldIndex, newIndex) => onSort(oldIndex, newIndex),
   });
 
   return (
     <div
-      className="flex items-center mb-6 border-b border-t border-transparent"
+      className="mb-6 flex items-center border-b border-t border-transparent"
       ref={domRef}
       {...sortableProps}
     >
       <IconButton ref={dragHandleRef} aria-label="Sort captions">
         <DragHandleIcon />
       </IconButton>
-      <div className="capitalize ml-12">{caption.name}</div>
-      <div className="ml-auto uppercase border rounded px-8 py-4 text-xs mr-12">
+      <div className="ml-12 capitalize">{caption.name}</div>
+      <div className="ml-auto mr-12 rounded border px-8 py-4 text-xs uppercase">
         {caption.language}
       </div>
       <DialogTrigger
@@ -160,7 +160,7 @@ const CaptionItemDragPreview = React.forwardRef<
   return (
     <DragPreview ref={ref}>
       {() => (
-        <div className="p-8 rounded shadow bg-background text-base">
+        <div className="rounded bg-background p-8 text-base shadow">
           {caption.name}
         </div>
       )}

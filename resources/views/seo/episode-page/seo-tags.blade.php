@@ -12,7 +12,7 @@
 />
 
 @if ($episode->poster)
-    <meta property="og:image" content="{{ $episode->poster }}" />
+    <meta property="og:image" content="{{ urls()->image($episode->poster) }}" />
     <meta property="og:width" content="300" />
     <meta property="og:height" content="450" />
 @endif
@@ -31,7 +31,7 @@
         '@id' => urls()->episode($episode, $title),
         'url' => urls()->episode($episode, $title),
         'name' => $episode->name,
-        'image' => $episode->poster,
+        'image' => urls()->image($episode->poster),
         'timeRequired' => $title->runtime,
         'contentRating' => $title->certification,
         'description' => $episode->description,

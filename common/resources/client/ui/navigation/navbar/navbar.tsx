@@ -23,6 +23,7 @@ import {NavbarAuthButtons} from '@common/ui/navigation/navbar/navbar-auth-button
 import {useDarkThemeVariables} from '@common/ui/themes/use-dark-theme-variables';
 import {Logo} from '@common/ui/navigation/navbar/logo';
 import {useLightThemeVariables} from '@common/ui/themes/use-light-theme-variables';
+import {isAbsoluteUrl} from '@common/utils/urls/is-absolute-url';
 
 type NavbarColor = 'primary' | 'bg' | 'bg-alt' | 'transparent' | string;
 
@@ -150,10 +151,10 @@ function MobileMenu({position}: MobileMenuProps) {
   }
 
   const handleItemClick = (item: MenuItemConfig) => {
-    if (item.type === 'route') {
-      navigate(item.action);
-    } else {
+    if (isAbsoluteUrl(item.action)) {
       window.open(item.action, item.target)?.focus();
+    } else {
+      navigate(item.action);
     }
   };
 

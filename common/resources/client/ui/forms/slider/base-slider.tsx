@@ -2,7 +2,6 @@ import React, {ReactNode} from 'react';
 import clsx from 'clsx';
 import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
 import {UseSliderProps, UseSliderReturn} from './use-slider';
-import {InputSize} from '@common/ui/forms/input-field/input-size';
 
 export interface BaseSliderProps extends UseSliderProps {
   slider: UseSliderReturn;
@@ -113,7 +112,7 @@ export function BaseSlider(props: BaseSliderProps) {
       )}
       <div
         ref={trackRef}
-        className="relative h-30"
+        className={clsx('relative', getWrapperHeight(props))}
         {...domProps}
         role="presentation"
       >
@@ -138,7 +137,19 @@ export function BaseSlider(props: BaseSliderProps) {
   );
 }
 
-function getTrackHeight(size: InputSize): string {
+function getWrapperHeight({size, wrapperHeight}: UseSliderProps): string {
+  if (wrapperHeight) return wrapperHeight;
+  switch (size) {
+    case 'xs':
+      return 'h-14';
+    case 'sm':
+      return 'h-20';
+    default:
+      return 'h-30';
+  }
+}
+
+function getTrackHeight(size: UseSliderProps['size']): string {
   switch (size) {
     case 'xs':
       return 'h-2';

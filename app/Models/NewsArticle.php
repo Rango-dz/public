@@ -26,6 +26,7 @@ class NewsArticle extends CustomPage
             'id',
             'image',
             'title',
+            'slug',
             'byline',
             'source',
             'created_at',

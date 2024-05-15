@@ -56,7 +56,7 @@ export function Listbox({
   const Overlay = !prepend && isMobile ? mobileOverlay : Popover;
 
   const className = clsx(
-    'text-base sm:text-sm outline-none bg-paper max-h-inherit flex flex-col',
+    'text-base sm:text-sm outline-none bg max-h-inherit flex flex-col',
     !prepend && 'shadow-xl border py-4',
     listboxClassName,
 

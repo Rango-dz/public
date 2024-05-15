@@ -84,10 +84,10 @@ class BaseController extends Controller
                 resource_path("views/seo/$pageName/prerender.blade.php"),
             )
         ) {
-            return view("seo.$pageName.prerender", $data)->with(
-                'htmlBaseUri',
-                app(AppUrl::class)->htmlBaseUri,
-            );
+            return view("seo.$pageName.prerender", $data)->with([
+                'htmlBaseUri' => app(AppUrl::class)->htmlBaseUri,
+                'seoTagsView' => $seoTagsView ?? null,
+            ]);
         }
 
         // finally render the full react app with optional SSR

@@ -30,7 +30,7 @@ export function ProfileStatsList({user}: Props) {
       <StatsItem
         label={<Trans message="Following" />}
         value={user.followed_users_count || 0}
-        link={`${profileLink}/following`}
+        link={`${profileLink}/followed-users`}
       />
       <StatsItem
         label={<Trans message="Lists" />}
@@ -52,7 +52,7 @@ function StatsItems(props: StatsItemsProps) {
         <Fragment key={index}>
           {child}
           {index < children.length - 1 && (
-            <div className="h-34 w-1 bg-divider mx-10" />
+            <div className="mx-10 h-34 w-1 bg-divider" />
           )}
         </Fragment>
       ))}
@@ -67,11 +67,11 @@ interface StatsItemProps {
 }
 function StatsItem({label, value, link}: StatsItemProps) {
   return (
-    <Link to={link} className="block text-center group">
+    <Link to={link} className="group block text-center">
       <div className="text-lg font-bold">
         <FormattedNumber value={value} />
       </div>
-      <div className="text-xs text-muted uppercase group-hover:text-primary transition-colors">
+      <div className="text-xs uppercase text-muted transition-colors group-hover:text-primary">
         {label}
       </div>
     </Link>

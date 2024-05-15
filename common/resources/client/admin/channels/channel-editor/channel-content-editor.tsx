@@ -21,7 +21,7 @@ import {DragPreviewRenderer} from '@common/ui/interactions/dnd/use-draggable';
 import {
   DropPosition,
   useSortable,
-} from '@common/ui/interactions/dnd/use-sortable';
+} from '@common/ui/interactions/dnd/sortable/use-sortable';
 import clsx from 'clsx';
 import {mergeProps} from '@react-aria/utils';
 import {ColumnConfig} from '@common/datatable/column-config';
@@ -171,7 +171,7 @@ function ContentTableRow({
     items: data,
     type: 'channelContentItem',
     preview: previewRef,
-    previewVariant: 'line',
+    strategy: 'line',
     onDropPositionChange: position => {
       setDropPosition(position);
     },

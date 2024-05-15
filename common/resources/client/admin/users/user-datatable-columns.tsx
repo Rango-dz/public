@@ -53,7 +53,7 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
     header: () => <Trans message="Roles" />,
     body: user => (
       <ChipList radius="rounded" size="xs">
-        {user?.roles.map(role => (
+        {user?.roles?.map(role => (
           <Chip key={role.id} selectable>
             <Link
               className={clsx('capitalize')}

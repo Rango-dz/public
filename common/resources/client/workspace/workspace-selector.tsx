@@ -1,12 +1,22 @@
 import clsx from 'clsx';
-import {cloneElement, Fragment, ReactElement, useEffect, useState} from 'react';
+import {
+  cloneElement,
+  forwardRef,
+  Fragment,
+  ReactElement,
+  useEffect,
+  useState,
+} from 'react';
 import {ButtonBase} from '../ui/buttons/button-base';
 import {PersonalWorkspace, useUserWorkspaces} from './user-workspaces';
 import {UnfoldMoreIcon} from '../icons/material/UnfoldMore';
 import {AddIcon} from '../icons/material/Add';
 import {NewWorkspaceDialog} from './new-workspace-dialog';
 import {WorkspaceMembersDialog} from './workspace-members-dialog';
-import {useActiveWorkspaceId} from './active-workspace-id-context';
+import {
+  useActiveWorkspace,
+  useActiveWorkspaceId,
+} from './active-workspace-id-context';
 import {DialogTrigger} from '../ui/overlays/dialog/dialog-trigger';
 import {Workspace} from './types/workspace';
 import {Dialog} from '../ui/overlays/dialog/dialog';
@@ -28,20 +38,23 @@ import {Trans} from '../i18n/trans';
 import {LeaveWorkspaceConfirmation} from './leave-workspace-confirmation';
 import {openDialog} from '@common/ui/overlays/store/dialog-store';
 import {useDialogContext} from '@common/ui/overlays/dialog/dialog-context';
+import {PolicyFailMessage} from '@common/billing/upgrade/policy-fail-message';
 
 interface WorkspaceSelectorProps {
   className?: string;
   onChange?: (id: number) => void;
   trigger?: ReactElement<ButtonProps>;
+  placement?: 'top' | 'bottom';
 }
 export function WorkspaceSelector({
   onChange,
   className,
-  trigger: propsTrigger,
+  trigger,
+  placement = 'top',
 }: WorkspaceSelectorProps) {
   const {data: workspaces, isFetched, isFetching} = useUserWorkspaces();
-  const {workspaceId, setWorkspaceId} = useActiveWorkspaceId();
-  const activeWorkspace = workspaces?.find(w => w.id === workspaceId);
+  const {setWorkspaceId} = useActiveWorkspaceId();
+  const activeWorkspace = useActiveWorkspace();
   const [selectorIsOpen, setSelectorIsOpen] = useState(false);
   const {hasPermission} = useAuth();
 
@@ -54,56 +67,35 @@ export function WorkspaceSelector({
   }, [activeWorkspace, workspaces, setWorkspaceId, isFetched, isFetching]);
 
   if (
-    !activeWorkspace ||
-    (!hasPermission('workspaces.create') && workspaces?.length === 1)
+    // if we have a custom trigger, leave rendering up to the customer trigger
+    !trigger &&
+    (!activeWorkspace ||
+      (!hasPermission('workspaces.create') && workspaces?.length === 1))
   ) {
     return null;
   }
-
-  const defaultTrigger = (
-    <ButtonBase
-      className={clsx(
-        'flex items-center gap-10 rounded ring-inset hover:bg-hover focus-visible:ring-2',
-        className,
-      )}
-    >
-      <span className="mr-auto block flex-auto overflow-hidden text-left">
-        <span className="block overflow-hidden overflow-ellipsis text-sm font-medium text-main">
-          {activeWorkspace.default ? (
-            <Trans message={activeWorkspace.name} />
-          ) : (
-            activeWorkspace.name
-          )}
-        </span>
-        <span className="block text-xs text-muted">
-          {activeWorkspace.default ? (
-            <Trans message="Personal workspace" />
-          ) : (
-            <Trans
-              message=":count members"
-              values={{count: activeWorkspace.members_count}}
-            />
-          )}
-        </span>
-      </span>
-      <UnfoldMoreIcon className="shrink-0 icon-md" />
-    </ButtonBase>
-  );
-
-  const trigger = propsTrigger || defaultTrigger;
 
   return (
     <Fragment>
       <DialogTrigger
         type="popover"
+        placement={placement}
         isOpen={selectorIsOpen}
         onClose={() => {
           setSelectorIsOpen(false);
         }}
       >
-        {cloneElement(trigger, {
-          onClick: () => setSelectorIsOpen(!selectorIsOpen),
-        })}
+        {trigger ? (
+          cloneElement(trigger, {
+            onClick: () => setSelectorIsOpen(!selectorIsOpen),
+          })
+        ) : (
+          <DefaultTrigger
+            onClick={() => setSelectorIsOpen(!selectorIsOpen)}
+            workspace={activeWorkspace!}
+            className={className}
+          />
+        )}
         <Dialog size="min-w-320">
           <DialogBody padding="p-10">
             <div className="mb-16 border-b pb-10">
@@ -117,24 +109,11 @@ export function WorkspaceSelector({
               ))}
             </div>
             <div className="mb-4 px-4 text-center">
-              <Button
-                onClick={async e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSelectorIsOpen(false);
-                  const workspaceId = await openDialog(NewWorkspaceDialog);
-                  if (workspaceId) {
-                    setWorkspaceId(workspaceId);
-                    onChange?.(workspaceId);
-                  }
-                }}
-                variant="outline"
-                startIcon={<AddIcon />}
-                color="primary"
-                className="h-40 w-full"
-              >
-                <Trans message="Create new workspace" />
-              </Button>
+              <CreateWorkspaceButton
+                onClick={() => setSelectorIsOpen(false)}
+                onCreated={id => onChange?.(id)}
+                workspaceCount={workspaces ? workspaces.length - 1 : 0}
+              />
             </div>
           </DialogBody>
         </Dialog>
@@ -142,6 +121,98 @@ export function WorkspaceSelector({
     </Fragment>
   );
 }
+
+interface CreateWorkspaceButtonProps {
+  onClick: () => void;
+  onCreated?: (id: number) => void;
+  workspaceCount: number;
+}
+function CreateWorkspaceButton({
+  onClick,
+  onCreated,
+  workspaceCount,
+}: CreateWorkspaceButtonProps) {
+  const {setWorkspaceId} = useActiveWorkspaceId();
+  const {checkOverQuotaOrNoPermission} = useAuth();
+  const {overQuotaOrNoPermission} = checkOverQuotaOrNoPermission(
+    'workspaces.create',
+    'count',
+    workspaceCount,
+  );
+
+  return (
+    <Fragment>
+      <Button
+        disabled={overQuotaOrNoPermission}
+        onClick={async e => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+          const workspaceId = await openDialog(NewWorkspaceDialog);
+          if (workspaceId) {
+            setWorkspaceId(workspaceId);
+            onCreated?.(workspaceId);
+          }
+        }}
+        variant="outline"
+        startIcon={<AddIcon />}
+        color="primary"
+        className="h-40 w-full"
+      >
+        <Trans message="Create new workspace" />
+      </Button>
+      {overQuotaOrNoPermission && (
+        <PolicyFailMessage
+          size="sm"
+          className="mt-12 max-w-288"
+          resourceName={<Trans message="worksapces" />}
+        />
+      )}
+    </Fragment>
+  );
+}
+
+interface DefaultTriggerProps {
+  onClick: () => void;
+  workspace: Workspace;
+  className?: string;
+}
+const DefaultTrigger = forwardRef<HTMLButtonElement, DefaultTriggerProps>(
+  ({workspace, className, onClick, ...other}, ref) => {
+    return (
+      <ButtonBase
+        ref={ref}
+        onClick={onClick}
+        className={clsx(
+          'flex items-center gap-10 rounded ring-inset hover:bg-hover focus-visible:ring-2',
+          className,
+        )}
+        {...other}
+      >
+        <span className="mr-auto block flex-auto overflow-hidden text-left">
+          <span className="block overflow-hidden overflow-ellipsis text-sm font-medium text-main">
+            {workspace.default ? (
+              <Trans message={workspace.name} />
+            ) : (
+              workspace.name
+            )}
+          </span>
+          <span className="block text-xs text-muted">
+            {workspace.default ? (
+              <Trans message="Personal workspace" />
+            ) : (
+              <Trans
+                message=":count members"
+                values={{count: workspace.members_count}}
+              />
+            )}
+          </span>
+        </span>
+        <UnfoldMoreIcon className="shrink-0 icon-md" />
+      </ButtonBase>
+    );
+  },
+);
 
 interface WorkspaceItemProps {
   workspace: Workspace;

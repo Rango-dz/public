@@ -36,7 +36,10 @@ class StoreSeasonData
     private function persistData(array $data): Season
     {
         // remove all relation data
-        $data = array_filter($data, fn($value) => !is_array($value) && $value !== Season::MODEL_TYPE);
+        $data = array_filter(
+            $data,
+            fn($value) => !is_array($value) && $value !== Season::MODEL_TYPE,
+        );
 
         // if season data did not change then timestamps
         // will not be updated because model is not dirty

@@ -10,8 +10,6 @@ class ShowTitle
 {
     public function execute(int|string $id, array $params): array
     {
-
-
         if (defined('SHOULD_PRERENDER')) {
             $params['skipUpdating'] = true;
             $params['load'] =

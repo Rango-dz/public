@@ -97,7 +97,7 @@ export const DefaultAppearanceConfig: IAppearanceConfig = {
           '/login',
           '/register',
           '/contact',
-          '/billing/pricing',
+          '/pricing',
           '/account-settings',
           '/admin',
           '/admin/appearance',

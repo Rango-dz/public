@@ -1,18 +1,17 @@
-import {Key} from 'react';
 import {BackendFilter} from '../backend-filter';
 
 export interface FilterListValue {
-  key: Key;
+  key: string | number;
   value: BackendFilter['control']['defaultValue'];
   operator?: BackendFilter['defaultOperator'];
-  valueKey?: Key;
+  valueKey?: string | number;
   isInactive?: boolean;
   extraFilters?: {key: string; operator: string; value: any}[];
 }
 
 export function encodeBackendFilters(
   filterValues: FilterListValue[] | null,
-  filters?: BackendFilter[]
+  filters?: BackendFilter[],
 ): string {
   if (!filterValues) return '';
 
@@ -35,14 +34,14 @@ export function encodeBackendFilters(
 
 function transformValue(
   filterValue: FilterListValue,
-  filters: BackendFilter[]
+  filters: BackendFilter[],
 ) {
   const filterConfig = filters.find(f => f.key === filterValue.key);
   // select components will use a key always, because we can't use objects as
   // value. Map over select options and replace key with actual value
   if (filterConfig?.control.type === 'select') {
     const option = (filterConfig.control.options || []).find(
-      o => o.key === filterValue.value
+      o => o.key === filterValue.value,
     );
     // if it's language or country select, there might not be an option
     if (option) {

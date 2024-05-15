@@ -10,7 +10,7 @@
 />
 
 @if ($person->poster)
-    <meta property="og:image" content="{{ $person->poster }}" />
+    <meta property="og:image" content="{{ urls()->image($person->poster) }}" />
     <meta property="og:width" content="300" />
     <meta property="og:height" content="450" />
 @endif
@@ -29,7 +29,7 @@
         '@id' => urls()->person($person),
         'url' => urls()->person($person),
         'name' => $person->name,
-        'image' => $person->poster,
+        'image' => urls()->image($person->poster),
         'description' => $person->description ? str($person->description)->limit(400) : null,
         'jobTitle' => $person->known_for,
         'birthDate' => $person->birth_date,

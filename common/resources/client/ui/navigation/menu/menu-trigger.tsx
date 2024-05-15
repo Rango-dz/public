@@ -41,7 +41,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
         loopFocus: !showSearchField,
         children: menu.props.children,
       },
-      ref
+      ref,
     );
 
     const {
@@ -71,6 +71,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
 
     return (
       <Listbox
+        onClick={e => e.stopPropagation()}
         listbox={listbox}
         onKeyDownCapture={
           !showSearchField ? handleListboxTypeSelect : undefined
@@ -117,7 +118,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
         })}
       </Listbox>
     );
-  }
+  },
 );
 
 export function Menu({children}: ListBoxChildren<string | number>) {

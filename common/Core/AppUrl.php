@@ -32,8 +32,13 @@ class AppUrl
     public function init(): static
     {
         $this->originalAppUrl = config('app.url');
-        if (config('common.site.dynamic_app_url')) {
+        if (
+            config('common.site.dynamic_app_url') &&
+            config('common.site.installed')
+        ) {
             $this->maybeDynamicallyUpdate();
+        } else {
+            $this->envAndCurrentHostsAreEqual = true;
         }
         $this->registerHtmlBaseUri();
         return $this;

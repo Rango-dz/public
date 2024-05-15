@@ -273,7 +273,7 @@ class Oauth
     public function getErrorResponse(string $message)
     {
         if (request()->wantsJson()) {
-            return response()->json(['errorMessage' => $message], 500);
+            return response()->json(['message' => $message], 500);
         } else {
             return $this->getPopupResponse('ERROR', [
                 'errorMessage' => $message,

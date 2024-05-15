@@ -22,6 +22,7 @@ interface StickyHeaderProps {
   backLink: string;
   isLoading?: boolean;
   slugPrefix?: string;
+  imageDiskPrefix?: string;
 }
 export function ArticleEditorStickyHeader({
   editor,
@@ -31,6 +32,7 @@ export function ArticleEditorStickyHeader({
   isLoading = false,
   backLink,
   slugPrefix = 'pages',
+  imageDiskPrefix,
 }: StickyHeaderProps) {
   const {isSticky, sentinelRef} = useStickySentinel();
   const isMobile = useIsMobileMediaQuery();
@@ -38,12 +40,7 @@ export function ArticleEditorStickyHeader({
   return (
     <Fragment>
       <div ref={sentinelRef} />
-      <div
-        className={clsx(
-          'sticky top-0 z-10 mb-20 bg-paper',
-          isSticky && 'shadow',
-        )}
-      >
+      <div className={clsx('sticky top-0 z-10 mb-20 bg', isSticky && 'shadow')}>
         <div className="flex items-center justify-between gap-20 border-b px-20 py-10 text-muted sm:justify-start">
           {!isMobile && (
             <Fragment>
@@ -80,7 +77,11 @@ export function ArticleEditorStickyHeader({
           )}
           {saveButton}
         </div>
-        <ArticleBodyEditorMenubar editor={editor} size="sm" />
+        <ArticleBodyEditorMenubar
+          editor={editor}
+          size="sm"
+          imageDiskPrefix={imageDiskPrefix}
+        />
       </div>
     </Fragment>
   );

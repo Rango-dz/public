@@ -36,7 +36,7 @@ class EmailsAreValid implements Rule
     public function passes($attribute, $emails)
     {
         $invalidEmails = array_filter($emails, function ($email) use (
-            $attribute
+            $attribute,
         ) {
             return !$this->validateEmail($attribute, $email, []);
         });
@@ -53,7 +53,7 @@ class EmailsAreValid implements Rule
                 ->whereIn('email', $emails)
                 ->pluck('email');
             $nonExistentEmails = array_filter($emails, function ($email) use (
-                $dbEmails
+                $dbEmails,
             ) {
                 return !$dbEmails->contains($email);
             });
@@ -83,7 +83,7 @@ class EmailsAreValid implements Rule
         if (count($emails) > $this->maxEmails) {
             $emailString .= '...';
         }
-        return trans('Could not find users for emails: :emails', [
+        return trans('User with email: :emails does not exist', [
             'emails' => $emailString,
         ]);
     }

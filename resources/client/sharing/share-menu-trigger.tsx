@@ -20,7 +20,7 @@ export function ShareMenuTrigger({link, children}: Props) {
   const [, setUrlCopied] = useClipboard(link);
 
   return (
-    <MenuTrigger floatingWidth="matchTrigger">
+    <MenuTrigger>
       {children}
       <Menu>
         <Item
@@ -40,7 +40,7 @@ export function ShareMenuTrigger({link, children}: Props) {
             shareLinkSocially(
               'facebook',
               link,
-              trans(message('Check out this link'))
+              trans(message('Check out this link')),
             );
           }}
         >
@@ -53,7 +53,7 @@ export function ShareMenuTrigger({link, children}: Props) {
             shareLinkSocially(
               'twitter',
               link,
-              trans(message('Check out this link'))
+              trans(message('Check out this link')),
             );
           }}
         >

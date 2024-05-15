@@ -57,8 +57,10 @@ export function ReviewListItem({
 
   useEffect(() => {
     if (isShared && !scrolled.current) {
-      ref.current?.scrollIntoView({behavior: 'smooth'});
-      scrolled.current = true;
+      setTimeout(() => {
+        ref.current?.scrollIntoView({behavior: 'smooth'});
+        scrolled.current = true;
+      }, 50);
     }
   }, [isShared]);
 
@@ -72,7 +74,7 @@ export function ReviewListItem({
       <div
         className={clsx(
           'group flex min-h-70 items-start gap-24 rounded py-18',
-          isShared && 'mb-34 border bg-alt',
+          isShared && 'mb-34 border bg-alt pl-12',
         )}
       >
         {!isMobile &&

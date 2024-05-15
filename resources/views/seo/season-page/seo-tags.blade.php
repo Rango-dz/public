@@ -12,7 +12,7 @@
 />
 
 @if ($season->poster)
-    <meta property="og:image" content="{{ $season->poster }}" />
+    <meta property="og:image" content="{{ urls()->image($season->poster) }}" />
     <meta property="og:width" content="300" />
     <meta property="og:height" content="450" />
 @endif

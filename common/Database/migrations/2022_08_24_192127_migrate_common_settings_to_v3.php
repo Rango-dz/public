@@ -83,6 +83,22 @@ return new class extends Migration {
             $value = str_replace($svg, "images/landing/$svg", $value);
         }
 
+        // migrate cta actions
+        if (isset($value['actions']['cta1']) && is_string($value['actions']['cta1'])) {
+            $value['actions']['cta1'] = [
+                'type' => 'route',
+                'label' => $value['actions']['cta1'],
+                'action' => '/login'
+            ];
+        }
+        if (isset($value['actions']['cta2']) && is_string($value['actions']['cta2'])) {
+            $value['actions']['cta2'] = [
+                'type' => 'link',
+                'label' => $value['actions']['cta2'],
+                'action' => '#secondary-features'
+            ];
+        }
+
         Setting::where('name', 'homepage.appearance')->update([
             'value' => $value,
         ]);

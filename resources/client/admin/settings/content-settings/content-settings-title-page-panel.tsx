@@ -3,7 +3,6 @@ import React, {Fragment, ReactNode, useRef, useState} from 'react';
 import {DragPreviewRenderer} from '@common/ui/interactions/dnd/use-draggable';
 import {useFormContext} from 'react-hook-form';
 import {AdminSettingsWithFiles} from '@common/admin/settings/requests/update-admin-settings';
-import {useSortable} from '@common/ui/interactions/dnd/use-sortable';
 import {moveItemInNewArray} from '@common/utils/array/move-item-in-new-array';
 import {IconButton} from '@common/ui/buttons/icon-button';
 import {DragHandleIcon} from '@common/icons/material/DragHandle';
@@ -13,6 +12,7 @@ import clsx from 'clsx';
 import {TitlePageSections} from '@app/titles/pages/title-page/sections/title-page-sections';
 import {MessageDescriptor} from '@common/i18n/message-descriptor';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
+import {useSortable} from '@common/ui/interactions/dnd/sortable/use-sortable';
 
 interface SectionItem {
   name: (typeof TitlePageSections)[number];
@@ -108,7 +108,7 @@ function ListItemLayout({
     items,
     type: 'titlePageSections',
     preview: previewRef,
-    previewVariant: 'line',
+    strategy: 'line',
     onSortEnd,
   });
 

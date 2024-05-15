@@ -37,7 +37,7 @@ export function TitleSelect({
 
   const selectedTitle = query.data?.titles.find(t => t.id === selectedTitleId);
   const seasonCount = selectedTitle?.seasons_count || 0;
-  const episodeCount = selectedTitle?.episodes_count || 0;
+  const episodeNumbers = selectedTitle?.episode_numbers || [];
 
   return (
     <div className={className}>
@@ -91,7 +91,7 @@ export function TitleSelect({
           })}
         </FormSelect>
       )}
-      {episodeCount > 0 && episodeName && (
+      {!!episodeNumbers.length && episodeName && (
         <FormSelect
           className="mt-12"
           name={episodeName}
@@ -106,14 +106,11 @@ export function TitleSelect({
           >
             <Trans message="None" />
           </Option>
-          {[...new Array(episodeCount).keys()].map(i => {
-            const number = i + 1;
-            return (
-              <Option key={number} value={number}>
-                <Trans message="Episode :number" values={{number}} />
-              </Option>
-            );
-          })}
+          {episodeNumbers.map(number => (
+            <Option key={number} value={number}>
+              <Trans message="Episode :number" values={{number}} />
+            </Option>
+          ))}
         </FormSelect>
       )}
     </div>

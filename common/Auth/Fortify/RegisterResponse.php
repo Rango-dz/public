@@ -21,7 +21,7 @@ class RegisterResponse implements RegisterResponseContract
         if ($request->has('token_name')) {
             $bootstrapData = app(MobileBootstrapData::class)->init();
             $bootstrapData->refreshToken($request->get('token_name'));
-            $response['boostrapData'] = $bootstrapData->get();
+            $response['bootstrapData'] = $bootstrapData->get();
 
             // for web
         } else {

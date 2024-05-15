@@ -36,7 +36,10 @@ class FileResponseFactory
             return $staticFileDelivery === 'xsendfile'
                 ? new XSendFileResponse()
                 : new XAccelRedirectFileResponse();
-        } elseif (config('common.site.use_presigned_s3_urls')) {
+        } elseif (
+            !$isLocalDrive &&
+            config('common.site.use_presigned_s3_urls')
+        ) {
             return new StreamedFileResponse();
         } elseif (
             $disposition === 'inline' &&

@@ -15,7 +15,7 @@ export function CustomPageBody({page}: CustomPageBodyProps) {
 
   return (
     <div className="px-16 md:px-24">
-      <div className="prose mx-auto my-50 dark:prose-invert">
+      <div className="custom-page-body prose mx-auto my-50 dark:prose-invert">
         <h1>{page.title}</h1>
         <div
           ref={bodyRef}

@@ -9,6 +9,7 @@ import {Fragment} from 'react';
 import {Link} from 'react-router-dom';
 import {useSettings} from '@common/core/settings/use-settings';
 import {SettingsSeparator} from '@common/admin/settings/settings-separator';
+import {Button} from '@common/ui/buttons/button';
 
 export function AuthenticationSettings() {
   return (
@@ -68,18 +69,23 @@ export function MailNotSetupWarning() {
   const {watch} = useFormContext<AdminSettings>();
   const mailSetup = watch('server.mail_setup');
   if (mailSetup) return null;
+
   return (
-    <p className="mt-10 text-danger">
+    <p className="mt-10 rounded-panel border p-10 text-sm text-danger">
       <Trans
         message="Outgoing mail method needs to be setup before enabling this setting. <a>Fix now</a>"
         values={{
           a: text => (
-            <Link
-              className="block font-bold underline"
-              to="/admin/settings/mail#outgoing-emails"
+            <Button
+              elementType={Link}
+              variant="outline"
+              size="xs"
+              display="flex"
+              className="mt-10 max-w-max"
+              to="/admin/settings/outgoing-email"
             >
               {text}
-            </Link>
+            </Button>
           ),
         }}
       />

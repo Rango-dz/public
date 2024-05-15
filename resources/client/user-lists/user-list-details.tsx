@@ -25,8 +25,8 @@ export function UserListDetails({
   return (
     <div
       className={clsx(
-        'flex items-center flex-shrink-0 whitespace-nowrap text-muted gap-4',
-        className
+        'flex flex-shrink-0 items-center gap-4 whitespace-nowrap text-muted',
+        className,
       )}
     >
       {showShareButton && (
@@ -84,5 +84,5 @@ interface DividerProps {
   marginLeft?: string;
 }
 function Divider({marginLeft = 'ml-12'}: DividerProps) {
-  return <div className={clsx('h-20 w-1 bg-divider mr-10', marginLeft)} />;
+  return <div className={clsx('mr-10 h-20 w-1 bg-divider', marginLeft)} />;
 }

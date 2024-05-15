@@ -7,6 +7,7 @@ interface SkeletonProps {
   size?: string;
   display?: string;
   radius?: string;
+  style?: React.CSSProperties;
 }
 export function Skeleton({
   variant = 'text',
@@ -15,20 +16,22 @@ export function Skeleton({
   className,
   display = 'block',
   radius = 'rounded',
+  style,
 }: SkeletonProps) {
   return (
     <span
+      style={style}
       className={clsx(
-        'overflow-hidden relative bg-fg-base/4 bg-no-repeat will-change-transform skeleton',
+        'skeleton relative overflow-hidden bg-fg-base/4 bg-no-repeat will-change-transform',
         radius,
         skeletonSize({variant, size}),
         display,
-        variant === 'text' && 'scale-y-[0.6] origin-[0_55%]',
+        variant === 'text' && 'origin-[0_55%] scale-y-[0.6]',
         variant === 'avatar' && 'flex-shrink-0',
         variant === 'icon' && 'mx-8 flex-shrink-0',
         animation === 'wave' && 'skeleton-wave',
         animation === 'pulsate' && 'skeleton-pulsate',
-        className
+        className,
       )}
       aria-busy
       aria-live="polite"

@@ -125,6 +125,7 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('users/{user}/unfollow', [UserFollowersController::class, 'unfollow']);
         Route::get('users/{user}/followed-users', [UserFollowedUsersController::class, 'index']);
         Route::get('users/{user}/followed-users/ids', [UserFollowedUsersController::class, 'ids']);
+        Route::post('users/{user}/resend-verification-email', [UserController::class, 'resendVerificationEmail'])->middleware(['throttle:6,1']);
 
         //USER AVATAR
         Route::post('users/{user}/avatar', [UserAvatarController::class, 'store']);
@@ -241,6 +242,9 @@ Route::group(['prefix' => 'v1'], function () {
         // BOOTSTRAP
         Route::get('bootstrap-data', [BootstrapController::class, 'getBootstrapData']);
         Route::get('remote-config/mobile', [BootstrapController::class, 'getMobileBootstrapData']);
+
+        $verificationLimiter = config('fortify.limiters.verification', '6,1');
+        Route::post('auth/email/verification-notification', [MobileAuthController::class, 'sendEmailVerificationNotification'])->middleware(['throttle:'.$verificationLimiter]);
     });
 
     // Mobile app auth
@@ -250,5 +254,5 @@ Route::group(['prefix' => 'v1'], function () {
     ]))->withoutMiddleware('verifyApiAccess');
     Route::post('auth/register', [MobileAuthController::class, 'register'])->withoutMiddleware('verifyApiAccess');
     Route::get('auth/social/{provider}/callback', [SocialAuthController::class, 'loginCallback']);
-    Route::post('auth/password/email', [PasswordResetLinkController::class, 'store']);
+    Route::post('auth/password/email', [PasswordResetLinkController::class, 'store'])->middleware(['guest:'.config('fortify.guard')]);
 });

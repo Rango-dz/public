@@ -51,6 +51,11 @@ export function useUpdateAdminSettings(
           (props.client as any).incoming_email,
         ) as any;
       }
+      if ((props.client as any)?.publish?.default_credentials) {
+        (props.client as any).publish.default_credentials = JSON.stringify(
+          (props.client as any).publish.default_credentials,
+        ) as any;
+      }
 
       const client = props.client ? diff(original!.client, props.client) : null;
       const server = props.server ? diff(original!.server, props.server) : null;

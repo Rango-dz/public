@@ -8,7 +8,6 @@ import {AppearanceButton} from '@common/admin/appearance/appearance-button';
 import {ColorIcon} from '@common/admin/appearance/sections/themes/color-icon';
 import {CssTheme} from '@common/ui/themes/css-theme';
 import {colorToThemeValue} from '@common/ui/themes/utils/color-to-theme-value';
-import {themeValueToHex} from '@common/ui/themes/utils/theme-value-to-hex';
 import {ThemeSettingsDialogTrigger} from '@common/admin/appearance/sections/themes/theme-settings-dialog-trigger';
 import {ThemeMoreOptionsButton} from '@common/admin/appearance/sections/themes/theme-more-options-button';
 import {ColorPickerDialog} from '@common/ui/color-picker/color-picker-dialog';
@@ -17,6 +16,7 @@ import {useFormContext} from 'react-hook-form';
 import {Trans} from '@common/i18n/trans';
 import {NavbarColorPicker} from '@common/admin/appearance/sections/themes/navbar-color-picker';
 import {message} from '@common/i18n/message';
+import {themeValueToHex} from '@common/ui/themes/utils/theme-value-to-hex';
 
 const colorList = [
   {
@@ -143,25 +143,26 @@ function ColorPickerTrigger({
     setSelectedThemeValue(initialThemeValue);
   }, [initialThemeValue]);
 
-  const initialThemeValueHex = themeValueToHex(initialThemeValue);
-
   return (
     <DialogTrigger
-      currentValue={initialThemeValueHex}
+      value={themeValueToHex(selectedThemeValue)}
       type="popover"
       placement="right"
       offset={10}
-      onClose={newColor => {
-        if (newColor && newColor !== initialThemeValueHex) {
+      onValueChange={newColor => {
+        selectThemeValue(colorToThemeValue(newColor));
+      }}
+      onClose={(newColor, {valueChanged, initialValue}) => {
+        if (newColor && valueChanged) {
           setValue(
             `appearance.themes.all.${+themeIndex!}.values.${colorName}`,
-            selectedThemeValue,
+            colorToThemeValue(newColor),
             {shouldDirty: true},
           );
           setValue('appearance.themes.selectedThemeId', theme.id);
         } else {
           // reset to initial value, if apply button was not clicked
-          selectThemeValue(initialThemeValue);
+          selectThemeValue(initialValue);
         }
       }}
     >
@@ -177,12 +178,7 @@ function ColorPickerTrigger({
       >
         {label}
       </AppearanceButton>
-      <ColorPickerDialog
-        defaultValue={initialThemeValueHex}
-        onChange={color => {
-          selectThemeValue(colorToThemeValue(color));
-        }}
-      />
+      <ColorPickerDialog />
     </DialogTrigger>
   );
 }

@@ -169,7 +169,10 @@ abstract class BaseChannel extends BaseModel
         $method =
             $autoUpdateMethod ?? Arr::get($this->config, 'autoUpdateMethod');
 
-        if (!$method) {
+        if (
+            !$method ||
+            Arr::get($this->config, 'contentType') !== 'autoUpdate'
+        ) {
             return;
         }
 

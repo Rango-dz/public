@@ -29,8 +29,8 @@ class NotificationController extends BaseController
     public function markAsRead()
     {
         $data = $this->validate($this->request, [
-            'ids' => 'array|required_unless:markAllAsUnread,true',
-            'markAllAsUnread' => 'boolean|required_unless:ids,true',
+            'ids' => 'array|required_without:markAllAsUnread',
+            'markAllAsUnread' => 'boolean|required_without:ids',
         ]);
 
         Auth::user()
