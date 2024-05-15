@@ -7,13 +7,14 @@ use App\Http\Requests\VideoLinkManagementStoreRequest;
 use App\Models\Title;
 use Common\Core\BaseController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 class VideoLinkManagementController extends BaseController
 {
 
     public function store(VideoLinkManagementStoreRequest $request)
     {
         $data = $request->validated();
-
         $options = [];
 
 
@@ -41,17 +42,17 @@ class VideoLinkManagementController extends BaseController
         }
 
 
-//        $data['videos'] = $options['videos'];
-//
-//        unset($options['videos']);
-//
-//        $options['user_id'] = $request->user()->id;
-//
-//        $title = app(StoreTitleData::class)->execute(
-//            new Title(),
-//            $this->formatData($data),            dd($options);
-//            $options
-//        );
+        //        $data['videos'] = $options['videos'];
+        //
+        //        unset($options['videos']);
+        //
+        //        $options['user_id'] = $request->user()->id;
+        //
+        //        $title = app(StoreTitleData::class)->execute(
+        //            new Title(),
+        //            $this->formatData($data),            dd($options);
+        //            $options
+        //        );
 
         $title->load('videos');
 
@@ -62,6 +63,7 @@ class VideoLinkManagementController extends BaseController
 
     public function searchTitle(Request $request)
     {
+        Log::info("cCCCCCCCCCCCCCCCCCCCCCCC");
         $title = Title::where(function ($query) use ($request) {
             return $query->where("name", "like", "%{$request->clean_title}%");
         })->first();
@@ -72,6 +74,7 @@ class VideoLinkManagementController extends BaseController
 
     public function index()
     {
+        Log::info("sssssssssssssssssssssssssssssss");
         //Need modification on that only user related titles and also add filters
         return response()->json([
             'data' => Title::with('videos')->get()
@@ -81,6 +84,7 @@ class VideoLinkManagementController extends BaseController
 
     public function show(int $id)
     {
+        Log::info("BBBBBBBBBBBBBBBBBBBBBBBB");
         //need modification on that this should only user related videos.
         return response()->json([
             'data' =>  Title::with('videos')->where('id', $id)->first() ?? []
@@ -89,6 +93,7 @@ class VideoLinkManagementController extends BaseController
 
     public function delete(int $id)
     {
+        Log::info("cCCCCCCCCCCCCCCCCCCCCCCC");
         //need modification this should only user related videos.
         $title = Title::findOrFail($id);
 
@@ -132,7 +137,7 @@ class VideoLinkManagementController extends BaseController
      */
     private function formatOptions(array $data, array $requestData): array
     {
-        $count = $data['links_count'] + 1;
+        $count = $requestData['links_count'] + 1;
 
         foreach ($requestData['src'] as $src) {
             $data['videos'][] = [

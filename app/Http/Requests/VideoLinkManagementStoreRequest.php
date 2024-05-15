@@ -25,9 +25,12 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->src) {
+        if (is_array($this->src)) {
+            // No need to modify $this->src, it's already an array
+            return;
+        }
             $src = explode(",", $this->src);
             $this->merge(['src' => $src]);
-        }
+        
     }
 }
