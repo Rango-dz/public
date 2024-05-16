@@ -13,7 +13,7 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
         return [
             'title_id' => ['required_if:platform,web', 'integer', 'exists:titles,id'],
             'platform' => ['required', 'string', 'in:web,api'],
-//            'api_key' => ['required_if:platform,api', 'string', 'max:240'],
+            //            'api_key' => ['required_if:platform,api', 'string', 'max:240'],
             'language' => ['nullable', 'string'],
             'quality' => ['required', 'string', 'in:sd,hd,720p,1080p,4k'],
             'video_type' => ['required', 'string', 'in:embed,url,direct,web-dl'],
@@ -25,12 +25,9 @@ class VideoLinkManagementStoreRequest extends BaseFormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_array($this->src)) {
-            // No need to modify $this->src, it's already an array
-            return;
-        }
+        if (!is_array($this->src)) {
             $src = explode(",", $this->src);
             $this->merge(['src' => $src]);
-        
+        }
     }
 }
