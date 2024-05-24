@@ -14,6 +14,8 @@ class VideoLinkManagementController extends BaseController
 
     public function store(VideoLinkManagementStoreRequest $request)
     {
+        Log::info("-------------request--------------");
+        Log::info($request);
         $data = $request->validated();
         $options = [];
 
@@ -63,11 +65,31 @@ class VideoLinkManagementController extends BaseController
 
     public function searchTitle(Request $request)
     {
-        Log::info("cCCCCCCCCCCCCCCCCCCCCCCC");
         $title = Title::where(function ($query) use ($request) {
             return $query->where("name", "like", "%{$request->clean_title}%");
         })->first();
 
+        return response()->json(['data' => $title]);
+    }
+
+    public function searchTitlebot(Request $request)
+    {
+        Log::info($request);
+        $name = $request->clean_title;
+        $year = $request->year;
+
+        // Build the query
+        $query = Title::with('videos')->where('name', 'LIKE', "%$name%")->where('release_date', $year);
+
+        $title = $query->get();
+
+        // Check if the title exists
+        if (!$title) {
+            // If the title does not exist, return an empty response or handle it as needed
+            return response()->json(['error' => 'Title not found'], 404);
+        }
+
+        // Return the title as a JSON response
         return response()->json(['data' => $title]);
     }
 
