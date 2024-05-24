@@ -40,6 +40,7 @@ Route::group(['prefix' => 'v1'], function() {
     Route::delete('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'delete'])->name('user.video-management.link.delete');
 
     Route::get('/search/title/bot', [VideoLinkManagementController::class, 'searchTitle'])->name('search-title');
+    Route::get('/search/iwotitle/bot', [VideoLinkManagementController::class, 'searchTitlebot'])->name('search-iwotitle');
 
     Route::group(['middleware' => ['optionalAuth:sanctum', 'verified', 'verifyApiAccess']], function () {
 
