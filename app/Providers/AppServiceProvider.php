@@ -20,6 +20,7 @@ use Common\Search\ImportRecordsIntoScout;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
             Episode::MODEL_TYPE => Episode::class,
             Person::MODEL_TYPE => Person::class,
             NewsArticle::MODEL_TYPE => NewsArticle::class,
+            'user' => User::class,
         ]);
 
         Model::preventLazyLoading(!$this->app->isProduction());

@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\AdminTitleTagsController;
-use App\Http\Controllers\ChannelItemController;
 use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\ImagesController;
 use App\Http\Controllers\ImportMediaController;
 use App\Http\Controllers\InsightsReportController;
+use App\Http\Controllers\ListsController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\PersonCreditsController;
@@ -28,7 +28,9 @@ use App\Http\Controllers\UserWatchlistController;
 use App\Http\Controllers\VideoApproveController;
 use App\Http\Controllers\VideosController;
 use App\Http\Controllers\WatchController;
+use Common\Channels\ChannelContentOrderController;
 use Common\Channels\ChannelController;
+use Common\Channels\ChannelItemController;
 use App\Http\Controllers\VideoLinkManagementController;
 
 Route::group(['prefix' => 'v1'], function() {
@@ -38,6 +40,14 @@ Route::group(['prefix' => 'v1'], function() {
     Route::get('/users/video-management/links', [VideoLinkManagementController::class, 'index'])->name('user.video-management.link.index');
     Route::get('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'show'])->name('user.video-management.link.show');
     Route::delete('/users/video-management/links/{id}', [VideoLinkManagementController::class, 'delete'])->name('user.video-management.link.delete');
+
+    //video management links for API
+    Route::group(['middleware' => ['auth:sanctum']], function () {
+        Route::post('/users/video-management-api/links', [VideoLinkManagementController::class, 'store'])->name('user.video-management-api.link.store');
+        Route::get('/users/video-management-api/links', [VideoLinkManagementController::class, 'index'])->name('user.video-management-api.link.index');
+        Route::get('/users/video-management-api/links/{id}', [VideoLinkManagementController::class, 'show'])->name('user.video-management-api.link.show');
+        Route::delete('/users/video-management-api/links/{id}', [VideoLinkManagementController::class, 'delete'])->name('user.video-management-api.link.delete');
+    });
 
     Route::get('/search/title/bot', [VideoLinkManagementController::class, 'searchTitle'])->name('search-title');
 
@@ -140,14 +150,20 @@ Route::group(['prefix' => 'v1'], function() {
         Route::get('users/me/ratings', UserRatingsController::class);
         Route::get('users/me/watchlist', UserWatchlistController::class);
 
+        // LISTS
+        Route::get('lists', [ListsController::class, 'index']);
+        Route::delete('lists/{ids}', [ChannelController::class, 'destroy']);
+
         // CHANNELS
         Route::post('channel/{channel}/update-content', [ChannelController::class, 'updateContent']);
         Route::get('channel/search-for-addable-content', [ChannelController::class, 'searchForAddableContent']);
         Route::post('channel/reset-to-default', [ChannelController::class, 'resetToDefault']);
+        Route::post('channel/apply-preset', [ChannelController::class, 'applyPreset']);
         Route::apiResource('channel', '\Common\Channels\ChannelController')->except(['destroy']);
         Route::delete('channel/{ids}', [ChannelController::class, 'destroy']);
         Route::post('channel/{channel}/add',  [ChannelItemController::class, 'add']);
         Route::post('channel/{channel}/remove', [ChannelItemController::class, 'remove']);
+        Route::post('channel/{id}/reorder-content', [ChannelContentOrderController::class, 'changeOrder']);
 
         // import
         Route::post('media/import', [ImportMediaController::class, 'importMediaItem']);
