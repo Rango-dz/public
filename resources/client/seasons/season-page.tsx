@@ -65,7 +65,7 @@ function SeasonList({title}: SeasonListProps) {
       <div className="mb-4 text-base font-semibold">
         <Trans message="Seasons" />:
       </div>
-      <div className="mb-34 flex items-center gap-10">
+      <div className="mb-34 flex flex-wrap items-center gap-10">
         {[...new Array(title.seasons_count).keys()].map(index => {
           const number = index + 1;
           const isActive = season === `${number}`;
@@ -78,7 +78,7 @@ function SeasonList({title}: SeasonListProps) {
                 'flex h-30 w-30 flex-shrink-0 items-center justify-center rounded border text-base',
                 isActive
                   ? 'pointer-events-none bg-primary text-white'
-                  : 'text-primary'
+                  : 'text-primary',
               )}
             >
               {number}

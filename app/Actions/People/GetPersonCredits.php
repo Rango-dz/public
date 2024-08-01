@@ -157,18 +157,22 @@ class GetPersonCredits
             ->get();
 
         // group all seasons by department, for example "production"
-        $groupedSeasons = $seasons->groupBy('pivot.department');
+        $seasonsByDepartment = $seasons->groupBy('pivot.department');
 
-        return $groupedSeasons
-            ->map(function (Collection $departmentGroup) {
-                $seasonsGroupedByTitle = $departmentGroup->groupBy('title.id');
+        return $seasonsByDepartment
+            ->map(function (Collection $departmentSeasons) {
+                $seasonsByTitle = $departmentSeasons->groupBy('title_id');
 
                 // attach episodes from all seasons to title
-                return $seasonsGroupedByTitle
+                return $seasonsByTitle
                     ->map(function (Collection $titleSeasons) {
                         $title = $titleSeasons
-                            ->first(fn($s) => $s->title)
-                            ->title->toArray();
+                            ->first(fn($s) => !is_null($s->title))
+                            ?->title->toArray();
+
+                        if (!$title) {
+                            return null;
+                        }
 
                         //get episodes from each season and move season "pivot" data to each episode
                         $episodesFromAllSeasons = $titleSeasons
@@ -181,19 +185,25 @@ class GetPersonCredits
                                     ->pivot->toArray();
                                 return $episode;
                             });
+
                         $title[
                             'credited_episode_count'
                         ] = $episodesFromAllSeasons->count();
+
                         if (!$this->titleId) {
                             $episodesFromAllSeasons = $episodesFromAllSeasons->take(
                                 5,
                             );
                         }
+
                         $title['episodes'] = $episodesFromAllSeasons->toArray();
+
                         return $title;
                     })
+                    ->filter()
                     ->values();
             })
+            ->filter(fn($seasons) => $seasons->isNotEmpty())
             ->toArray();
     }
 

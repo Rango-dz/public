@@ -19,6 +19,16 @@ import {FullPageLoader} from '../../ui/progress/full-page-loader';
 import {useIsMobileMediaQuery} from '../../utils/hooks/is-mobile-media-query';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import {useNavigate} from '../../utils/hooks/use-navigate';
+import {useUploadTranslationFile} from '@common/admin/translations/use-upload-translation-file';
+import {
+  Menu,
+  MenuItem,
+  MenuTrigger,
+} from '@common/ui/navigation/menu/menu-trigger';
+import {MoreVertIcon} from '@common/icons/material/MoreVert';
+import {downloadFileFromUrl} from '@common/uploads/utils/download-file-from-url';
+import {openUploadWindow} from '@common/uploads/utils/open-upload-window';
+import {UploadInputType} from '@common/uploads/types/upload-input-config';
 
 type Lines = Record<string, string>;
 
@@ -47,7 +57,7 @@ function Form({localization}: FormProps) {
 
   return (
     <form
-      className="p-14 md:p-24 flex flex-col h-full"
+      className="flex h-full flex-col p-14 md:p-24"
       onSubmit={e => {
         e.preventDefault();
         updateLocalization.mutate(
@@ -141,6 +151,7 @@ function Header({
           )}
           <NewTranslationDialog />
         </DialogTrigger>
+        <ActionsMenuTrigger locale={localization} />
         <Button
           variant="flat"
           color="primary"
@@ -195,16 +206,16 @@ function LinesList({searchQuery, lines, setLines}: LinesListProps) {
           return (
             <div
               key={id}
-              className="w-full absolute top-0 left-0"
+              className="absolute left-0 top-0 w-full"
               style={{
                 height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <div className="rounded border mb-10 md:mr-10">
-                <div className="flex items-center gap-24 justify-between px-10 py-2 border-b">
+              <div className="mb-10 rounded border md:mr-10">
+                <div className="flex items-center justify-between gap-24 border-b px-10 py-2">
                   <label
-                    className="text-xs font-semibold flex-auto"
+                    className="flex-auto text-xs font-semibold"
                     htmlFor={id}
                   >
                     {id}
@@ -226,7 +237,7 @@ function LinesList({searchQuery, lines, setLines}: LinesListProps) {
                     id={id}
                     name={id}
                     defaultValue={translation}
-                    className="w-full bg-inherit block rounded resize-none outline-none focus-visible:ring-2 p-10 text-sm"
+                    className="block w-full resize-none rounded bg-inherit p-10 text-sm outline-none focus-visible:ring-2"
                     rows={2}
                     onChange={e => {
                       const newLines = {...lines};
@@ -241,5 +252,47 @@ function LinesList({searchQuery, lines, setLines}: LinesListProps) {
         })}
       </div>
     </div>
+  );
+}
+
+interface ActionsMenuTriggerProps {
+  locale: Localization;
+}
+function ActionsMenuTrigger({locale}: ActionsMenuTriggerProps) {
+  const uploadFile = useUploadTranslationFile();
+  return (
+    <MenuTrigger>
+      <IconButton
+        variant="outline"
+        size="sm"
+        color="primary"
+        disabled={uploadFile.isPending}
+      >
+        <MoreVertIcon />
+      </IconButton>
+      <Menu>
+        <MenuItem
+          value="download"
+          onSelected={() =>
+            downloadFileFromUrl(`api/v1/localizations/${locale.id}/download`)
+          }
+        >
+          <Trans message="Download" />
+        </MenuItem>
+        <MenuItem
+          value="upload"
+          onSelected={async () => {
+            const files = await openUploadWindow({
+              types: [UploadInputType.json],
+            });
+            if (files.length == 1) {
+              uploadFile.mutate({localeId: locale.id, file: files[0]});
+            }
+          }}
+        >
+          <Trans message="Upload" />
+        </MenuItem>
+      </Menu>
+    </MenuTrigger>
   );
 }

@@ -16,7 +16,7 @@ export const UpsellLabel = memo(({products}: UpsellLabelProps) => {
 
   return (
     <Fragment>
-      <span className="text-positive-darker font-medium">
+      <span className="font-medium text-positive-darker">
         {' '}
         (
         <Trans
@@ -33,6 +33,8 @@ function calcHighestUpsellPercentage(products?: Product[]) {
   if (!products?.length) return 0;
 
   const decreases = products.map(product => {
+    if (product.hidden) return 0;
+
     const monthly = findBestPrice('monthly', product.prices);
     const yearly = findBestPrice('yearly', product.prices);
 
@@ -43,7 +45,7 @@ function calcHighestUpsellPercentage(products?: Product[]) {
     const yearlyAmount = yearly.amount;
 
     const savingsPercentage = Math.round(
-      ((monthlyAmount - yearlyAmount) / monthlyAmount) * 100
+      ((monthlyAmount - yearlyAmount) / monthlyAmount) * 100,
     );
 
     if (savingsPercentage > 0 && savingsPercentage <= 200) {

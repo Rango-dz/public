@@ -27,7 +27,9 @@ class NotificationSubscriptionsController extends BaseController
                             return true;
                         }
                         return collect($subscription['permissions'])->every(
-                            fn($permission) => $user->hasPermission($permission),
+                            fn($permission) => $user->hasPermission(
+                                $permission,
+                            ),
                         );
                     })
                     ->values()

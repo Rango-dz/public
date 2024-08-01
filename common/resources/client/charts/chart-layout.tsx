@@ -27,7 +27,7 @@ export function ChartLayout(props: ChartLayoutProps) {
   return (
     <div
       className={clsx(
-        'rounded-panel flex h-full flex-auto flex-col border bg',
+        'flex h-full flex-auto flex-col rounded-panel border bg dark:bg-alt',
         minHeight,
         className,
       )}

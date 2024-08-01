@@ -17,7 +17,7 @@ export interface Settings {
   base_url: string;
   asset_url?: string;
   html_base_uri: string;
-  cookie_notice: {
+  cookie_notice?: {
     enable: boolean;
     position: 'top' | 'bottom';
     button?: MenuItemConfig;
@@ -141,5 +141,7 @@ export interface MenuItemConfig {
   target?: '_blank' | '_self';
   roles?: number[];
   permissions?: string[];
+  settings?: Record<string, any>;
+  subscriptionStatus?: 'subscribed' | 'unsubscribed';
   icon?: IconTree[] | null;
 }

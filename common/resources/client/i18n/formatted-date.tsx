@@ -6,12 +6,20 @@ import {useSettings} from '../core/settings/use-settings';
 import {useUserTimezone} from './use-user-timezone';
 
 export const DateFormatPresets: Record<
-  'numeric' | 'short' | 'long',
+  'numeric' | 'short' | 'long' | 'timestamp',
   Intl.DateTimeFormatOptions
 > = {
   numeric: {year: 'numeric', month: '2-digit', day: '2-digit'},
   short: {year: 'numeric', month: 'short', day: '2-digit'},
   long: {month: 'long', day: '2-digit', year: 'numeric'},
+  timestamp: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  },
 };
 
 interface FormattedDateProps {
@@ -27,7 +35,7 @@ export const FormattedDate = memo(
       options ||
         (DateFormatPresets as Record<string, Intl.DateTimeFormatOptions>)[
           preset || dates?.format
-        ]
+        ],
     );
 
     if (!date) {
@@ -47,5 +55,5 @@ export const FormattedDate = memo(
 
     return <Fragment>{formatter.format(date as Date)}</Fragment>;
   },
-  shallowEqual
+  shallowEqual,
 );

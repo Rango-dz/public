@@ -5,7 +5,7 @@ use Common\Channels\LoadChannelMenuItems;
 return [
     [
         'name' => 'Channel',
-        'type' => 'channels',
+        'type' => 'channel',
         'itemsLoader' => LoadChannelMenuItems::class,
     ]
 ];

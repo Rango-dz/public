@@ -14,7 +14,8 @@ import java from 'highlight.js/lib/languages/java';
 import c from 'highlight.js/lib/languages/c';
 
 // load css
-import './highlight-material-palenight.css';
+import './github-theme.css';
+import './github-dark-theme.css';
 
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('typescript', typescript);

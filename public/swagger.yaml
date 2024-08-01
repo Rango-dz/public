@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  description: 'Access token should be sent along with every request to SITE_NAME API in authorization header: `Authorization: Bearer <Token>` <br> This token can either be acquired via `auth/login` endpoint or from account settings page on [SITE_NAME website](SITE_URL/account/settings).'
+  description: 'Access token should be sent along with every request to SITE_NAME API in authorization header: `Authorization: Bearer <Token>` <br> This token can either be acquired via `auth/login` endpoint or from account settings page on [SITE_NAME website](SITE_URL/account-settings).'
   version: '1.0.0'
   title: SITE_NAME API
 security:

@@ -1,35 +1,34 @@
 <?php namespace Common\Settings;
 
 use Dotenv\Dotenv;
-use Dotenv\Repository\AdapterRepository;
 use Dotenv\Repository\RepositoryBuilder;
-use Str;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class DotEnvEditor
 {
-    /**
-     * Load values from .env file
-     *
-     * @param string|null $path
-     * @param string $fileName
-     * @return array
-     */
-    public function load($fileName = '.env', $path = null)
+    public function __construct(protected string $fileName = '.env')
     {
-        $path = $path ?: base_path();
+    }
 
-        $dotEnv = Dotenv::create(RepositoryBuilder::createWithNoAdapters()->make(), [$path], $fileName);
+    public function load(): array
+    {
+        $dotEnv = Dotenv::create(
+            RepositoryBuilder::createWithNoAdapters()->make(),
+            [base_path()],
+            $this->fileName,
+        );
         $values = $dotEnv->load();
         $lowercaseValues = [];
 
         foreach ($values as $key => $value) {
             if (strtolower($value) === 'null') {
                 $lowercaseValues[strtolower($key)] = null;
-            } else if (strtolower($value) === 'false') {
+            } elseif (strtolower($value) === 'false') {
                 $lowercaseValues[strtolower($key)] = false;
-            } else if (strtolower($value) === 'true') {
+            } elseif (strtolower($value) === 'true') {
                 $lowercaseValues[strtolower($key)] = true;
-            } else if (preg_match('/\A([\'"])(.*)\1\z/', $value, $matches)) {
+            } elseif (preg_match('/\A([\'"])(.*)\1\z/', $value, $matches)) {
                 $lowercaseValues[strtolower($key)] = $matches[2];
             } else {
                 $lowercaseValues[strtolower($key)] = $value;
@@ -39,43 +38,43 @@ class DotEnvEditor
         return $lowercaseValues;
     }
 
-    /**
-     * Write specified settings to .env file.
-     *
-     * @param array $values
-     * @param string $fileName
-     * @return void
-     */
-    public function write($values = [], $fileName = '.env')
+    public function write(array|Collection $values = []): void
     {
-        $content = file_get_contents(base_path($fileName));
+        $content = file_get_contents(base_path($this->fileName));
 
         foreach ($values as $key => $value) {
             $value = $this->formatValue($value);
             $key = strtoupper($key);
 
-            if (Str::contains($content, $key.'=')) {
+            if (Str::contains($content, $key . '=')) {
                 preg_match("/($key=)(.*?)(\n|\Z)/msi", $content, $matches);
-                $content = str_replace($matches[1].$matches[2], $matches[1].$value, $content);
+                $content = str_replace(
+                    $matches[1] . $matches[2],
+                    $matches[1] . $value,
+                    $content,
+                );
             } else {
                 $content .= "\n$key=$value";
             }
         }
 
-        file_put_contents(base_path($fileName), $content);
+        file_put_contents(base_path($this->fileName), $content);
     }
 
     /**
      * Format specified value to be compatible with .env file
-     *
-     * @param string|null $value
-     * @return string
      */
-    private function formatValue($value)
+    private function formatValue(mixed $value = null): string
     {
-        if ($value === 0 || $value === false) $value = 'false';
-        if ($value === 1 || $value === true) $value = 'true';
-        if ( ! $value) $value = 'null';
+        if ($value === 0 || $value === false) {
+            $value = 'false';
+        }
+        if ($value === 1 || $value === true) {
+            $value = 'true';
+        }
+        if (!$value) {
+            $value = 'null';
+        }
         $value = trim($value);
 
         // wrap string in quotes, if it contains whitespace or special characters
@@ -84,7 +83,7 @@ class DotEnvEditor
             $value = str_replace('"', "'", $value);
 
             //wrap string in quotes
-            $value = '"'.$value.'"';
+            $value = '"' . $value . '"';
         }
 
         return $value;

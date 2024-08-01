@@ -129,16 +129,20 @@ class AppValueLists extends ValueLists
                 ],
             );
 
-            if ($selectedValue = Arr::get($params, 'selectedValue')) {
-                $selectedKeyword = $allKeywords->firstWhere(
-                    'id',
-                    $selectedValue,
-                );
-                if ($selectedKeyword) {
-                    $keywords->prepend([
-                        'value' => $selectedKeyword['id'],
-                        'name' => $selectedKeyword['name'],
-                    ]);
+            $selectedIds = Arr::get($params, 'selectedValue');
+            if (!empty($selectedIds)) {
+                $selectedKeywords = $allKeywords
+                    ->whereIn('id', explode(',', $selectedIds))
+                    ->map(
+                        fn($keyword) => [
+                            'value' => $keyword['id'],
+                            'name' => $keyword['name'],
+                        ],
+                    );
+                if ($selectedKeywords->isNotEmpty()) {
+                    $keywords = $selectedKeywords
+                        ->merge($keywords)
+                        ->unique('value');
                 }
             }
         } else {
@@ -167,7 +171,7 @@ class AppValueLists extends ValueLists
             }
         }
 
-        return $keywords;
+        return $keywords->values();
     }
 
     public function titleFilterAgeRatings($params = []): Collection

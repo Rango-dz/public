@@ -2,9 +2,9 @@
   {
     "name": "Homepage",
     "slug": "homepage",
-    "description": null,
     "public": true,
-    "internal": false,
+    "internal": true,
+    "presetDescription": "Homepage for the site",
     "config": {
       "seoTitle": "Watch Anime Online | {{site_name}}",
       "seoDescription": "Watch anime online in high quality with English dubbed + subbed. Here you can watch online anime without paying, registering. Just come and enjoy your anime and use tons of great features...",
@@ -16,7 +16,8 @@
       "layout": "list",
       "restriction": null,
       "hideTitle": true,
-      "lockSlug": true
+      "lockSlug": true,
+      "presetId": "animeHomepage"
     },
     "nestedChannels": [
       "trending-series",
@@ -39,6 +40,7 @@
     "description": "Trending across the globe: anime movies taking the world by storm",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports currently trending anime movies from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -48,7 +50,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 210024,
-      "autoUpdateMethod": "mostPopular"
+      "autoUpdateMethod": "mostPopular",
+      "presetId": "animeTrendingMovies"
     }
   },
   {
@@ -57,6 +60,7 @@
     "description": "Lessons of friendship and love: heartwarming connections await",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'school-life' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -67,7 +71,8 @@
       "restriction": "keyword",
       "autoUpdateMethod": "mostPopular",
       "restrictionModelId": 190116,
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeSchoolLife"
     }
   },
   {
@@ -76,6 +81,7 @@
     "description": "Summon the otherworld: extraordinary adventures await",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'supernatural' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -86,7 +92,8 @@
       "restriction": "keyword",
       "restrictionModelId": 6152,
       "autoUpdateMethod": "discover",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeSupernatural"
     }
   },
   {
@@ -95,6 +102,7 @@
     "description": "From ink to life: experience the world of manga-inspired stories",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'based-on-manga' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -105,7 +113,8 @@
       "restriction": "keyword",
       "restrictionModelId": 13141,
       "autoUpdateMethod": "discover",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeBasedOnManga"
     }
   },
   {
@@ -114,6 +123,7 @@
     "description": "From discipline to honor - journey through realms of combat",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'martial-arts' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -124,7 +134,8 @@
       "restriction": "keyword",
       "restrictionModelId": 779,
       "autoUpdateMethod": "discover",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeMartialArts"
     }
   },
   {
@@ -133,6 +144,7 @@
     "description": "chasing destiny, finding Love: an anime romance odyssey",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'romance' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -143,7 +155,8 @@
       "restriction": "keyword",
       "restrictionModelId": 9840,
       "autoUpdateMethod": "discover",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeRomance"
     }
   },
   {
@@ -152,6 +165,7 @@
     "description": "Whispers of wonders: where fantasy worlds unfold",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'fantasy-worlds' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -162,7 +176,8 @@
       "restriction": "keyword",
       "autoUpdateMethod": "latestVideos",
       "restrictionModelId": 170362,
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeFantasyWorlds"
     }
   },
   {
@@ -171,6 +186,7 @@
     "description": "Infernal intrigues: dive into the depths of demon lore",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'demons' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -181,7 +197,8 @@
       "restriction": "keyword",
       "restrictionModelId": 15001,
       "autoUpdateMethod": "latestVideos",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeDemons"
     }
   },
   {
@@ -190,6 +207,7 @@
     "description": "Catch the unstoppable craze of trending anime series now",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports currently trending anime series from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -200,7 +218,8 @@
       "restriction": "keyword",
       "autoUpdateMethod": "mostPopular",
       "restrictionModelId": 210024,
-      "hideTitle": true
+      "hideTitle": true,
+      "presetId": "animeTrendingSeries"
     }
   },
   {
@@ -209,6 +228,7 @@
     "description": null,
     "public": true,
     "internal": false,
+    "presetDescription": "Shows recently updated anime on the site",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -217,7 +237,8 @@
       "autoUpdateProvider": "local",
       "layout": "grid",
       "restriction": null,
-      "autoUpdateMethod": "latestVideos"
+      "autoUpdateMethod": "latestVideos",
+      "presetId": "animeJustUpdated"
     }
   },
   {
@@ -226,6 +247,7 @@
     "description": null,
     "public": true,
     "internal": false,
+    "presetDescription": "Shows top rated anime on the site",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -235,7 +257,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 210024,
-      "autoUpdateMethod": "topRated"
+      "autoUpdateMethod": "topRated",
+      "presetId": "animeTopRated"
     }
   },
   {
@@ -244,6 +267,7 @@
     "description": "Everyday adventures: embrace the charm of slice of life",
     "public": true,
     "internal": false,
+    "presetDescription": "Periodically imports anime with 'slice-of-life' keyword from themoviedb",
     "config": {
       "contentType": "autoUpdate",
       "contentOrder": "popularity:desc",
@@ -254,7 +278,8 @@
       "restriction": "keyword",
       "restrictionModelId": 9914,
       "autoUpdateMethod": "mostPopular",
-      "tmdb_keywords": [210024]
+      "tmdb_keywords": [210024],
+      "presetId": "animeSliceOfLife"
     }
   }
 ]

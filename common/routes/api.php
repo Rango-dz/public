@@ -1,5 +1,6 @@
 <?php
 
+use Common\Admin\AdminSetupAlertsController;
 use Common\Admin\Analytics\AnalyticsController;
 use Common\Admin\Appearance\Controllers\AppearanceController;
 use Common\Admin\Appearance\Controllers\SeoTagsController;
@@ -8,6 +9,7 @@ use Common\Admin\ImpersonateUserController;
 use Common\Admin\Sitemap\SitemapController;
 use Common\Auth\Controllers\AccessTokenController;
 use Common\Auth\Controllers\BanController;
+use Common\Auth\Controllers\EmailVerificationController;
 use Common\Auth\Controllers\MobileAuthController;
 use Common\Auth\Controllers\SocialAuthController;
 use Common\Auth\Controllers\UserAvatarController;
@@ -42,6 +44,9 @@ use Common\Files\Tus\TusFileEntryController;
 use Common\Files\Tus\TusServer;
 use Common\Localizations\LocalizationsController;
 use Common\Localizations\UserLocaleController;
+use Common\Logging\Error\ErrorLogController;
+use Common\Logging\Mail\OutgoingEmailLogController;
+use Common\Logging\Schedule\ScheduleLogController;
 use Common\Notifications\NotificationController;
 use Common\Notifications\NotificationSubscriptionsController;
 use Common\Pages\ContactPageController;
@@ -125,7 +130,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('users/{user}/unfollow', [UserFollowersController::class, 'unfollow']);
         Route::get('users/{user}/followed-users', [UserFollowedUsersController::class, 'index']);
         Route::get('users/{user}/followed-users/ids', [UserFollowedUsersController::class, 'ids']);
-        Route::post('users/{user}/resend-verification-email', [UserController::class, 'resendVerificationEmail'])->middleware(['throttle:6,1']);
+        Route::post('resend-email-verification', [EmailVerificationController::class, 'resendVerificationEmail'])->middleware(['throttle:6,1']);
+        Route::post('validate-email-verification-otp', [EmailVerificationController::class, 'validateOtp'])->middleware(['throttle:6,1']);
 
         //USER AVATAR
         Route::post('users/{user}/avatar', [UserAvatarController::class, 'store']);
@@ -217,6 +223,7 @@ Route::group(['prefix' => 'v1'], function () {
 
         // ADMIN
         Route::get('uploads/server-max-file-size', [ServerMaxUploadSizeController::class, 'index']);
+        Route::get('admin/setup-alerts', [AdminSetupAlertsController::class, 'index']);
         Route::get('admin/reports', [AnalyticsController::class, 'report']);
         Route::get('admin/reports/header', [AnalyticsController::class, 'headerReport']);
         Route::get('admin/reports/sessions', [AnalyticsController::class, 'sessionsReport']);
@@ -229,6 +236,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('localizations', [LocalizationsController::class, 'store']);
         Route::put('localizations/{langCode}', [LocalizationsController::class, 'update']);
         Route::delete('localizations/{id}', [LocalizationsController::class, 'destroy']);
+        Route::get('localizations/{id}/download', [LocalizationsController::class, 'download']);
+        Route::post('localizations/{id}/upload', [LocalizationsController::class, 'upload']);
         Route::post('users/me/locale', [UserLocaleController::class, 'update']);
         Route::get('localizations', [LocalizationsController::class, 'index']);
         Route::get('localizations/{idOrLangCode}', [LocalizationsController::class, 'show']);
@@ -238,6 +247,23 @@ Route::group(['prefix' => 'v1'], function () {
 
         // RECAPTCHA
         Route::post('recaptcha/verify', [RecaptchaController::class, 'verify']);
+
+        // SCHEDULE LOG
+        Route::get('logs/schedule', [ScheduleLogController::class, 'index']);
+        Route::post('logs/schedule/rerun/{id}', [ScheduleLogController::class, 'rerun']);
+        Route::get('logs/schedule/download', [ScheduleLogController::class, 'download']);
+
+        // OUTGOING EMAIL LOG
+        Route::get('logs/outgoing-email/download', [OutgoingEmailLogController::class, 'downloadLog']);
+        Route::get('logs/outgoing-email/{id}', [OutgoingEmailLogController::class, 'show']);
+        Route::get('logs/outgoing-email', [OutgoingEmailLogController::class, 'index']);
+        Route::get('logs/outgoing-email/{id}/download', [OutgoingEmailLogController::class, 'downloadLogItem']);
+
+        // ERROR LOG
+        Route::get('logs/error', [ErrorLogController::class, 'index']);
+        Route::get('logs/error/{identifier}/download', [ErrorLogController::class, 'download']);
+        Route::get('logs/error/download-latest', [ErrorLogController::class, 'downloadLatest']);
+        Route::delete('logs/error/{identifier}', [ErrorLogController::class, 'destroy']);
 
         // BOOTSTRAP
         Route::get('bootstrap-data', [BootstrapController::class, 'getBootstrapData']);

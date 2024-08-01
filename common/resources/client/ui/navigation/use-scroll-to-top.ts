@@ -10,13 +10,17 @@ export function useScrollToTop(ref?: RefObject<HTMLElement>) {
 
   useEffect(() => {
     if (previousPathname !== pathname) {
-      const scrollParent = ref?.current
-        ? getScrollParent(ref.current)
-        : document.documentElement;
-      scrollParent.scrollTo({
-        top: 0,
-        left: 0,
-      });
+      scrollToTop(ref);
     }
   }, [pathname, previousPathname, ref]);
+}
+
+export function scrollToTop(ref?: RefObject<HTMLElement>) {
+  const scrollParent = ref?.current
+    ? getScrollParent(ref.current)
+    : document.documentElement;
+  scrollParent.scrollTo({
+    top: 0,
+    left: 0,
+  });
 }

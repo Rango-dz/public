@@ -11,11 +11,11 @@ class SyncPlansWhenBillingSettingsChange
 {
     public function __construct(
         protected Stripe $stripe,
-        protected Paypal $paypal
+        protected Paypal $paypal,
     ) {
     }
 
-    public function handle(SettingsSaved $event): void
+    public function __invoke(SettingsSaved $event): void
     {
         $s = $event->envSettings;
         @ini_set('max_execution_time', 300);

@@ -157,12 +157,12 @@ class Title extends BaseModel
 
         // only partial data was fetched
         if (
-            !$this->release_date ||
-            (!$this->runtime &&
-                !$this->revenue &&
-                !$this->country &&
-                !$this->budget &&
-                !$this->imdb_id)
+            is_null($this->release_date) ||
+            (is_null($this->runtime) &&
+                is_null($this->revenue) &&
+                is_null($this->country) &&
+                is_null($this->budget) &&
+                is_null($this->imdb_id))
         ) {
             return true;
         }

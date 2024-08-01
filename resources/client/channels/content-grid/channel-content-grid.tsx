@@ -1,7 +1,7 @@
 import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
 import React, {Fragment} from 'react';
 import {ChannelContentProps} from '@app/channels/channel-content';
-import {usePaginatedChannelContent} from '@common/channels/requests/use-paginated-channel-content';
+import {useInfiniteChannelContent} from '@common/channels/requests/use-infinite-channel-content';
 import {ChannelHeader} from '@app/channels/channel-header/channel-header';
 import {
   ContentGridLayout,
@@ -11,16 +11,24 @@ import {ChannelContentGridItem} from '@app/channels/content-grid/channel-content
 import {ChannelContentModel} from '@app/admin/channels/channel-content-config';
 import {useChannelContent} from '@common/channels/requests/use-channel-content';
 import clsx from 'clsx';
+import {
+  PaginationControls,
+  PaginationControlsType,
+} from '@common/ui/navigation/pagination-controls';
 
 interface ChannelContentGridProps extends ChannelContentProps {
   variant?: ContentGridProps['variant'];
 }
 export function ChannelContentGrid(props: ChannelContentGridProps) {
+  const isInfiniteScroll =
+    !props.isNested &&
+    (!props.channel.config.paginationType ||
+      props.channel.config.paginationType === 'infiniteScroll');
   return (
     <Fragment>
       <ChannelHeader {...props} />
-      {props.isNested ? (
-        <SimpleGrid {...props} />
+      {isInfiniteScroll ? (
+        <InfiniteScrollGrid {...props} />
       ) : (
         <PaginatedGrid {...props} />
       )}
@@ -28,8 +36,8 @@ export function ChannelContentGrid(props: ChannelContentGridProps) {
   );
 }
 
-function PaginatedGrid({channel, variant}: ChannelContentGridProps) {
-  const query = usePaginatedChannelContent<ChannelContentModel>(channel);
+function InfiniteScrollGrid({channel, variant}: ChannelContentGridProps) {
+  const query = useInfiniteChannelContent<ChannelContentModel>(channel);
   return (
     <div
       className={clsx('transition-opacity', query.isReloading && 'opacity-70')}
@@ -40,9 +48,34 @@ function PaginatedGrid({channel, variant}: ChannelContentGridProps) {
   );
 }
 
-function SimpleGrid({channel, variant}: ChannelContentGridProps) {
-  const {data} = useChannelContent(channel);
-  return <ContentGrid content={data} variant={variant} />;
+function PaginatedGrid({channel, variant, isNested}: ChannelContentGridProps) {
+  const shouldPaginate = !isNested;
+  const query = useChannelContent(channel, null, {paginate: shouldPaginate});
+  return (
+    <div
+      className={clsx(
+        'transition-opacity',
+        query.isPlaceholderData && 'opacity-70',
+      )}
+    >
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mb-24"
+        />
+      )}
+      <ContentGrid content={query.data?.data} variant={variant} />
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mt-24"
+          scrollToTop
+        />
+      )}
+    </div>
+  );
 }
 
 interface ContentProps {

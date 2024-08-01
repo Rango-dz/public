@@ -12,7 +12,7 @@ class VerifyApiAccessMiddleware
         $model = $request->user() ?: app('guestRole');
 
         if (!requestIsFromFrontend() && !$model->hasPermission('api.access')) {
-            //abort(401);
+            abort(401);
         }
 
         return $next($request);

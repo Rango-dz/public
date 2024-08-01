@@ -42,7 +42,7 @@ export function TableCell({
       id={id}
       className={style}
     >
-      <div className="overflow-x-hidden overflow-ellipsis min-w-0 w-full">
+      <div className="w-full min-w-0 overflow-hidden overflow-ellipsis">
         {column.body(item, rowContext)}
       </div>
     </div>

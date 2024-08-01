@@ -4,8 +4,8 @@ namespace Common\Files\Actions\Deletion;
 
 use Common\Files\Events\FileEntriesDeleted;
 use Common\Files\FileEntry;
-use DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class PermanentlyDeleteEntries extends SoftDeleteEntries
 {
@@ -14,10 +14,11 @@ class PermanentlyDeleteEntries extends SoftDeleteEntries
      */
     protected function delete(Collection|array $entries): void
     {
-        $entries = $this->loadChildEntries($entries, true);
-        $this->deleteFiles($entries);
-        $this->deleteEntries($entries);
-        event(new FileEntriesDeleted($entries->pluck('id')->toArray(), true));
+        $this->chunkChildEntries($entries, function ($chunk) {
+            $this->deleteEntries($chunk);
+            $this->deleteFiles($chunk);
+            event(new FileEntriesDeleted($chunk->pluck('id')->toArray(), true));
+        });
     }
 
     /**

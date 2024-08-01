@@ -7,7 +7,7 @@ import {DialogTrigger} from '@common/ui/overlays/dialog/dialog-trigger';
 import React, {ReactNode} from 'react';
 import clsx from 'clsx';
 
-interface InfoDialogTriggerProps {
+interface Props {
   title?: ReactNode;
   body: ReactNode;
   dialogSize?: DialogSize;
@@ -18,7 +18,7 @@ export function InfoDialogTrigger({
   body,
   dialogSize = 'sm',
   className,
-}: InfoDialogTriggerProps) {
+}: Props) {
   return (
     <DialogTrigger type="popover" triggerOnHover>
       <IconButton

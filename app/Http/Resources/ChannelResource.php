@@ -15,7 +15,12 @@ class ChannelResource extends JsonResource
 {
     public function toArray($request)
     {
-        $config = Arr::except($this->config, ['seoTitle', 'seoDescription']);
+        $config = Arr::except($this->config, [
+            'seoTitle',
+            'seoDescription',
+            'adminDescription',
+            'presetId',
+        ]);
 
         return [
             'id' => $this->id,

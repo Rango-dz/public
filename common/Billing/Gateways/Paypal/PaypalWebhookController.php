@@ -1,8 +1,6 @@
 <?php namespace Common\Billing\Gateways\Paypal;
 
-use App\Models\User;
 use Common\Billing\GatewayException;
-use Common\Billing\Invoices\CreateInvoice;
 use Common\Billing\Notifications\PaymentFailed;
 use Common\Billing\Subscription;
 use Illuminate\Http\Request;
@@ -31,19 +29,17 @@ class PaypalWebhookController extends Controller
             return response('Webhook validation failed', 422);
         }
 
-        switch ($payload['event_type']) {
-            case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-                return $this->handleInvoicePaymentFailed($payload);
-            case 'BILLING.SUBSCRIPTION.ACTIVATED':
-                return $this->handleSubscriptionCreated($payload);
-            case 'BILLING.SUBSCRIPTION.CANCELLED':
-            case 'BILLING.SUBSCRIPTION.EXPIRED':
-                return $this->handleSubscriptionCancelledOrExpired($payload);
-            case 'PAYMENT.SALE.COMPLETED':
-                return $this->handleSaleCompleted($payload);
-            default:
-                return response('Webhook Handled', 200);
-        }
+        return match ($payload['event_type']) {
+            'BILLING.SUBSCRIPTION.PAYMENT.FAILED'
+                => $this->handleInvoicePaymentFailed($payload),
+            'BILLING.SUBSCRIPTION.ACTIVATED',
+            'BILLING.SUBSCRIPTION.CANCELLED',
+            'BILLING.SUBSCRIPTION.EXPIRED',
+            'BILLING.SUBSCRIPTION.SUSPENDED'
+                => $this->handleSubscriptionStateChanged($payload),
+            'PAYMENT.SALE.COMPLETED' => $this->handleSaleCompleted($payload),
+            default => response('Webhook Handled', 200),
+        };
     }
 
     protected function handleInvoicePaymentFailed(array $payload): Response
@@ -61,58 +57,18 @@ class PaypalWebhookController extends Controller
         return response('Webhook handled', 200);
     }
 
-    protected function handleSubscriptionCancelledOrExpired(
-        array $payload,
-    ): Response {
-        $paypalSubscriptionId = $payload['resource']['id'];
-
-        $subscription = $this->subscription
-            ->where('gateway_id', $paypalSubscriptionId)
-            ->first();
-
-        if ($subscription && !$subscription->cancelled()) {
-            $subscription->markAsCancelled();
-        }
-
-        return response('Webhook Handled', 200);
-    }
-
     protected function handleSaleCompleted(array $payload): Response
     {
-        $gatewayId = Arr::get($payload, 'resource.billing_agreement_id');
-
-        $subscription = $this->subscription
-            ->where('gateway_id', $gatewayId)
-            ->first();
-
-        if ($subscription) {
-            $paypalSubscription = $this->paypal
-                ->subscriptions
-                ->find($subscription);
-            $subscription
-                ->fill(['renews_at' => $paypalSubscription['renews_at']])
-                ->save();
-            app(CreateInvoice::class)->execute([
-                'subscription_id' => $subscription->id,
-                'paid' => true,
-            ]);
-        }
+        $this->paypal->subscriptions->sync(
+            $payload['resource']['billing_agreement_id'],
+        );
 
         return response('Webhook Handled', 200);
     }
 
-    protected function handleSubscriptionCreated(array $payload): Response
+    protected function handleSubscriptionStateChanged(array $payload): Response
     {
-        $paypalSubscriptionId = Arr::get($payload, 'resource.id');
-        $paypalUserId = Arr::get($payload, 'resource.subscriber.payer_id');
-
-        $user = User::where('paypal_id', $paypalUserId)->first();
-        if ($user) {
-            $this->paypal->storeSubscriptionDetailsLocally(
-                $paypalSubscriptionId,
-                $user,
-            );
-        }
+        $this->paypal->subscriptions->sync($payload['resource']['id']);
 
         return response('Webhook Handled', 200);
     }

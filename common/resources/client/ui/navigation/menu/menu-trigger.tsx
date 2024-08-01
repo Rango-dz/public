@@ -38,7 +38,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
         floatingWidth: isMobile ? 'auto' : floatingWidth,
         virtualFocus: showSearchField,
         role: showSearchField ? 'listbox' : 'menu',
-        loopFocus: !showSearchField,
+        focusLoopingMode: showSearchField ? 'stay' : 'loop',
         children: menu.props.children,
       },
       ref,

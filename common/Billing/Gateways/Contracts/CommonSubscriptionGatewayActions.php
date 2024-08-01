@@ -20,16 +20,20 @@ interface CommonSubscriptionGatewayActions
     public function changePlan(
         Subscription $subscription,
         Product $newProduct,
-        Price $newPrice
+        Price $newPrice,
     ): bool;
 
     public function cancelSubscription(
         Subscription $subscription,
-        bool $atPeriodEnd = true
+        bool $atPeriodEnd = true,
     ): bool;
 
     public function resumeSubscription(
         Subscription $subscription,
-        array $gatewayParams = []
+        array $gatewayParams = [],
     ): bool;
+
+    public function isSubscriptionIncomplete(Subscription $subscription): bool;
+
+    public function isSubscriptionPastDue(Subscription $subscription): bool;
 }

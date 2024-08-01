@@ -19,10 +19,8 @@ import {Trans} from '@common/i18n/trans';
 
 interface SearchAutocompleteProps {
   className?: string;
-  transferDatatoParent?: true | false;
-  callback?: any;
 }
-export function SearchAutocomplete({className, transferDatatoParent=false, callback}: SearchAutocompleteProps) {
+export function SearchAutocomplete({className}: SearchAutocompleteProps) {
   const {searchQuery} = useParams();
   const {trans} = useTrans();
   const navigate = useNavigate();
@@ -70,8 +68,9 @@ export function SearchAutocomplete({className, transferDatatoParent=false, callb
         isOpen={isOpen}
         onOpenChange={setIsOpen}
         autoFocusFirstItem={false}
+        focusLoopingMode="deselect"
       >
-        {data?.results.map(result => {
+        {data?.results?.map(result => {
           switch (result.model_type) {
             case TITLE_MODEL:
               return (
@@ -79,11 +78,7 @@ export function SearchAutocomplete({className, transferDatatoParent=false, callb
                   key={result.id}
                   value={result.id}
                   onSelected={() => {
-                    if (transferDatatoParent) {
-                      callback(result);
-                    } else {
-                      navigate(getTitleLink(result));
-                    }
+                    navigate(getTitleLink(result));
                   }}
                   startIcon={
                     <TitlePoster title={result} srcSize="sm" size="w-46" />

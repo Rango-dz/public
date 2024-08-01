@@ -21,11 +21,15 @@ export function CheckoutPaypalDone() {
   useEffect(() => {
     const subscriptionId = params.get('subscriptionId');
     const status = params.get('status');
-    setMessageConfig(getRedirectMessageConfig(status, productId, priceId));
     if (subscriptionId && status === 'success') {
       storeSubscriptionDetailsLocally(subscriptionId).then(() => {
-        invalidateBootstrapData();
+        setMessageConfig(
+          getRedirectMessageConfig('success', productId, priceId),
+        );
+        window.location.href = '/billing';
       });
+    } else {
+      setMessageConfig(getRedirectMessageConfig(status, productId, priceId));
     }
   }, [priceId, productId, params, invalidateBootstrapData]);
 

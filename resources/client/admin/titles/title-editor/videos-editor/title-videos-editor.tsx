@@ -49,6 +49,7 @@ export function TitleVideosEditor() {
       title_id: title.id,
       season: season ?? null,
       episode: episode ?? null,
+      withCount: 'reports',
     },
   });
 

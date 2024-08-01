@@ -54,7 +54,7 @@ export function OutgoingMailGroup() {
                 <Trans message="Which method should be used for sending outgoing application emails (like registration confirmation)" />
                 <LearnMoreLink
                   className="mt-8"
-                  link="https://support.vebto.com/help-center/articles/42/44/155/incoming-emails"
+                  link="https://support.vebto.com/hc/articles/42/44/155/incoming-emails"
                 />
               </div>
             }

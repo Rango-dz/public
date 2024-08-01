@@ -22,9 +22,9 @@ class CommentReceivedReply extends Notification
     ) {
         $this->newComment = $newComment;
         $this->originalComment = $originalComment;
-        $this->commentable = app($newComment['commentable_type'])->find(
-            $newComment['commentable_id'],
-        );
+        $this->commentable = app(
+            modelTypeToNamespace($newComment['commentable_type']),
+        )->find($newComment['commentable_id']);
     }
 
     public function via(User $notifiable): array

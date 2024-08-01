@@ -2,13 +2,16 @@
 
 namespace Common\Core\Exceptions;
 
+use Common\Billing\Models\Product;
 use ErrorException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Sentry\Laravel\Integration;
 use Sentry\State\Scope;
+use Spatie\Ignition\Ignition;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 use function Sentry\configureScope;
@@ -28,6 +31,31 @@ class BaseExceptionHandler extends Handler
                 !Auth::check())
         ) {
             return redirect('/login');
+        }
+
+        if (
+            $e instanceof AuthorizationException &&
+            $e->response() instanceof AccessResponseWithPermission &&
+            $e->response()->permission &&
+            Auth::check() &&
+            settings('billing.enable')
+        ) {
+            $permissionExistsInSubscriptionPlan = Product::with(['permissions'])
+                ->get()
+                ->some(function ($product) use ($e) {
+                    // check if there's a plan that has this permission and if user is not already on this plan
+                    return $product->permissions->contains(
+                        'name',
+                        $e->response()->permission,
+                    ) &&
+                        Auth::user()->subscriptions->first()?->product_id !==
+                            $product->id;
+                });
+            if ($permissionExistsInSubscriptionPlan) {
+                return Auth::user()->subscribed()
+                    ? redirect('/billing')
+                    : redirect('/pricing');
+            }
         }
 
         return parent::render($request, $e);
@@ -52,9 +80,6 @@ class BaseExceptionHandler extends Handler
 
         configureScope(function (Scope $scope): void {
             $scope->setContext('app_name', ['value' => config('app.name')]);
-            if ($user = Auth::user()) {
-                $scope->setUser(['email' => $user->email, 'id' => $user->id]);
-            }
         });
 
         $this->reportable(function (Throwable $e) {
@@ -64,15 +89,27 @@ class BaseExceptionHandler extends Handler
 
     protected function convertExceptionToArray(Throwable $e): array
     {
-        $array = parent::convertExceptionToArray($e);
         $previous = $e->getPrevious();
-
-        if (
+        $isValidationException =
+            $e instanceof HttpException && $e->getStatusCode() === 422;
+        $isExceptionWithAction =
             $previous &&
             method_exists($previous, 'response') &&
             $previous->response() &&
-            property_exists($previous->response(), 'action')
+            property_exists($previous->response(), 'action');
+
+        if (
+            config('app.debug') &&
+            !config('common.site.demo') &&
+            !$isValidationException &&
+            false
         ) {
+            $array = $this->ignitionReportFromThrowable($e);
+        } else {
+            $array = parent::convertExceptionToArray($e);
+        }
+
+        if ($isExceptionWithAction) {
             $array['action'] = $e->getPrevious()->response()->action;
         }
 
@@ -101,8 +138,68 @@ class BaseExceptionHandler extends Handler
             // should not return a view here, in case laravel views folder is not readable as well
             return response(
                 "<div style='text-align:center'><h1>Could not access a file or folder</h1> <br> Location: <b>$path</b><br>" .
-                    '<p>See the article here for possible solutions: <a target="_blank" href="https://support.vebto.com/hc/articles/21/25/207/changing-file-permissions">https://support.vebto.com/help-center/articles/207/changing-file-permissions</a></p></div>',
+                    '<p>See the article here for possible solutions: <a target="_blank" href="https://support.vebto.com/hc/articles/21/25/207/changing-file-permissions">https://support.vebto.com/hc/articles/207/changing-file-permissions</a></p></div>',
             );
         }
+    }
+
+    protected function ignitionReportFromThrowable(Throwable $e): array
+    {
+        $report = app(Ignition::class)
+            ->shouldDisplayException(false)
+            ->handleException($e)
+            ->toArray();
+
+        $trace = array_map(function ($item) {
+            $path = Str::of($item['class'] ?? $item['file'])
+                ->replace([base_path(), 'vendor/laravel/framework/src/'], '')
+                ->replace('\\', '/')
+                ->trim('/')
+                ->explode('/');
+            return [
+                'applicationFrame' => $item['application_frame'],
+                'codeSnippet' => $item['code_snippet'],
+                'path' => $path,
+                'lineNumber' => $item['line_number'],
+                'method' => $item['method'],
+            ];
+        }, $report['stacktrace']);
+
+        $flatIndex = 0;
+        $totalVendorGroups = 0;
+        $groupedTrace = array_reduce(
+            $trace,
+            function ($carry, $item) use (&$flatIndex, &$totalVendorGroups) {
+                $item['flatIndex'] = $flatIndex;
+                if ($item['applicationFrame']) {
+                    $carry[] = $item;
+                } else {
+                    if (Arr::get(Arr::last($carry), 'vendorGroup')) {
+                        $carry[count($carry) - 1]['items'][] = $item;
+                    } else {
+                        $totalVendorGroups++;
+                        $carry[] = [
+                            'vendorGroup' => true,
+                            'items' => [$item],
+                        ];
+                    }
+                }
+                $flatIndex++;
+                return $carry;
+            },
+            [],
+        );
+
+        return [
+            'ignitionTrace' => true,
+            'message' => $report['message'],
+            'exception' => $report['exception_class'],
+            'file' => $report['stacktrace'][0]['file'],
+            'line' => $report['stacktrace'][0]['line_number'],
+            'trace' => $groupedTrace,
+            'totalVendorGroups' => $totalVendorGroups,
+            'phpVersion' => $report['language_version'],
+            'appVersion' => config('common.site.version'),
+        ];
     }
 }

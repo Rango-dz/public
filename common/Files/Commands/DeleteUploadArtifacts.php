@@ -4,15 +4,18 @@ namespace Common\Files\Commands;
 
 use Common\Files\Actions\Deletion\PermanentlyDeleteEntries;
 use Common\Files\FileEntry;
-use Common\Settings\Settings;
-use DB;
+use Exception;
 use Illuminate\Console\Command;
-use Schema;
-use Storage;
-use Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DeleteUploadArtifacts extends Command
 {
+    protected $signature = 'uploads:clean';
+    protected $description = 'Delete uploaded files that are no longer used.';
+
     protected array $map = [
         'branding_media' => [
             'type' => 'settings',
@@ -122,25 +125,7 @@ class DeleteUploadArtifacts extends Command
         ],
     ];
 
-    /**
-     * @var string
-     */
-    protected $signature = 'uploads:clean';
-
-    /**
-     * @var string
-     */
-    protected $description = 'Delete unused files that were uploaded via various application pages.';
-
-    /**
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    public function handle()
+    public function handle(): int
     {
         $storage = Storage::disk('public');
         $count = 0;
@@ -158,13 +143,15 @@ class DeleteUploadArtifacts extends Command
         }
 
         $this->info("Deleted $count unused files.");
+
+        return Command::SUCCESS;
     }
 
     protected function shouldDelete(string $path, array $config): bool
     {
         if ($config['type'] === 'settings') {
             return collect($config['keys'])
-                ->map(fn($key) => app(Settings::class)->get($key))
+                ->map(fn($key) => settings($key))
                 ->filter(
                     fn($configValue) => Str::contains(
                         $configValue,
@@ -176,10 +163,12 @@ class DeleteUploadArtifacts extends Command
             if (Schema::hasTable($config['table'])) {
                 $fileName = basename($path);
                 return DB::table($config['table'])
-                        ->whereNotNull($config['column'])
-                        ->where($config['column'], 'like', "%$fileName%")
-                        ->count() === 0;
+                    ->whereNotNull($config['column'])
+                    ->where($config['column'], 'like', "%$fileName%")
+                    ->count() === 0;
             }
         }
+
+        throw new Exception("Invalid config type {$config['type']}.");
     }
 }

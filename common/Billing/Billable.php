@@ -2,9 +2,9 @@
 
 use Carbon\Carbon;
 use Common\Billing\Models\Price;
-use DB;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
@@ -13,8 +13,12 @@ use LogicException;
  */
 trait Billable
 {
-    public function subscribe(string $gateway, string $gatewayId, Price $price): Subscription
-    {
+    public function subscribe(
+        string $gateway,
+        string $gatewayId,
+        string $status,
+        Price $price,
+    ): Subscription {
         if (Subscription::where('gateway_id', $gatewayId)->exists()) {
             throw new LogicException(__('This subscription ID already exists'));
         }
@@ -34,6 +38,7 @@ trait Billable
             'renews_at' => $renewsAt,
             'gateway_name' => $gateway,
             'gateway_id' => $gatewayId,
+            'gateway_status' => $status,
         ]);
 
         $this->load('subscriptions');
@@ -44,7 +49,7 @@ trait Billable
     public function subscribed(): bool
     {
         $subscription = $this->subscriptions->first(function (
-            Subscription $sub
+            Subscription $sub,
         ) {
             return $sub->valid();
         });

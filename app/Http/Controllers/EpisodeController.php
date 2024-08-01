@@ -70,7 +70,14 @@ class EpisodeController extends BaseController
             ],
         ]);
 
-        $epNum = request('episode_number', $season->episodes_count + 1);
+        $epNum = request('episode_number');
+        if (!$epNum) {
+            $epNum =
+                $season
+                    ->episodes()
+                    ->orderBy('episode_number', 'desc')
+                    ->value('episode_number') + 1;
+        }
 
         $episode = Episode::create(
             array_merge(request()->all(), [

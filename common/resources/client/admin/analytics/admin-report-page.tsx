@@ -17,7 +17,7 @@ export default function AdminReportPage() {
   const title = <Trans message="Visitors report" />;
 
   return (
-    <div className="min-h-full gap-12 overflow-x-hidden p-12 md:gap-24 md:p-24">
+    <div className="min-h-full gap-12 overflow-x-hidden p-12 md:gap-18 md:p-18">
       <div className="mb-24 items-center justify-between gap-24 md:flex">
         <StaticPageTitle>{title}</StaticPageTitle>
         <h1 className="mb-24 text-3xl font-light md:mb-0">{title}</h1>

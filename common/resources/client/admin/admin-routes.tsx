@@ -50,6 +50,10 @@ import {EditCustomPage} from '@common/admin/custom-pages/edit-custom-page';
 import {CreateCustomPage} from '@common/admin/custom-pages/create-custom-page';
 import {ThemeFontPanel} from '@common/admin/appearance/sections/themes/theme-font-panel';
 import {ThemeRadiusPanel} from '@common/admin/appearance/sections/themes/theme-radius-panel';
+import {LogsPage} from '@common/admin/logging/logs-page';
+import {ScheduleLogDatatable} from '@common/admin/logging/schedule/schedule-log-datatable';
+import {ErrorLogDatatable} from '@common/admin/logging/error/error-log-datatable';
+import {OutgoingEmailLogDatatable} from '@common/admin/logging/outgoing-email/outgoing-email-log-datatable';
 
 const ReportsPage = React.lazy(() => import('./analytics/admin-report-page'));
 
@@ -267,6 +271,21 @@ const AdminRouteConfig: RouteObject[] = [
           {path: 'recaptcha', element: <RecaptchaSettings />},
           {path: 'gdpr', element: <GdprSettings />},
           ...AppSettingsRoutes,
+        ],
+      },
+      // LOGS
+      {
+        path: 'logs',
+        element: (
+          <AuthRoute permission="logs.view">
+            <LogsPage />
+          </AuthRoute>
+        ),
+        children: [
+          {index: true, element: <ScheduleLogDatatable />},
+          {path: 'schedule', element: <ScheduleLogDatatable />},
+          {path: 'error', element: <ErrorLogDatatable />},
+          {path: 'outgoing-email', element: <OutgoingEmailLogDatatable />},
         ],
       },
     ],

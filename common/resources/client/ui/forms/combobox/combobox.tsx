@@ -64,6 +64,7 @@ function ComboBox<T extends object>(
     listboxClassName,
     onEndAdornmentClick,
     autoFocusFirstItem = true,
+    focusLoopingMode,
     ...textFieldProps
   } = props;
 

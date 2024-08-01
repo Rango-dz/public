@@ -14,11 +14,16 @@ import {message} from '@common/i18n/message';
 import {useSettings} from '@common/core/settings/use-settings';
 import {queryClient} from '@common/http/query-client';
 import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
 
 interface Props {
   user: User;
 }
 export function SocialLoginPanel({user}: Props) {
+  if (useAllSocialLoginsDisabled()) {
+    return null;
+  }
+
   return (
     <AccountSettingsPanel
       id={AccountSettingsId.SocialLogin}

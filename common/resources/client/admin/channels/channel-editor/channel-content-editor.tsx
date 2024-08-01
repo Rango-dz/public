@@ -1,8 +1,4 @@
-import {
-  useFieldArray,
-  UseFieldArrayReturn,
-  useFormContext,
-} from 'react-hook-form';
+import {useFormContext} from 'react-hook-form';
 import {NormalizedModel} from '@common/datatable/filters/normalized-model';
 import {Trans} from '@common/i18n/trans';
 import {Table} from '@common/ui/tables/table';
@@ -34,12 +30,24 @@ import {WarningIcon} from '@common/icons/material/Warning';
 import {IllustratedMessage} from '@common/ui/images/illustrated-message';
 import playlist from '../playlist.svg';
 import {SvgImage} from '@common/ui/images/svg-image/svg-image';
-import {useParams} from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import {Button} from '@common/ui/buttons/button';
 import {RefreshIcon} from '@common/icons/material/Refresh';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {useUpdateChannelContent} from '@common/admin/channels/requests/use-update-channel-content';
 import {ChannelContentSearchFieldProps} from '@common/admin/channels/channel-editor/channel-content-search-field';
+import {useChannelContent} from '@common/channels/requests/use-channel-content';
+import {PaginationControls} from '@common/ui/navigation/pagination-controls';
+import {queryClient} from '@common/http/query-client';
+import {PaginationResponse} from '@common/http/backend-response/pagination-response';
+import {moveItemInNewArray} from '@common/utils/array/move-item-in-new-array';
+import {useReorderChannelContent} from '@common/admin/channels/requests/use-reorder-channel-content';
+import {useAddToChannel} from '@common/admin/channels/requests/use-add-to-channel';
+import {useRemoveFromChannel} from '@common/admin/channels/requests/use-remove-from-channel';
+import {Channel, ChannelContentItem} from '@common/channels/channel';
+import {Select} from '@common/ui/forms/select/select';
+import {Item} from '@common/ui/forms/listbox/item';
+import {UseQueryResult} from '@tanstack/react-query';
 
 const columnConfig: ColumnConfig<NormalizedModel>[] = [
   {
@@ -55,13 +63,27 @@ const columnConfig: ColumnConfig<NormalizedModel>[] = [
     key: 'name',
     header: () => <Trans message="Content item" />,
     visibleInMode: 'all',
-    body: item => (
-      <NameWithAvatar
-        image={item.image}
-        label={item.name}
-        description={item.description}
-      />
-    ),
+    body: item => {
+      return (
+        <NameWithAvatar
+          image={item.image}
+          label={
+            item.model_type === 'channel' ? (
+              <Link
+                className="hover:underline"
+                to={`/admin/channels/${item.id}/edit`}
+                target="_blank"
+              >
+                {item.name}
+              </Link>
+            ) : (
+              item.name
+            )
+          }
+          description={item.description}
+        />
+      );
+    },
   },
   {
     key: 'type',
@@ -76,7 +98,7 @@ const columnConfig: ColumnConfig<NormalizedModel>[] = [
     align: 'end',
     width: 'w-42 flex-shrink-0',
     visibleInMode: 'all',
-    body: (item, {index}) => <RemoveItemColumn index={index} />,
+    body: item => <RemoveItemColumn item={item} />,
   },
 ];
 
@@ -91,12 +113,18 @@ export function ChannelContentEditor({
   noResultsMessage,
 }: Props) {
   const {watch, getValues} = useFormContext<UpdateChannelPayload>();
+  const channel = getValues() as Channel<ChannelContentItem<NormalizedModel>>;
+  const [perPage, setPerPage] = useState<string | number>(
+    channel.content?.per_page ?? 100,
+  );
   const contentType = watch('config.contentType');
-  const fieldArray = useFieldArray<UpdateChannelPayload, 'content.data'>({
-    name: 'content.data',
-  });
-  // need to watch this and use it in table, otherwise content will not update when using "update content now" button
-  const content = watch('content');
+  const addToChannel = useAddToChannel();
+  const query = useChannelContent<ChannelContentItem<NormalizedModel>>(
+    channel,
+    {loader: 'editChannelPage', paginate: 'simple', perPage: `${perPage}`},
+    {paginate: true},
+  );
+  const pagination = query.data!;
 
   // only show delete and drag buttons when channel content is managed manually
   const filteredColumns = columnConfig.filter(col => {
@@ -107,7 +135,7 @@ export function ChannelContentEditor({
   });
 
   return (
-    <div className="mt-40 border-t pt-40">
+    <div className="mt-40">
       <div className="mb-40">
         <h2 className="mb-10 text-2xl">
           {title || <Trans message="Channel content" />}
@@ -117,36 +145,87 @@ export function ChannelContentEditor({
         {contentType === 'manual'
           ? cloneElement<ChannelContentSearchFieldProps>(searchField, {
               onResultSelected: result => {
-                const alreadyAttached = getValues('content.data').find(
-                  x => x.id === result.id && x.model_type === result.model_type,
-                );
-                if (!alreadyAttached) {
-                  fieldArray.prepend(result);
-                }
+                addToChannel.mutate({
+                  channelId: channel.id,
+                  item: result,
+                });
               },
             })
           : null}
       </div>
+      <Pagination
+        query={query}
+        perPage={perPage}
+        onPageChange={setPerPage}
+        className="mb-24"
+      />
       <Table
         className="mt-24"
         columns={filteredColumns}
-        data={content.data}
-        meta={fieldArray}
+        data={pagination?.data || []}
+        meta={query.queryKey}
         renderRowAs={contentType === 'manual' ? ContentTableRow : undefined}
         enableSelection={false}
         hideHeaderRow
       />
-      {!fieldArray.fields.length && contentType === 'manual'
+      {!pagination?.data?.length
         ? noResultsMessage || (
             <IllustratedMessage
               title={<Trans message="Channel is empty" />}
               description={
-                <Trans message="No content is attached to this channel yet." />
+                contentType === 'manual' ? (
+                  <Trans message="No content is attached to this channel yet." />
+                ) : (
+                  <Trans message="No content to show for this channel yet." />
+                )
               }
               image={<SvgImage src={playlist} />}
             />
           )
         : null}
+      <Pagination
+        query={query}
+        perPage={perPage}
+        onPageChange={setPerPage}
+        className="mt-24"
+      />
+    </div>
+  );
+}
+
+interface PaginationProps {
+  query: UseQueryResult<PaginationResponse<unknown>, unknown>;
+  perPage: number | string;
+  onPageChange: (perPage: number | string) => void;
+  className?: string;
+}
+function Pagination({
+  query,
+  perPage,
+  onPageChange,
+  className,
+}: PaginationProps) {
+  return (
+    <div
+      className={clsx('flex items-center justify-between gap-24', className)}
+    >
+      <PaginationControls pagination={query.data} type="simple" />
+      <Select
+        minWidth="min-w-auto"
+        selectionMode="single"
+        disabled={query.isLoading}
+        labelPosition="side"
+        size="xs"
+        label={<Trans message="Per page" />}
+        selectedValue={`${perPage}`}
+        onSelectionChange={value => onPageChange(value)}
+        className="ml-auto"
+      >
+        <Item value="50">50</Item>
+        <Item value="100">100</Item>
+        <Item value="200">200</Item>
+        <Item value="500">500</Item>
+      </Select>
     </div>
   );
 }
@@ -159,10 +238,11 @@ function ContentTableRow({
 }: RowElementProps<NormalizedModel>) {
   const isTouchDevice = useIsTouchDevice();
   const {data, meta} = useContext(TableContext);
+  const {getValues} = useFormContext<UpdateChannelPayload>();
   const domRef = useRef<HTMLTableRowElement>(null);
+  const reorderContent = useReorderChannelContent();
   const previewRef = useRef<DragPreviewRenderer>(null);
   const [dropPosition, setDropPosition] = useState<DropPosition>(null);
-  const fieldArray = meta as UseFieldArrayReturn;
 
   const {sortableProps} = useSortable({
     ref: domRef,
@@ -176,7 +256,27 @@ function ContentTableRow({
       setDropPosition(position);
     },
     onSortEnd: (oldIndex, newIndex) => {
-      fieldArray.move(oldIndex, newIndex);
+      // do optimistic reorder
+      const newPagination = queryClient.setQueryData<
+        PaginationResponse<unknown>
+      >(meta, pagination => {
+        if (pagination) {
+          pagination = {
+            ...pagination,
+            data: moveItemInNewArray(pagination.data, oldIndex, newIndex),
+          };
+        }
+        return pagination;
+      });
+
+      // reorder on backend
+      if (newPagination) {
+        reorderContent.mutate({
+          channelId: getValues('id'),
+          modelType: item.model_type,
+          ids: newPagination.data.map(item => (item as NormalizedModel).id),
+        });
+      }
     },
   });
 
@@ -213,17 +313,21 @@ const RowDragPreview = React.forwardRef<
 });
 
 interface RemoveItemColumnProps {
-  index: number;
+  item: NormalizedModel;
 }
-function RemoveItemColumn({index}: RemoveItemColumnProps) {
-  const {meta} = useContext(TableContext);
-  const fieldArray = meta as UseFieldArrayReturn;
+function RemoveItemColumn({item}: RemoveItemColumnProps) {
+  const removeFromChannel = useRemoveFromChannel();
+  const {getValues} = useFormContext<UpdateChannelPayload>();
   return (
     <IconButton
       size="md"
       className="text-muted"
+      disabled={removeFromChannel.isPending}
       onClick={() => {
-        fieldArray.remove(index);
+        removeFromChannel.mutate({
+          channelId: getValues('id'),
+          item: item,
+        });
       }}
     >
       <CloseIcon />

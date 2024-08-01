@@ -22,7 +22,7 @@ export function useListbox<T>(
     items,
     role = 'listbox',
     virtualFocus,
-    loopFocus = false,
+    focusLoopingMode = 'stay',
     autoFocusFirstItem = true,
     onItemSelected,
     clearInputOnItemSelection,
@@ -116,7 +116,7 @@ export function useListbox<T>(
   // focus and scroll to specified index, in both virtual and regular mode.
   // will also skip disabled indices and focus next or previous non-disabled index instead
   const focusItem = useCallback(
-    (fallbackOperation: 'increment' | 'decrement', newIndex: number) => {
+    (fallbackOperation: 'increment' | 'decrement', newIndex: number | null) => {
       const items = [...collection.values()];
       const allItemsDisabled = !items.find(i => !i.isDisabled);
       const lastIndex = collection.size - 1;
@@ -137,11 +137,15 @@ export function useListbox<T>(
       newIndex = getNonDisabledIndex(
         items,
         newIndex,
-        loopFocus,
+        focusLoopingMode,
         fallbackOperation,
       );
 
       setActiveIndex(newIndex);
+
+      if (newIndex == null) {
+        return;
+      }
 
       if (virtualFocus) {
         listItemsRef.current[newIndex]?.scrollIntoView({
@@ -151,7 +155,7 @@ export function useListbox<T>(
         listItemsRef.current[newIndex]?.focus();
       }
     },
-    [collection, virtualFocus, loopFocus],
+    [collection, virtualFocus, focusLoopingMode],
   );
 
   const onInputChange = useCallback(
@@ -215,7 +219,7 @@ export function useListbox<T>(
     // even handlers
     handleItemSelection,
     onInputChange,
-    loopFocus,
+    focusLoopingMode,
 
     // config
     floatingWidth,
@@ -265,7 +269,7 @@ export function useListbox<T>(
 function getNonDisabledIndex(
   items: CollectionItem<unknown>[],
   newIndex: number,
-  loopFocus: boolean,
+  focusLoopingMode: ListboxProps['focusLoopingMode'],
   operation: 'increment' | 'decrement',
 ) {
   const lastIndex = items.length - 1;
@@ -274,22 +278,26 @@ function getNonDisabledIndex(
       newIndex++;
       if (newIndex >= lastIndex) {
         // loop from the start, if end reached
-        if (loopFocus) {
+        if (focusLoopingMode === 'loop') {
           newIndex = 0;
           // if focus is not looping, stay on the previous index
-        } else {
+        } else if (focusLoopingMode === 'stay') {
           return newIndex - 1;
+        } else {
+          return null;
         }
       }
     } else {
       newIndex--;
       // loop from the end, if start reached
       if (newIndex < 0) {
-        if (loopFocus) {
+        if (focusLoopingMode === 'loop') {
           newIndex = lastIndex;
           // if focus is not looping, stay on the previous index
-        } else {
+        } else if (focusLoopingMode === 'stay') {
           return newIndex + 1;
+        } else {
+          return null;
         }
       }
     }

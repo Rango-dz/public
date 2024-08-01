@@ -42,6 +42,7 @@ export function DangerZonePanel() {
       <Button
         variant="flat"
         color="danger"
+        disabled={confirmingPassword || deleteAccount.isPending}
         onClick={() => {
           withConfirmedPassword(() => {
             setConfirmDialogOpen(true);

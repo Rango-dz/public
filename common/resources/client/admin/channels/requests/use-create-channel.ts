@@ -10,7 +10,7 @@ import {useNavigate} from '@common/utils/hooks/use-navigate';
 import {PaginationResponse} from '@common/http/backend-response/pagination-response';
 import {NormalizedModel} from '@common/datatable/filters/normalized-model';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Channel} from '@common/channels/channel';
+import {Channel, ChannelConfig} from '@common/channels/channel';
 
 const endpoint = 'channel';
 
@@ -18,8 +18,13 @@ interface Response extends BackendResponse {
   channel: Channel;
 }
 
-export interface CreateChannelPayload
-  extends Omit<Channel, 'content' | 'items'> {
+export interface CreateChannelPayload {
+  name: string;
+  slug: string;
+  type: string;
+  public: boolean;
+  description?: string;
+  config: ChannelConfig;
   content: PaginationResponse<NormalizedModel>;
 }
 

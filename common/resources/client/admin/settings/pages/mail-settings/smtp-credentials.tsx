@@ -1,5 +1,7 @@
 import {FormTextField} from '../../../../ui/forms/input-field/text-field/text-field';
 import {Trans} from '../../../../i18n/trans';
+import {FormSelect} from '@common/ui/forms/select/select';
+import {Item} from '@common/ui/forms/listbox/item';
 
 export interface SmtpCredentialsProps {
   isInvalid: boolean;
@@ -36,12 +38,20 @@ export function SmtpCredentials({isInvalid}: SmtpCredentialsProps) {
         name="server.mail_port"
         label={<Trans message="SMTP port" />}
       />
-      <FormTextField
+      <FormSelect
+        selectionMode="single"
         invalid={isInvalid}
         className="mb-30"
         name="server.mail_encryption"
         label={<Trans message="SMTP encryption" />}
-      />
+      >
+        <Item value="">
+          <Trans message="None" />
+        </Item>
+        <Item value="tls">
+          <Trans message="TLS" />
+        </Item>
+      </FormSelect>
     </>
   );
 }

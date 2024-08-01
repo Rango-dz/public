@@ -27,11 +27,11 @@ export function DataTableHeader({
   return (
     <HeaderLayout>
       <TextField
-        inputTestId="datatable-search"
-        className="flex-auto max-w-440 mr-auto"
+        size="sm"
+        className="mr-auto min-w-180 max-w-440 flex-auto"
         inputWrapperClassName="mr-24 md:mr-0"
         placeholder={trans(searchPlaceholder)}
-        startAdornment={<SearchIcon />}
+        startAdornment={<SearchIcon size="sm" />}
         value={searchValue}
         onChange={e => {
           onSearchChange(e.target.value);
@@ -51,7 +51,7 @@ interface AnimatedHeaderProps extends ComponentPropsWithoutRef<'div'> {
 export function HeaderLayout({children, ...domProps}: AnimatedHeaderProps) {
   return (
     <div
-      className="mb-24 flex items-center gap-8 md:gap-12 text-muted relative h-42"
+      className="hidden-scrollbar relative mb-24 flex h-42 items-center gap-8 overflow-x-auto text-muted md:gap-12"
       {...domProps}
     >
       {children}

@@ -111,6 +111,7 @@ export const DefaultAppearanceConfig: IAppearanceConfig = {
           '/admin/files',
           '/admin/localizations',
           '/admin/ads',
+          '/admin/logs',
           '/admin/settings/authentication',
           '/admin/settings/branding',
           '/admin/settings/cache',

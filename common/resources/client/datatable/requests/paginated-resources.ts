@@ -14,6 +14,7 @@ export interface GetDatatableDataParams {
   with?: string;
   perPage?: number | string | null;
   page?: number | string;
+  paginate?: 'simple' | 'lengthAware' | 'preferLengthAware' | 'cursor';
   [key: string]: string | number | boolean | undefined | null;
 }
 
@@ -44,6 +45,9 @@ export function useDatatableData<T = object>(
   >,
   onLoad?: (data: PaginatedBackendResponse<T>) => void,
 ) {
+  if (!params.paginate) {
+    params.paginate = 'preferLengthAware';
+  }
   return useQuery({
     queryKey: DatatableDataQueryKey(endpoint, params),
     queryFn: ({signal}) => paginate<T>(endpoint, params, onLoad, signal),

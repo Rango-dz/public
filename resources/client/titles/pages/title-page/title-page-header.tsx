@@ -7,6 +7,7 @@ import {BulletSeparatedItems} from '@app/titles/bullet-separated-items';
 import {TitlePoster} from '@app/titles/title-poster/title-poster';
 import {TitleLink} from '@app/titles/title-link';
 import React from 'react';
+import {WatchlistButton} from '@app/user-lists/watchlist-button';
 
 interface Props {
   title: Title;
@@ -34,7 +35,12 @@ export function TitlePageHeader({title, showPoster = false}: Props) {
           </BulletSeparatedItems>
         </div>
       }
-      right={<InteractableRating title={title} />}
+      right={
+        <div className="flex items-center justify-between gap-10 max-md:mt-10">
+          <InteractableRating title={title} />
+          <WatchlistButton item={title} size="sm" className="md:hidden" />
+        </div>
+      }
     />
   );
 }

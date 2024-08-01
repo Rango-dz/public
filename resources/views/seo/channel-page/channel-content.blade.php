@@ -1,10 +1,12 @@
 @if ($item['model_type'] === 'title')
     <figure>
-        <img
-            src="{{ urls()->image($item['poster']) }}"
-            alt="{{ $item['name'] }} poster"
-            width="270px"
-        />
+        @if($image = urls()->image($item['poster']))
+            <img
+                src="{{ $image }}"
+                alt="{{ $item['name'] }} poster"
+                width="270px"
+            />
+        @endif
         <figcaption>
             <a href="{{ urls()->title($item) }}">
                 {{ $item['name'] }}
@@ -25,11 +27,13 @@
     </div>
 @else
     <figure>
-        <img
-            src="{{ urls()->image($item['poster']) }}"
-            alt="{{ $item['name'] }} poster"
-            width="270px"
-        />
+        @if($image = urls()->image($item['poster']))
+            <img
+                src="{{ $image }}"
+                alt="{{ $item['name'] }} poster"
+                width="270px"
+            />
+        @endif
         <figcaption>
             <a href="{{ urls()->person($item) }}">
                 {{ $item['name'] }}

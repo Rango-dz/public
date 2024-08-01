@@ -4,14 +4,22 @@ import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
 import {Trans} from '@common/i18n/trans';
 import {EMPTY_PAGINATION_RESPONSE} from '@common/http/backend-response/pagination-response';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
-import {useCreateChannel} from '@common/admin/channels/requests/use-create-channel';
+import {
+  CreateChannelPayload,
+  useCreateChannel,
+} from '@common/admin/channels/requests/use-create-channel';
 
 interface Props {
   defaultValues?: Partial<UpdateChannelPayload['config']>;
   children: ReactNode;
+  submitButtonText?: ReactNode;
 }
-export function CreateChannelPageLayout({defaultValues, children}: Props) {
-  const form = useForm<UpdateChannelPayload>({
+export function CreateChannelPageLayout({
+  defaultValues,
+  children,
+  submitButtonText,
+}: Props) {
+  const form = useForm<CreateChannelPayload>({
     defaultValues: {
       content: EMPTY_PAGINATION_RESPONSE.pagination,
       config: {
@@ -26,11 +34,12 @@ export function CreateChannelPageLayout({defaultValues, children}: Props) {
 
   return (
     <CrupdateResourceLayout
+      submitButtonText={submitButtonText}
       form={form}
       onSubmit={values => {
         createChannel.mutate(values);
       }}
-      title={<Trans message="Add new channel" />}
+      title={<Trans message="New channel" />}
       isLoading={createChannel.isPending}
     >
       {children}

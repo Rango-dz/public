@@ -1,6 +1,6 @@
 import {CustomPage} from '@common/admin/custom-pages/custom-page';
 import {useEffect, useRef} from 'react';
-import {highlightCode} from '@common/text-editor/highlight/highlight-code';
+import {highlightAllCode} from '@common/text-editor/highlight/highlight-code';
 
 interface CustomPageBodyProps {
   page: CustomPage;
@@ -9,7 +9,7 @@ export function CustomPageBody({page}: CustomPageBodyProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (bodyRef.current) {
-      highlightCode(bodyRef.current);
+      highlightAllCode(bodyRef.current);
     }
   }, []);
 

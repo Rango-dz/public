@@ -19,7 +19,11 @@ class AppearanceController extends BaseController
     {
         $this->authorize('update', 'AppearancePolicy');
 
-        $this->saver->save($this->request->get('changes'));
+        $payload = json_decode(request()->getContent())->changes;
+        $payload = settings()->castToArrayPreserveEmptyObjects($payload);
+
+        $this->saver->save($payload);
+
         return $this->success();
     }
 

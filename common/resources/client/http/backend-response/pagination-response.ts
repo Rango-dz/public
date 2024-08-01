@@ -1,6 +1,6 @@
 import {BackendResponse} from './backend-response';
 
-export interface LengthAwarePaginationResponse<T> {
+export interface LengthAwarePaginationResponse<T = unknown> {
   data: T[];
   from: number;
   to: number;
@@ -8,16 +8,18 @@ export interface LengthAwarePaginationResponse<T> {
   per_page: number;
   current_page: number;
   last_page: number;
-  next_page: number;
-  prev_page: number;
+  next_page?: number;
+  prev_page?: number;
 }
 
-export interface SimplePaginationResponse<T> {
+export interface SimplePaginationResponse<T = unknown> {
   data: T[];
   from: number;
   to: number;
   per_page: number;
   current_page: number;
+  next_page?: number | null;
+  prev_page?: number | null;
 }
 
 interface CursorPaginationResponse<T> {
@@ -40,6 +42,20 @@ export interface PaginatedBackendResponse<T> extends BackendResponse {
   pagination: PaginationResponse<T>;
 }
 
+export function hasPreviousPage(
+  pagination: PaginationResponse<unknown>,
+): boolean {
+  if ('prev_cursor' in pagination) {
+    return pagination.prev_cursor != null;
+  }
+
+  if ('prev_page' in pagination) {
+    return pagination.prev_page != null;
+  }
+
+  return pagination.current_page > 1;
+}
+
 export function hasNextPage(pagination: PaginationResponse<unknown>): boolean {
   if ('next_cursor' in pagination) {
     return pagination.next_cursor != null;
@@ -47,6 +63,10 @@ export function hasNextPage(pagination: PaginationResponse<unknown>): boolean {
 
   if ('last_page' in pagination) {
     return pagination.current_page < pagination.last_page;
+  }
+
+  if ('next_page' in pagination) {
+    return pagination.next_page != null;
   }
 
   return (

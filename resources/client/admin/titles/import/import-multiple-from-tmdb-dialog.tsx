@@ -22,6 +22,7 @@ import {
 } from '@app/admin/titles/requests/use-import-multiple-from-tmdb';
 import {ProgressBar} from '@common/ui/progress/progress-bar';
 import {Skeleton} from '@common/ui/skeleton/skeleton';
+import {ChipValue} from '@common/ui/forms/input-field/chip-field/chip-field';
 
 export function ImportMultipleFromTmdbDialog() {
   const form = useForm<ImportMultipleFromTmdbFormValue>({
@@ -214,8 +215,15 @@ function GenreChipField() {
 }
 
 function KeywordChipField() {
-  const {data} = useFilterValueLists();
-  const keywords = data?.keywords.map(keyword => ({
+  const [searchValue, setSearchValue] = useState('');
+  const [value, setValue] = useState<ChipValue[]>([]);
+  const keywordQuery = useValueLists(['keywords'], {
+    searchQuery: searchValue,
+    selectedValue: value.map(v => v.id).join(','),
+    type: 'tmdb',
+  });
+
+  const keywords = keywordQuery.data?.keywords.map(keyword => ({
     id: keyword.value,
     name: keyword.name,
   }));
@@ -223,6 +231,12 @@ function KeywordChipField() {
     <FormChipField
       name="keywords"
       className="mb-24"
+      isAsync
+      isLoading={keywordQuery.isLoading}
+      inputValue={searchValue}
+      onInputValueChange={setSearchValue}
+      value={value}
+      onChange={setValue}
       label={<Trans message="Keywords" />}
       suggestions={keywords}
       allowCustomValue={false}
@@ -230,11 +244,11 @@ function KeywordChipField() {
         <Trans message="Only import titles that have specied keywords attached." />
       }
     >
-      {keyword => (
-        <Item value={keyword.id}>
-          <Trans message={keyword.name} />
+      {keywords?.map(option => (
+        <Item key={option.id} value={option.id}>
+          <Trans message={option.name} />
         </Item>
-      )}
+      ))}
     </FormChipField>
   );
 }
@@ -248,6 +262,7 @@ function LanguageSelect() {
       label={<Trans message="Language" />}
       items={data?.languages}
       selectionMode="single"
+      showSearchField
       description={
         <Trans message="Only import titles with specied primary spoken language." />
       }
@@ -270,6 +285,7 @@ function CountrySelect() {
       label={<Trans message="Country" />}
       items={data?.countries}
       selectionMode="single"
+      showSearchField
       description={
         <Trans message="Only import titles with specied origin country." />
       }
@@ -307,7 +323,7 @@ function RatingFields() {
 }
 
 function useFilterValueLists() {
-  return useValueLists(['genres', 'keywords', 'languages', 'countries'], {
+  return useValueLists(['genres', 'languages', 'countries'], {
     type: 'tmdb',
   });
 }

@@ -26,6 +26,8 @@ class LazyLoader {
   > = {};
 
   loadAsset(url: string, params: Options = {type: 'js'}): Promise<any> {
+    // current protocol
+    url = url.startsWith('//') ? `${window.location.protocol}${url}` : url;
     const currentState = this.loadedAssets[url]?.state;
 
     // script is already loaded, return resolved promise

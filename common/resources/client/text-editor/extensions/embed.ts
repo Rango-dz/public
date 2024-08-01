@@ -15,6 +15,12 @@ export const Embed = Node.create({
 
   addAttributes() {
     return {
+      allowfullscreen: {
+        default: null,
+      },
+      allow: {
+        default: 'autoplay; fullscreen; picture-in-picture',
+      },
       src: {
         default: null,
       },

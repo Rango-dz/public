@@ -26,6 +26,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       elementType,
       to,
+      replace,
       href,
       download,
       ...other
@@ -48,6 +49,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         href={disabled ? undefined : href}
         download={disabled ? undefined : download}
         elementType={disabled ? undefined : elementType}
+        replace={disabled ? undefined : replace}
         {...other}
       >
         {startIcon && (

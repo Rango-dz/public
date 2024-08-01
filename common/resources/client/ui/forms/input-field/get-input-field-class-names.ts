@@ -185,10 +185,10 @@ function getRadius(props: InputFieldStyleProps): {
   return {
     input: clsx(
       !isInputGroup && 'rounded-input',
-      startAppend && 'rounded-input-r rounded-l-none',
-      endAppend && 'rounded-input-l rounded-r-none',
+      startAppend && 'rounded-r-input rounded-l-none',
+      endAppend && 'rounded-l-input rounded-r-none',
     ),
-    append: startAppend ? 'rounded-input-l' : 'rounded-input-r',
+    append: startAppend ? 'rounded-l-input' : 'rounded-r-input',
   };
 }
 

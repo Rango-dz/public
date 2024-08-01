@@ -5,7 +5,7 @@
 @endsection
 
 @section('body')
-    @if ($data = settings()->getJson('homepage.appearance'))
+    @if ($data = settings('homepage.appearance'))
         <h1>{{ $data['headerTitle'] }}</h1>
         <p>{{ $data['headerSubtitle'] }}</p>
 

@@ -5,8 +5,8 @@ import {BackendFiltersUrlKey} from '@common/datatable/filters/backend-filters-ur
 
 export function useChannelQueryParams(
   channel?: Channel,
-  userParams?: Record<string, string | null>
-) {
+  userParams?: Record<string, string | null> | null,
+): Record<string, string | number | null> {
   const params = useParams();
   const [searchParams] = useSearchParams();
   const {encodedFilters} = useBackendFilterUrlParams();
@@ -16,7 +16,6 @@ export function useChannelQueryParams(
     restriction: params.restriction || '',
     order: searchParams.get('order'),
     [BackendFiltersUrlKey]: encodedFilters,
-    paginate: 'simple',
   };
 
   // always set default channel order to keep query key stable

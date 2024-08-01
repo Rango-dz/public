@@ -2,17 +2,17 @@
 
 namespace Common\Core\Commands;
 
-use Common\Settings\Settings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class UpdateSimplePaginateTables extends Command
 {
-    protected $signature = 'simplePaginateTables:update';
+    protected $signature = 'pagination:optimize';
+    protected $description = 'Optimize pagination for large tables.';
 
     public function handle(): int
     {
-        $max = 100000;
+        $max = 150000;
 
         $tables = [];
 
@@ -28,9 +28,17 @@ class UpdateSimplePaginateTables extends Command
                 }
             });
 
-        app(Settings::class)->save([
+        settings()->save([
             'simple_pagination_tables' => implode(',', $tables),
         ]);
+
+        $this->info(
+            sprintf(
+                'Tables with more than %d rows: %s',
+                $max,
+                implode(', ', $tables),
+            ),
+        );
 
         return Command::SUCCESS;
     }

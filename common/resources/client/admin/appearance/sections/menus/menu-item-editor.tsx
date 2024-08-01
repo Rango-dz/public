@@ -1,15 +1,18 @@
 import {useFieldArray, useFormContext} from 'react-hook-form';
 import {Fragment, useEffect} from 'react';
-import {appearanceState, AppearanceValues} from '../../appearance-store';
+import {
+  appearanceState,
+  AppearanceValues,
+} from '@common/admin/appearance/appearance-store';
 import {Button} from '@common/ui/buttons/button';
-import {DeleteIcon} from '../../../../icons/material/Delete';
-import {ConfirmationDialog} from '../../../../ui/overlays/dialog/confirmation-dialog';
-import {DialogTrigger} from '../../../../ui/overlays/dialog/dialog-trigger';
-import {Trans} from '../../../../i18n/trans';
-import {useNavigate} from '../../../../utils/hooks/use-navigate';
-import {MenuItemForm} from '../../../menus/menu-item-form';
+import {DeleteIcon} from '@common/icons/material/Delete';
+import {ConfirmationDialog} from '@common/ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@common/ui/overlays/dialog/dialog-trigger';
+import {Trans} from '@common/i18n/trans';
+import {useNavigate} from '@common/utils/hooks/use-navigate';
+import {MenuItemForm} from '@common/admin/menus/menu-item-form';
+import {MenuItemConfig} from '@common/core/settings/settings';
 import {useParams} from 'react-router-dom';
-import {MenuItemConfig} from '../../../../core/settings/settings';
 
 export function MenuItemEditor() {
   const {menuIndex, menuItemIndex} = useParams();
@@ -26,7 +29,7 @@ export function MenuItemEditor() {
       //navigate(`../`);
     } else {
       appearanceState().preview.setHighlight(
-        `[data-menu-item-id="${item.id}"]`
+        `[data-menu-item-id="${item.id}"]`,
       );
     }
   }, [navigate, item]);
@@ -46,7 +49,7 @@ function MenuItemEditorSection({formPath}: MenuItemEditorSectionProps) {
   return (
     <Fragment>
       <MenuItemForm formPathPrefix={formPath} />
-      <div className="text-right mt-40">
+      <div className="mt-40 text-right">
         <DeleteItemTrigger />
       </div>
     </Fragment>

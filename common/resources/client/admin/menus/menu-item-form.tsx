@@ -22,6 +22,7 @@ import {EditIcon} from '../../icons/material/Edit';
 import {IconPickerDialog} from '../../ui/icon-picker/icon-picker-dialog';
 import {message} from '../../i18n/message';
 import {usePrevious} from '../../utils/hooks/use-previous';
+import {useSettings} from '@common/core/settings/use-settings';
 
 interface NameProps {
   prefixName: (name: string) => string;
@@ -50,13 +51,14 @@ export function MenuItemForm({
         startAppend={<IconDialogTrigger prefixName={prefixName} />}
       />
       <DestinationSelector prefixName={prefixName} />
+      <TargetSelect prefixName={prefixName} />
       {!hideRoleAndPermissionFields && (
         <Fragment>
           <RoleSelector prefixName={prefixName} />
           <PermissionSelector prefixName={prefixName} />
+          <SubscriptionStatusSelector prefixName={prefixName} />
         </Fragment>
       )}
-      <TargetSelect prefixName={prefixName} />
     </Fragment>
   );
 }
@@ -189,7 +191,7 @@ function RoleSelector({prefixName}: NameProps) {
 
   return (
     <FormChipField
-      className="mb-20"
+      className="my-20"
       placeholder={trans({message: 'Add role...'})}
       label={<Trans message="Only show if user has role" />}
       name={prefixName('roles')}
@@ -238,6 +240,29 @@ function PermissionSelector({prefixName}: NameProps) {
         </Section>
       )}
     </FormChipField>
+  );
+}
+
+function SubscriptionStatusSelector({prefixName}: NameProps) {
+  const {billing} = useSettings();
+  if (!billing.enable) return null;
+  return (
+    <FormSelect
+      selectionMode="single"
+      className="mt-20"
+      label={<Trans message="Subscription status" />}
+      name={prefixName('subscriptionStatus')}
+    >
+      <Item value="subscribed">
+        <Trans message="Only show if user is subscribed" />
+      </Item>
+      <Item value="unsubscribed">
+        <Trans message="Only show if user is not subscribed" />
+      </Item>
+      <Item value={null}>
+        <Trans message="Always show" />
+      </Item>
+    </FormSelect>
   );
 }
 

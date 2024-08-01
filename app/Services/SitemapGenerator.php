@@ -6,6 +6,7 @@ use App\Models\NewsArticle;
 use App\Models\Person;
 use App\Models\Season;
 use App\Models\Title;
+use App\Models\Video;
 use Common\Admin\Sitemap\BaseSitemapGenerator;
 use Common\Core\Contracts\AppUrlGenerator;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,11 +22,11 @@ class SitemapGenerator extends BaseSitemapGenerator
                     $query->where('fully_synced', true)->orWhereNull('tmdb_id');
                 })
                 ->whereNotNull('name')
-                ->select(['id', 'name']),
+                ->select(['id', 'name', 'updated_at']),
             app(Person::class)
                 ->where('fully_synced', true)
                 ->orWhereNull('tmdb_id')
-                ->select(['id', 'name']),
+                ->select(['id', 'name', 'updated_at']),
             app(Episode::class)
                 ->whereHas('title')
                 ->with(['title' => fn($q) => $q->compact()])
@@ -35,15 +36,22 @@ class SitemapGenerator extends BaseSitemapGenerator
                     'title_id',
                     'season_number',
                     'episode_number',
+                    'updated_at',
                 ]),
             app(Season::class)
                 ->whereHas('title')
                 ->with(['title' => fn($q) => $q->compact()])
                 ->select(['id', 'title_id', 'number']),
+            Video::select(['id', 'name', 'updated_at']),
             Channel::where('public', true)
                 ->where('internal', false)
-                ->select(['id', 'name', 'slug']),
-            app(NewsArticle::class)->select(['id', 'title', 'slug']),
+                ->select(['id', 'name', 'slug', 'updated_at']),
+            app(NewsArticle::class)->select([
+                'id',
+                'title',
+                'slug',
+                'updated_at',
+            ]),
         ];
     }
 

@@ -13,7 +13,7 @@ class StripeController extends BaseController
     public function __construct(
         protected Request $request,
         protected Subscription $subscription,
-        protected Stripe $stripe
+        protected Stripe $stripe,
     ) {
         $this->middleware('auth');
     }
@@ -67,7 +67,7 @@ class StripeController extends BaseController
             ['expand' => ['invoice']],
         );
 
-        $this->stripe->storeSubscriptionDetailsLocally(
+        $this->stripe->subscriptions->sync(
             $paymentIntent->invoice->subscription,
         );
 

@@ -10,28 +10,48 @@ import {NewsArticleSourceLink} from '@app/news/news-article-source-link';
 import {NewsArticleByline} from '@app/news/news-article-byline';
 import {useChannelContent} from '@common/channels/requests/use-channel-content';
 import {Channel, ChannelContentItem} from '@common/channels/channel';
+import {
+  PaginationControls,
+  PaginationControlsType,
+} from '@common/ui/navigation/pagination-controls';
 
 export function ChannelContentNews({
   channel,
   isNested,
 }: ChannelContentProps<NewsArticle>) {
-  const {data} = useChannelContent<ChannelContentItem<NewsArticle>>(channel);
+  const shouldPaginate = !isNested;
+  const query = useChannelContent<ChannelContentItem<NewsArticle>>(
+    channel,
+    null,
+    {
+      paginate: shouldPaginate,
+    },
+  );
 
   return (
     <div>
       <ChannelHeader channel={channel as Channel} isNested={isNested} />
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mb-34"
+        />
+      )}
       <div className="flex gap-34">
         <div className="w-240 flex-shrink-0">
-          {data?.slice(0, 3).map(article => (
-            <LeftColArticle
-              key={article.id}
-              article={article}
-              className="mb-14"
-            />
-          ))}
+          {query.data?.data
+            .slice(0, 3)
+            .map(article => (
+              <LeftColArticle
+                key={article.id}
+                article={article}
+                className="mb-14"
+              />
+            ))}
         </div>
         <div className="flex-auto">
-          {data?.slice(3, 12).map(article => (
+          {query.data?.data.slice(3, 12).map(article => (
             <div key={article.id} className="mb-12 flex items-center gap-14">
               <NewsArticleImage article={article} size="w-84 h-84" />
               <div className="flex-auto">
@@ -46,6 +66,14 @@ export function ChannelContentNews({
           ))}
         </div>
       </div>
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mt-34"
+          scrollToTop
+        />
+      )}
     </div>
   );
 }

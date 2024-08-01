@@ -6,10 +6,10 @@ import {HtmlVideoProvider} from '@common/player/providers/html-video-provider';
 import {HtmlAudioProvider} from '@common/player/providers/html-audio-provider';
 
 const HlsProvider = React.lazy(
-  () => import('@common/player/providers/hls-provider')
+  () => import('@common/player/providers/hls-provider'),
 );
 const DashProvider = React.lazy(
-  () => import('@common/player/providers/dash-provider')
+  () => import('@common/player/providers/dash-provider'),
 );
 
 interface Props {

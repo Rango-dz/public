@@ -9,20 +9,13 @@ use Illuminate\Support\Collection;
 
 class ChannelPolicy extends BasePolicy
 {
-    public function index(
-        ?User $user,
-        int $userId = null,
-        string $channelType = null,
-    ) {
-        if ($userId && $user->id === $userId) {
-            return true;
+    public function index(?User $user, string $channelType = 'channel')
+    {
+        if ($channelType === 'list') {
+            return $this->authorizePermission($user, 'lists.view');
         }
 
-        if ($channelType === 'list' && $this->hasPermission($user, 'lists.view')) {
-            return true;
-        }
-
-        return $this->hasPermission($user, 'channels.update');
+        return $this->authorizePermission($user, 'channels.update');
     }
 
     public function show(?User $user, Channel $channel)
@@ -32,10 +25,15 @@ class ChannelPolicy extends BasePolicy
         }
 
         if ($channel->type === 'channel') {
-            return $this->hasPermission($user, 'titles.view');
+            return $this->authorizePermission($user, 'titles.view');
         } else {
-            return $this->hasPermission($user, 'lists.view') ||
-                $channel->public;
+            // if list not public and user is not owner, deny access
+            if (!$channel->public && !$channel->user_id === $user?->id) {
+                return false;
+            }
+            // require "lists.view" permission always, so users can be
+            // blocked completely from lists functionality if not subscribed
+            return $this->authorizePermission($user, 'lists.view');
         }
     }
 

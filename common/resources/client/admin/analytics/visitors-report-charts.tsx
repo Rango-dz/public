@@ -7,7 +7,7 @@ import {VisitorsReportData} from '@common/admin/analytics/visitors-report-data';
 import {FormattedNumber} from '@common/i18n/formatted-number';
 import {GeoChart} from '@common/admin/analytics/geo-chart/geo-chart';
 
-export const AdminReportPageColGap = 'gap-12 md:gap-24 mb-12 md:mb-24';
+export const AdminReportPageColGap = 'gap-12 md:gap-16 mb-12 md:mb-16';
 const rowClassName = `flex flex-col md:flex-row md:items-center overflow-x-auto ${AdminReportPageColGap}`;
 
 interface AdminReportChartsProps {

@@ -17,18 +17,20 @@ interface Props {
   description: ReactNode;
   children: ReactNode;
   transformValues?: (values: AdminSettingsWithFiles) => AdminSettingsWithFiles;
+  headerMargin?: string;
 }
 export function SettingsPanel({
   title,
   description,
   children,
   transformValues,
+  headerMargin = 'mb-40',
 }: Props) {
   const {data} = useAdminSettings();
 
   return (
     <section>
-      <div className="mb-40">
+      <div className={headerMargin}>
         <h2 className="mb-4 text-xl">{title}</h2>
         <div className="text-sm text-muted">{description}</div>
       </div>

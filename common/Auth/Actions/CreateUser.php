@@ -6,6 +6,7 @@ use App\Models\User;
 use Common\Auth\Events\UserCreated;
 use Common\Auth\Permissions\Traits\SyncsPermissions;
 use Common\Auth\Roles\Role;
+use Common\Core\Values\ValueLists;
 use Illuminate\Support\Arr;
 
 class CreateUser
@@ -25,8 +26,7 @@ class CreateUser
         $params['language'] = $params['language'] ?? config('app.locale');
         $params['country'] =
             $params['country'] ?? ($geoData['iso_code'] ?? null);
-        $params['timezone'] =
-            $params['timezone'] ?? ($geoData['timezone'] ?? null);
+        $params['timezone'] = $this->getValidTimezone($params, $geoData);
 
         $user = User::create(Arr::except($params, ['roles', 'permissions']));
 
@@ -49,5 +49,12 @@ class CreateUser
         event(new UserCreated($user, $params));
 
         return $user;
+    }
+
+    protected function getValidTimezone(array $params, mixed $geoData): string
+    {
+        $preferred = $params['timezone'] ?? ($geoData['timezone'] ?? null);
+        $all = collect(app(ValueLists::class)->timezones())->values()->flatten(1)->pluck('value');
+        return $all->contains($preferred) ? $preferred : 'UTC';
     }
 }

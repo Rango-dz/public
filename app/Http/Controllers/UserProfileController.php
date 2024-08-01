@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Channel;
+use App\Actions\Lists\ListsLoader;
 use App\Models\Episode;
 use App\Models\Title;
 use App\Models\User;
 use Auth;
 use Common\Auth\Events\UserAvatarChanged;
-use Common\Channels\PaginateChannels;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Str;
 
 class UserProfileController extends BaseController
 {
@@ -67,24 +65,7 @@ class UserProfileController extends BaseController
     {
         $this->authorize('show', $user);
 
-        $builder = $user->lists()->where('internal', false);
-
-        if (Auth::id() !== $user->id) {
-            $builder->where('public', true);
-        }
-
-        $pagination = app(PaginateChannels::class)->execute(
-            array_merge(request()->all(), [
-                'loadItemsCount' => true,
-                'loadFirstItems' => true,
-            ]),
-            $builder,
-        );
-
-        $pagination->transform(function (Channel $list) {
-            $list->description = Str::limit($list->description, 80);
-            return $list;
-        });
+        $pagination = (new ListsLoader())->forUser($user, request()->all());
 
         return $this->success(['pagination' => $pagination]);
     }

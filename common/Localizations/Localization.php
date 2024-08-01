@@ -14,11 +14,15 @@ class Localization extends BaseModel
             return;
         }
 
-        $path = resource_path("lang/$this->language.json");
-
+        $path = $this->getLinesFilePath();
         if (file_exists($path)) {
             $this->lines = json_decode(file_get_contents($path), true);
         }
+    }
+
+    public function getLinesFilePath(): string
+    {
+        return resource_path("lang/$this->language.json");
     }
 
     public function toSearchableArray(): array

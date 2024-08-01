@@ -8,6 +8,7 @@ export interface UploadStrategyConfig {
   baseUrl?: string;
   restrictions?: Restrictions;
   showToastOnRestrictionFail?: boolean;
+  showToastOnBackendError?: boolean;
   onProgress?: (progress: {bytesUploaded: number; bytesTotal: number}) => void;
   onSuccess?: (entry: FileEntry, file: UploadedFile) => void;
   onError?: (message: string | undefined | null, file: UploadedFile) => void;

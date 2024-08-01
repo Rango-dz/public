@@ -86,4 +86,32 @@ class LocalizationsController extends BaseController
 
         return $this->success();
     }
+
+    public function download(int $id)
+    {
+        $localization = Localization::findOrFail($id);
+
+        $this->authorize('show', $localization);
+
+        return response()->download($localization->getLinesFilePath());
+    }
+
+    public function upload(int $id)
+    {
+        $localization = Localization::findOrFail($id);
+
+        $this->authorize('update', $localization);
+
+        $data = $this->validate($this->request, [
+            'file' => 'required|file|mimes:json',
+        ]);
+
+        $this->repository->storeLocalizationLines(
+            $localization,
+            json_decode(file_get_contents($data['file']->getRealPath()), true),
+            true,
+        );
+
+        return $this->success();
+    }
 }

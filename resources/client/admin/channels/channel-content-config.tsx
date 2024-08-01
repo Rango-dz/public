@@ -16,6 +16,7 @@ import {ViewListIcon} from '@common/icons/material/ViewList';
 export enum Sort {
   popular = 'popularity:desc',
   recent = 'created_at:desc',
+  attachDate = 'channelables.created_at:desc',
   rating = 'rating:desc',
   curated = 'channelables.order:asc',
   name = 'name:asc',
@@ -33,6 +34,7 @@ export enum Layout {
   landscapeCarousel = 'landscapeCarousel',
   slider = 'slider',
 }
+
 enum Auto {
   latestVideos = 'latestVideos',
   mostPopular = 'mostPopular',
@@ -43,6 +45,12 @@ enum Auto {
   airingThisWeek = 'airingThisWeek',
   trendingPeople = 'trendingPeople',
   discover = 'discover',
+}
+
+enum Restrictions {
+  genre = 'genre',
+  keyword = 'keyword',
+  productionCountry = 'productionCountry',
 }
 
 const contentModels: ChannelContentConfig['models'] = {
@@ -71,6 +79,11 @@ const contentModels: ChannelContentConfig['models'] = {
       Auto.nowPlaying,
       Auto.discover,
     ],
+    restrictions: [
+      Restrictions.genre,
+      Restrictions.keyword,
+      Restrictions.productionCountry,
+    ],
   },
   [SERIES_MODEL]: {
     label: message('TV series'),
@@ -97,6 +110,11 @@ const contentModels: ChannelContentConfig['models'] = {
       Auto.airingToday,
       Auto.discover,
     ],
+    restrictions: [
+      Restrictions.genre,
+      Restrictions.keyword,
+      Restrictions.productionCountry,
+    ],
   },
   [TITLE_MODEL]: {
     label: message('Titles (movies and series)'),
@@ -116,6 +134,11 @@ const contentModels: ChannelContentConfig['models'] = {
       Layout.slider,
     ],
     autoUpdateMethods: [Auto.latestVideos],
+    restrictions: [
+      Restrictions.genre,
+      Restrictions.keyword,
+      Restrictions.productionCountry,
+    ],
   },
   [NEWS_ARTICLE_MODEL]: {
     label: message('News articles'),
@@ -149,7 +172,7 @@ const contentSortingMethods: Record<
     label: message('Most popular first'),
   },
   [Sort.recent]: {
-    label: message('Recently added first'),
+    label: message('Recently created items first'),
   },
   [Sort.rating]: {
     label: message('Highest rated first'),
@@ -157,6 +180,9 @@ const contentSortingMethods: Record<
   [Sort.curated]: {
     label: message('Curated (reorder below)'),
     contentTypes: ['manual'],
+  },
+  [Sort.attachDate]: {
+    label: message('Items recently added to channel first'),
   },
   [Sort.name]: {
     label: message('Name (A-Z)'),
@@ -212,32 +238,39 @@ const contentAutoUpdateMethods: Record<
 > = {
   [Auto.discover]: {
     label: message('Discover (TMDB only)'),
-    provider: 'tmdb',
+    providers: ['tmdb'],
   },
   [Auto.mostPopular]: {
     label: message('Most popular'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.topRated]: {
     label: message('Top rated'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.upcoming]: {
     label: message('Upcoming'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.nowPlaying]: {
     label: message('In theaters'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.airingToday]: {
     label: message('Airing today'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.airingThisWeek]: {
     label: message('Airing this week'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.trendingPeople]: {
     label: message('Trending people'),
+    providers: ['tmdb', 'local'],
   },
   [Auto.latestVideos]: {
     label: message('Most recently published videos'),
-    provider: 'local',
+    providers: ['local'],
   },
 };
 export const channelContentConfig: ChannelContentConfig = {
@@ -246,6 +279,20 @@ export const channelContentConfig: ChannelContentConfig = {
   layoutMethods: contentLayoutMethods,
   autoUpdateMethods: contentAutoUpdateMethods,
   userSelectableLayouts: [Layout.grid, Layout.landscapeGrid, Layout.list],
+  restrictions: {
+    [Restrictions.genre]: {
+      label: message('Genre'),
+      value: Restrictions.genre,
+    },
+    [Restrictions.keyword]: {
+      label: message('Keyword'),
+      value: Restrictions.keyword,
+    },
+    [Restrictions.productionCountry]: {
+      label: message('Production country'),
+      value: Restrictions.productionCountry,
+    },
+  },
 };
 
 export type ChannelContentModel = (Title | NewsArticle | Person | Channel) & {

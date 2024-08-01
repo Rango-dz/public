@@ -14,8 +14,8 @@ import {PlayerActions} from '@common/player/hooks/use-player-actions';
 import {getWatchLink} from '@app/videos/watch-page/get-watch-link';
 import {useNavigate} from '@common/utils/hooks/use-navigate';
 import {isSameMedia} from '@common/player/utils/is-same-media';
-import {EpisodeSelector} from '@app/videos/watch-page/episode-selector';
 import {Trans} from '@common/i18n/trans';
+import {EpisodeSelector} from '@app/videos/watch-page/episode-selector';
 
 interface Props {
   video: Video;

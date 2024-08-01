@@ -96,7 +96,7 @@ class FileEntry extends BaseModel
         $endpoint = config('common.site.file_preview_endpoint');
 
         if (Arr::get($this->attributes, 'public')) {
-            $publicPath =  "$this->disk_prefix/$this->file_name";
+            $publicPath = "$this->disk_prefix/$this->file_name";
             if ($endpoint) {
                 return "$endpoint/storage/$publicPath";
             }
@@ -171,6 +171,11 @@ class FileEntry extends BaseModel
         });
     }
 
+    public function scopeWhereOwner(Builder $builder, int $userId): Builder
+    {
+        return $builder->where('owner_id', $userId);
+    }
+
     /**
      * Select only entries that were not created by specified user.
      */
@@ -221,19 +226,25 @@ class FileEntry extends BaseModel
 
     public function resolveRouteBinding($value, $field = null): ?self
     {
-        // value might be ID with extension: "4546.mp4" or hash: "ja4d5ad4" or ID int: 4546 or filename
+        return $this->byIdOrHash($value)
+            ->withTrashed()
+            ->firstOrFail();
+    }
 
+    /**
+     * $value might be ID with extension: "4546.mp4" or hash: "ja4d5ad4" or ID int: 4546 or filename
+     */
+    public function scopeByIdOrHash(Builder $builder, $value): Builder
+    {
         if (str_contains($value, '.') && str_contains($value, '-')) {
-            return $this->withTrashed()
-                ->where('file_name', $value)
-                ->firstOrFail();
+            return $builder->where('file_name', $value);
         }
 
-        $intValue = (int) $value;
-        if ($intValue === 0) {
-            $intValue = $this->decodeHash($intValue);
+        $id = (int) $value;
+        if ($id === 0) {
+            $id = $this->decodeHash($value);
         }
-        return $this->withTrashed()->findOrFail($intValue);
+        return $builder->where('id', $id);
     }
 
     protected function makeAllSearchableUsing($query)

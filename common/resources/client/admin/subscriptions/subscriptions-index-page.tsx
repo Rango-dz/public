@@ -48,20 +48,16 @@ const columnConfig: ColumnConfig<Subscription>[] = [
     key: 'status',
     width: 'w-100 flex-shrink-0',
     header: () => <Trans message="Status" />,
-    body: subscription => {
-      if (subscription.valid) {
-        return (
-          <Chip size="xs" color="positive" radius="rounded" className="w-max">
-            <Trans message="Active" />
-          </Chip>
-        );
-      }
-      return (
-        <Chip size="xs" radius="rounded" className="w-max">
-          <Trans message="Cancelled" />
-        </Chip>
-      );
-    },
+    body: subscription => (
+      <Chip
+        size="xs"
+        color={subscription.valid ? 'positive' : undefined}
+        radius="rounded"
+        className="w-max"
+      >
+        {subscription.gateway_status}
+      </Chip>
+    ),
   },
   {
     key: 'product_id',
@@ -101,7 +97,7 @@ const columnConfig: ColumnConfig<Subscription>[] = [
     hideHeader: true,
     align: 'end',
     visibleInMode: 'all',
-    width: 'w-128 flex-shrink-0',
+    width: 'w-[168px] flex-shrink-0',
     body: subscription => {
       return <SubscriptionActions subscription={subscription} />;
     },
@@ -155,11 +151,12 @@ function SubscriptionActions({subscription}: SubscriptionActionsProps) {
         </IconButton>
         <UpdateSubscriptionDialog subscription={subscription} />
       </DialogTrigger>
-      {subscription.cancelled ? (
+      {subscription.cancelled && subscription.on_grace_period ? (
         <ResumeSubscriptionButton subscription={subscription} />
-      ) : (
+      ) : null}
+      {subscription.active ? (
         <SuspendSubscriptionButton subscription={subscription} />
-      )}
+      ) : null}
       <CancelSubscriptionButton subscription={subscription} />
     </Fragment>
   );

@@ -11,13 +11,7 @@ import {ListsDatatableColumns} from '@app/admin/lists/lists-datatable-columns';
 export function ListsDatatablePage() {
   return (
     <DataTablePage
-      endpoint="channel"
-      queryParams={{
-        hideInternal: 'true',
-        with: 'user',
-        type: 'list',
-        loadItemsCount: 'true',
-      }}
+      endpoint="lists"
       title={<Trans message="User lists" />}
       columns={ListsDatatableColumns}
       actions={<Actions />}

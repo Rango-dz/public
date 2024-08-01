@@ -41,7 +41,7 @@ export interface ListBoxChildren<T> {
 export type ListboxProps = SelectionProps & {
   role?: 'listbox' | 'menu';
   virtualFocus?: boolean;
-  loopFocus?: boolean;
+  focusLoopingMode?: 'loop' | 'stay' | 'deselect';
   autoFocusFirstItem?: boolean;
   autoUpdatePosition?: boolean;
   floatingWidth?: 'auto' | 'matchTrigger';
@@ -78,7 +78,7 @@ export interface UseListboxReturn {
   ) => void;
 
   allowCustomValue: ListboxProps['allowCustomValue']; // for combobox
-  loopFocus: ListboxProps['loopFocus'];
+  focusLoopingMode: ListboxProps['focusLoopingMode'];
   floatingWidth: ListboxProps['floatingWidth'];
   floatingMinWidth: ListboxProps['floatingMinWidth'];
   floatingMaxHeight: ListboxProps['floatingMaxHeight'];

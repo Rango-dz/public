@@ -4,13 +4,15 @@ import {Trans} from '@common/i18n/trans';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {ReactNode} from 'react';
 import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import clsx from 'clsx';
 
 interface Props {
   config: ChannelContentConfig;
+  className?: string;
 }
-export function ContentLayoutFields({config}: Props) {
+export function ContentLayoutFields({config, className}: Props) {
   return (
-    <div className="md:flex items-end my-24 gap-14">
+    <div className={clsx('items-end gap-14 md:flex', className)}>
       <LayoutField
         config={config}
         name="config.layout"
@@ -40,7 +42,7 @@ function LayoutField({config, name, label}: LayoutFieldProps) {
 
   return (
     <FormSelect
-      className="flex-auto w-full"
+      className="w-full flex-auto"
       selectionMode="single"
       name={name}
       label={label}

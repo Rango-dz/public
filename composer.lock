@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "80418695b28b371f9c4f267b182ae21f",
+    "content-hash": "fe11da3976b03703c830cbad8418f12f",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -3975,36 +3975,36 @@
         },
         {
             "name": "laravel/pulse",
-            "version": "v1.0.0-beta8",
+            "version": "v1.0.0-beta15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/pulse.git",
-                "reference": "32fb030ebf9679a30c373cada2905568d3cf818e"
+                "reference": "6fc88b3ead77fd1c67428f0c0fa6ac2ec5302e2b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/pulse/zipball/32fb030ebf9679a30c373cada2905568d3cf818e",
-                "reference": "32fb030ebf9679a30c373cada2905568d3cf818e",
+                "url": "https://api.github.com/repos/laravel/pulse/zipball/6fc88b3ead77fd1c67428f0c0fa6ac2ec5302e2b",
+                "reference": "6fc88b3ead77fd1c67428f0c0fa6ac2ec5302e2b",
                 "shasum": ""
             },
             "require": {
                 "doctrine/sql-formatter": "^1.1",
-                "guzzlehttp/promises": "^1.0 || ^2.0",
-                "illuminate/auth": "^10.34",
-                "illuminate/cache": "^10.34",
-                "illuminate/config": "^10.34",
-                "illuminate/console": "^10.34",
-                "illuminate/contracts": "^10.34",
-                "illuminate/database": "^10.34",
-                "illuminate/events": "^10.34",
-                "illuminate/http": "^10.34",
-                "illuminate/queue": "^10.34",
-                "illuminate/redis": "^10.34",
-                "illuminate/routing": "^10.34",
-                "illuminate/support": "^10.34",
-                "illuminate/view": "^10.34",
+                "guzzlehttp/promises": "^1.0|^2.0",
+                "illuminate/auth": "^10.34|^11.0",
+                "illuminate/cache": "^10.34|^11.0",
+                "illuminate/config": "^10.34|^11.0",
+                "illuminate/console": "^10.34|^11.0",
+                "illuminate/contracts": "^10.34|^11.0",
+                "illuminate/database": "^10.34|^11.0",
+                "illuminate/events": "^10.34|^11.0",
+                "illuminate/http": "^10.34|^11.0",
+                "illuminate/queue": "^10.34|^11.0",
+                "illuminate/redis": "^10.34|^11.0",
+                "illuminate/routing": "^10.34|^11.0",
+                "illuminate/support": "^10.34|^11.0",
+                "illuminate/view": "^10.34|^11.0",
                 "livewire/livewire": "^3.2",
-                "nesbot/carbon": "^2.67",
+                "nesbot/carbon": "^2.67|^3.0",
                 "php": "^8.1"
             },
             "conflict": {
@@ -4013,11 +4013,11 @@
             "require-dev": {
                 "guzzlehttp/guzzle": "^7.7",
                 "mockery/mockery": "^1.0",
-                "orchestra/testbench": "^8.16",
+                "orchestra/testbench": "^8.16|^9.0",
                 "pestphp/pest": "^2.0",
                 "pestphp/pest-plugin-laravel": "^2.2",
                 "phpstan/phpstan": "^1.11",
-                "predis/predis": "^1.0 || ^2.0"
+                "predis/predis": "^1.0|^2.0"
             },
             "type": "library",
             "extra": {
@@ -4057,7 +4057,7 @@
                 "issues": "https://github.com/laravel/pulse/issues",
                 "source": "https://github.com/laravel/pulse"
             },
-            "time": "2023-12-27T14:15:20+00:00"
+            "time": "2024-03-11T13:19:11+00:00"
         },
         {
             "name": "laravel/sanctum",
@@ -6374,6 +6374,147 @@
                 }
             ],
             "time": "2023-11-13T09:31:12+00:00"
+        },
+        {
+            "name": "opcodesio/log-viewer",
+            "version": "v3.10.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opcodesio/log-viewer.git",
+                "reference": "d0d1e9429a0a3a59ac8d525bfb8415b1041b30ca"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opcodesio/log-viewer/zipball/d0d1e9429a0a3a59ac8d525bfb8415b1041b30ca",
+                "reference": "d0d1e9429a0a3a59ac8d525bfb8415b1041b30ca",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^8.0|^9.0|^10.0|^11.0",
+                "opcodesio/mail-parser": "^0.1.6",
+                "php": "^8.0"
+            },
+            "conflict": {
+                "arcanedev/log-viewer": "^8.0"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^7.2",
+                "itsgoingd/clockwork": "^5.1",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.0|^8.0",
+                "orchestra/testbench": "^7.6|^8.0|^9.0",
+                "pestphp/pest": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0",
+                "spatie/test-time": "^1.3"
+            },
+            "suggest": {
+                "guzzlehttp/guzzle": "Required for multi-host support. ^7.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Opcodes\\LogViewer\\LogViewerServiceProvider"
+                    ],
+                    "aliases": {
+                        "LogViewer": "Opcodes\\LogViewer\\Facades\\LogViewer"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Opcodes\\LogViewer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Arunas Skirius",
+                    "email": "arukomp@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Fast and easy-to-use log viewer for your Laravel application",
+            "homepage": "https://github.com/opcodesio/log-viewer",
+            "keywords": [
+                "arukompas",
+                "better-log-viewer",
+                "laravel",
+                "log viewer",
+                "logs",
+                "opcodesio"
+            ],
+            "support": {
+                "issues": "https://github.com/opcodesio/log-viewer/issues",
+                "source": "https://github.com/opcodesio/log-viewer/tree/v3.10.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/arunas",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/arukompas",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-05-20T15:11:50+00:00"
+        },
+        {
+            "name": "opcodesio/mail-parser",
+            "version": "v0.1.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opcodesio/mail-parser.git",
+                "reference": "639ef31cbd146a63416283e75afce152e13233ea"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opcodesio/mail-parser/zipball/639ef31cbd146a63416283e75afce152e13233ea",
+                "reference": "639ef31cbd146a63416283e75afce152e13233ea",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "pestphp/pest": "^2.16",
+                "symfony/var-dumper": "^6.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Opcodes\\MailParser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Arunas Skirius",
+                    "email": "arukomp@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Parse emails without the mailparse extension",
+            "keywords": [
+                "arukompas",
+                "email",
+                "email parser",
+                "mail",
+                "opcodesio",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/opcodesio/mail-parser/issues",
+                "source": "https://github.com/opcodesio/mail-parser/tree/v0.1.6"
+            },
+            "time": "2023-11-19T08:47:43+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -13175,5 +13316,5 @@
         "php": ">=8.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

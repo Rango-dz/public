@@ -12,6 +12,15 @@ import {Link} from 'react-router-dom';
 import {CreateChannelPayload} from '@common/admin/channels/requests/use-create-channel';
 import {useChannel} from '@common/channels/requests/use-channel';
 import {Channel} from '@common/channels/channel';
+import {ChannelContentEditor} from '@common/admin/channels/channel-editor/channel-content-editor';
+import {
+  ChannelContentSearchField,
+  ChannelContentSearchFieldProps,
+} from '@common/admin/channels/channel-editor/channel-content-search-field';
+import {ChannelContentItemImage} from '@app/admin/channels/channel-content-item-image';
+import {IllustratedMessage} from '@common/ui/images/illustrated-message';
+import {SvgImage} from '@common/ui/images/svg-image/svg-image';
+import playlist from '@common/admin/channels/playlist.svg';
 
 export function EditUserListPage() {
   const query = useChannel(undefined, 'editUserListPage');
@@ -23,6 +32,11 @@ export function EditUserListPage() {
       </StaticPageTitle>
       <PageContent list={query.data.channel}>
         <CrupdateUserListForm />
+        <ChannelContentEditor
+          title={<Trans message="List content" />}
+          searchField={<SearchField />}
+          noResultsMessage={<NoResultsMessage />}
+        />
       </PageContent>
     </Fragment>
   ) : (
@@ -59,5 +73,24 @@ function PageContent({list, children}: PageContentProps) {
     >
       {children}
     </CrupdateResourceLayout>
+  );
+}
+
+function SearchField(props: ChannelContentSearchFieldProps) {
+  return (
+    <ChannelContentSearchField
+      {...props}
+      imgRenderer={item => <ChannelContentItemImage item={item} />}
+    />
+  );
+}
+
+function NoResultsMessage() {
+  return (
+    <IllustratedMessage
+      title={<Trans message="List is empty" />}
+      description={<Trans message="No content is attached to this list yet." />}
+      image={<SvgImage src={playlist} />}
+    />
   );
 }

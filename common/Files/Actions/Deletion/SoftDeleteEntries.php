@@ -4,12 +4,12 @@ namespace Common\Files\Actions\Deletion;
 
 use Common\Files\Events\FileEntriesDeleted;
 use Common\Files\FileEntry;
-use Common\Files\Traits\LoadsAllChildEntries;
+use Common\Files\Traits\ChunksChildEntries;
 use Illuminate\Support\Collection;
 
 class SoftDeleteEntries
 {
-    use LoadsAllChildEntries;
+    use ChunksChildEntries;
 
     public function __construct(protected FileEntry $entry)
     {
@@ -18,7 +18,7 @@ class SoftDeleteEntries
     public function execute(Collection|array $entryIds): void
     {
         collect($entryIds)
-            ->chunk(50)
+            ->chunk(400)
             ->each(function ($ids) {
                 $entries = $this->entry
                     ->withTrashed()
@@ -33,8 +33,11 @@ class SoftDeleteEntries
      */
     protected function delete(Collection|array $entries): void
     {
-        $entries = $this->loadChildEntries($entries);
-        $this->entry->whereIn('id', $entries->pluck('id'))->delete();
-        event(new FileEntriesDeleted($entries->pluck('id')->toArray(), false));
+        $this->chunkChildEntries($entries, function ($chunk) {
+            $this->entry->whereIn('id', $chunk->pluck('id'))->delete();
+            event(
+                new FileEntriesDeleted($chunk->pluck('id')->toArray(), false),
+            );
+        });
     }
 }

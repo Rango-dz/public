@@ -102,17 +102,4 @@ class UserController extends BaseController
 
         return $this->success();
     }
-
-    public function resendVerificationEmail()
-    {
-        $data = $this->validate(request(), ['email' => 'required|email']);
-
-        $user = User::where('email', $data['email'])->firstOrFail();
-
-        $this->authorize('update', $user);
-
-        $user->sendEmailVerificationNotification();
-
-        return $this->success();
-    }
 }

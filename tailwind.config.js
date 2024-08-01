@@ -9,6 +9,7 @@ module.exports = {
   content: [
     './resources/client/**/*.ts*',
     './common/resources/client/**/*.ts*',
+    './common/resources/views/install/**/*.blade.php',
   ],
   darkMode: 'class',
   theme: {

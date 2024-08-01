@@ -4,14 +4,24 @@ import {useSelectedLocale} from './selected-locale';
 import {handlePluralMessage} from './handle-plural-message';
 import {MessageDescriptor} from './message-descriptor';
 
+function hasOwn(obj: any, key: string): boolean {
+  if (obj == null) {
+    return false;
+  }
+  if (Object.hasOwn !== undefined) {
+    return Object.hasOwn(obj, key);
+  }
+  return Object.hasOwnProperty(key);
+}
+
 export const Trans = memo((props: MessageDescriptor) => {
   const {message: initialMessage, values} = props;
   const {lines, localeCode} = useSelectedLocale();
   let translatedMessage: string | undefined;
 
-  if (Object?.hasOwn(lines || {}, initialMessage)) {
+  if (hasOwn(lines, initialMessage)) {
     translatedMessage = lines?.[initialMessage];
-  } else if (Object?.hasOwn(lines || {}, initialMessage?.toLowerCase())) {
+  } else if (hasOwn(lines, initialMessage?.toLowerCase())) {
     translatedMessage = lines?.[initialMessage.toLowerCase()];
   } else {
     translatedMessage = initialMessage;

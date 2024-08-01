@@ -7,7 +7,6 @@ use Common\Database\Datasource\Filters\ElasticFilterer;
 use Common\Database\Datasource\Filters\MeilisearchFilterer;
 use Common\Database\Datasource\Filters\MysqlFilterer;
 use Common\Database\Datasource\Filters\TntFilterer;
-use Common\Settings\Settings;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -53,12 +52,11 @@ class Datasource
         $this->buildQuery();
         $perPage = $this->limit();
         $page = (int) $this->param('page', 1);
-        $method = $this->getPaginationMethod();
         $columns = empty($this->builder->getQuery()->columns)
             ? ['*']
             : $this->builder->getQuery()->columns;
 
-        if ($method === 'lengthAware') {
+        if ($this->resolvePaginationMethod() === 'lengthAware') {
             return $this->scoutBuilder instanceof ScoutBuilder
                 ? $this->scoutBuilder->paginate($perPage, 'page', $page)
                 : $this->builder->paginate($perPage, $columns, 'page', $page);
@@ -260,17 +258,16 @@ class Datasource
         return $query;
     }
 
-    protected function getPaginationMethod(): string
+    protected function resolvePaginationMethod(): string
     {
-        $method = $this->param('paginate', 'lengthAware');
+        $method = $this->param('paginate', 'simple');
 
-        if ($method !== 'simple') {
-            $tables = explode(
-                ',',
-                app(Settings::class)->get('simple_pagination_tables', ''),
-            );
+        if ($method === 'preferLengthAware') {
+            $tables = explode(',', settings('simple_pagination_tables', ''));
             if (in_array($this->model->getTable(), $tables)) {
                 $method = 'simple';
+            } else {
+                $method = 'lengthAware';
             }
         }
 

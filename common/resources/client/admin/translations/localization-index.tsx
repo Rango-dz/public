@@ -2,7 +2,6 @@ import React, {Fragment} from 'react';
 import {Link} from 'react-router-dom';
 import {DataTablePage} from '../../datatable/page/data-table-page';
 import {IconButton} from '../../ui/buttons/icon-button';
-import {EditIcon} from '../../icons/material/Edit';
 import {FormattedDate} from '../../i18n/formatted-date';
 import {ColumnConfig} from '../../datatable/column-config';
 import {Trans} from '../../i18n/trans';
@@ -16,6 +15,18 @@ import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-s
 import aroundTheWorldSvg from './around-the-world.svg';
 import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DeleteSelectedItemsAction} from '../../datatable/page/delete-selected-items-action';
+import {
+  Menu,
+  MenuItem,
+  MenuTrigger,
+} from '@common/ui/navigation/menu/menu-trigger';
+import {openDialog} from '@common/ui/overlays/store/dialog-store';
+import {downloadFileFromUrl} from '@common/uploads/utils/download-file-from-url';
+import {MoreVertIcon} from '@common/icons/material/MoreVert';
+import {UploadInputType} from '@common/uploads/types/upload-input-config';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {useUploadTranslationFile} from '@common/admin/translations/use-upload-translation-file';
+import {openUploadWindow} from '@common/uploads/utils/open-upload-window';
 
 const columnConfig: ColumnConfig<Localization>[] = [
   {
@@ -51,21 +62,19 @@ const columnConfig: ColumnConfig<Localization>[] = [
     body: locale => {
       return (
         <div className="text-muted">
-          <Link to={`${locale.id}/translate`}>
-            <Tooltip label={<Trans message="Translate" />}>
-              <IconButton size="md">
-                <TranslateIcon />
-              </IconButton>
-            </Tooltip>
-          </Link>
-          <DialogTrigger type="modal">
-            <Tooltip label={<Trans message="Edit" />}>
-              <IconButton>
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            <UpdateLocalizationDialog localization={locale} />
-          </DialogTrigger>
+          <Tooltip label={<Trans message="Translate" />}>
+            <IconButton
+              size="md"
+              elementType={Link}
+              to={`${locale.id}/translate`}
+            >
+              <TranslateIcon />
+            </IconButton>
+          </Tooltip>
+
+          <FileUploadProvider>
+            <RowActionsMenuTrigger locale={locale} />
+          </FileUploadProvider>
         </div>
       );
     },
@@ -101,5 +110,57 @@ function Actions() {
         <CreateLocationDialog />
       </DialogTrigger>
     </Fragment>
+  );
+}
+
+interface RowActionsMenuTriggerProps {
+  locale: Localization;
+}
+function RowActionsMenuTrigger({locale}: RowActionsMenuTriggerProps) {
+  const uploadFile = useUploadTranslationFile();
+  return (
+    <MenuTrigger>
+      <IconButton disabled={uploadFile.isPending}>
+        <MoreVertIcon />
+      </IconButton>
+      <Menu>
+        <MenuItem
+          value="translate"
+          elementType={Link}
+          to={`${locale.id}/translate`}
+        >
+          <Trans message="Translate" />
+        </MenuItem>
+        <MenuItem
+          value="rename"
+          onSelected={() =>
+            openDialog(UpdateLocalizationDialog, {localization: locale})
+          }
+        >
+          <Trans message="Rename" />
+        </MenuItem>
+        <MenuItem
+          value="download"
+          onSelected={() =>
+            downloadFileFromUrl(`api/v1/localizations/${locale.id}/download`)
+          }
+        >
+          <Trans message="Download" />
+        </MenuItem>
+        <MenuItem
+          value="upload"
+          onSelected={async () => {
+            const files = await openUploadWindow({
+              types: [UploadInputType.json],
+            });
+            if (files.length == 1) {
+              uploadFile.mutate({localeId: locale.id, file: files[0]});
+            }
+          }}
+        >
+          <Trans message="Upload" />
+        </MenuItem>
+      </Menu>
+    </MenuTrigger>
   );
 }

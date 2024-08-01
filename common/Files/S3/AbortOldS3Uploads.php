@@ -12,9 +12,9 @@ class AbortOldS3Uploads extends Command
 {
     use InteractsWithS3Api;
 
-    protected $signature = 's3:expired';
+    protected $signature = 's3:abort_expired';
 
-    protected $description = 'Abort old s3 uploads';
+    protected $description = 'Abort and delete expired S3 file uploads';
 
     public function handle(): int
     {
@@ -46,9 +46,9 @@ class AbortOldS3Uploads extends Command
             }
         }
 
-        $this->info('Expired uploads deleted from s3');
+        $this->info('Expired uploads deleted from S3');
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     protected function getDiskName(): string

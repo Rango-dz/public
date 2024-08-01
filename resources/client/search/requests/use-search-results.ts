@@ -1,13 +1,9 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { apiClient } from "@common/http/query-client";
-import {
-  BackendResponse
-} from "@common/http/backend-response/backend-response";
-import { Title } from "@app/titles/models/title";
-import { Person } from "@app/titles/models/person";
-import {
-  getBootstrapData
-} from "@common/core/bootstrap-data/use-backend-bootstrap-data";
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
+import {apiClient} from '@common/http/query-client';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {Title} from '@app/titles/models/title';
+import {Person} from '@app/titles/models/person';
+import {getBootstrapData} from '@common/core/bootstrap-data/use-backend-bootstrap-data';
 
 export interface SearchResponse extends BackendResponse {
   query: string;
@@ -24,7 +20,7 @@ export function useSearchResults(
     query = '';
   }
   return useQuery({
-    queryKey: ['search', query, 'loader'],
+    queryKey: ['search', query, loader],
     queryFn: ({signal}) => search(loader, query, signal),
     enabled: !!query,
     placeholderData: !!query ? keepPreviousData : undefined,
@@ -41,8 +37,8 @@ async function search(loader: string, query: string, signal: AbortSignal) {
   await new Promise(resolve => setTimeout(resolve, 300));
   return apiClient
     .get<SearchResponse>(`search/${encodeURIComponent(query)}`, {
-      params: { loader },
-      signal
+      params: {loader},
+      signal,
     })
     .then(response => response.data);
 }

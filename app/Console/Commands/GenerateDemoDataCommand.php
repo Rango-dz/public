@@ -9,8 +9,8 @@ use App\Actions\Demo\GenerateDemoStreamVideos;
 use App\Actions\Demo\GenerateDemoUsers;
 use App\Actions\Demo\GenerateDemoVideoVotes;
 use App\Models\Channel;
+use App\Services\ChannelPresets;
 use Common\Admin\Appearance\Themes\CssTheme;
-use Common\Channels\GenerateChannelsFromConfig;
 use Common\Channels\UpdateAllChannelsContent;
 use Common\Settings\DotEnvEditor;
 use Common\Settings\Setting;
@@ -75,10 +75,7 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = $this->generateChannels([
-            resource_path('defaults/channels/shared-channels.json'),
-            resource_path('defaults/channels/default-channels.json'),
-        ]);
+        $homepageChannel = $this->generateChannels('database');
         settings()->save([
             'homepage.type' => 'channels',
             'homepage.value' => $homepageChannel->id,
@@ -135,10 +132,7 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = $this->generateChannels([
-            resource_path('defaults/channels/shared-channels.json'),
-            resource_path('defaults/channels/streaming-channels.json'),
-        ]);
+        $homepageChannel = $this->generateChannels('streaming');
 
         $darkTheme = CssTheme::where('default_dark', true)->first();
 
@@ -208,10 +202,7 @@ class GenerateDemoDataCommand extends Command
             ],
         ]);
 
-        $homepageChannel = $this->generateChannels([
-            resource_path('defaults/channels/shared-channels.json'),
-            resource_path('defaults/channels/anime-channels.json'),
-        ]);
+        $homepageChannel = $this->generateChannels('anime');
 
         settings()->save([
             'homepage.type' => 'channels',
@@ -256,7 +247,7 @@ class GenerateDemoDataCommand extends Command
         ]);
     }
 
-    protected function generateChannels(array $paths): ?Channel
+    protected function generateChannels(string $preset): Channel
     {
         $ids = Channel::where('type', 'channel')->pluck('id');
         DB::table('channelables')
@@ -264,6 +255,6 @@ class GenerateDemoDataCommand extends Command
             ->delete();
         Channel::whereIn('id', $ids)->delete();
 
-        return (new GenerateChannelsFromConfig())->execute($paths);
+        return (new ChannelPresets())->apply($preset);
     }
 }

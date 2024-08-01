@@ -6,12 +6,13 @@ import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channe
 
 interface Props {
   config: ChannelContentConfig;
+  className?: string;
 }
-export function ContentTypeField({config}: Props) {
+export function ContentTypeField({config, className}: Props) {
   const {setValue} = useFormContext<UpdateChannelPayload>();
   return (
     <FormSelect
-      className="my-24"
+      className={className}
       selectionMode="single"
       name="config.contentType"
       label={<Trans message="Content" />}
@@ -36,7 +37,7 @@ export function ContentTypeField({config}: Props) {
           newValue === 'autoUpdate' ? modelConfig.autoUpdateMethods?.[0] : '',
         );
         setValue('config.contentOrder', modelConfig.sortMethods[0]);
-        (setValue as any)('config.restriction', '');
+        (setValue as any)('config.restriction', null);
       }}
     >
       <Option value="listAll">

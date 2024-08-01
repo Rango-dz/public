@@ -11,6 +11,20 @@ return [
     ['method' => 'POST', 'name' => 'import-media/single-item'],
     ['method' => 'POST', 'name' => 'sitemap/generate'],
 
+    // Channels
+    ['method' => 'POST', 'name' => 'channel/{channel}/add'],
+    ['method' => 'POST', 'name' => 'channel/{channel}/remove'],
+    ['method' => 'POST', 'name' => 'channel/{id}/reorder-content'],
+    ['method' => 'POST', 'name' => 'channel/{channel}/update-content'],
+    ['method' => 'POST', 'name' => 'channel'],
+    ['method' => 'PUT', 'name' => 'channel/{channel}'],
+    ['method' => 'DELETE', 'name' => 'channel/{ids}'],
+    ['method' => 'POST', 'name' => 'channel/apply-preset'],
+
+    // logs
+    ['method' => 'POST', 'name' => 'logs/schedule/rerun/{id}'],
+    ['method' => 'DELETE', 'name' => 'logs/error/{identifier}'],
+
     // css theme
     ['method' => 'POST', 'name' => 'css-theme'],
     ['method' => 'PUT', 'name' => 'css-theme/{css_theme}'],

@@ -17,6 +17,7 @@ interface Props<T extends FieldValues> {
   backButton?: ReactNode;
   disableSaveWhenNotDirty?: boolean;
   wrapInContainer?: boolean;
+  submitButtonText?: ReactNode;
 }
 export function CrupdateResourceLayout<T extends FieldValues>({
   onSubmit,
@@ -29,6 +30,7 @@ export function CrupdateResourceLayout<T extends FieldValues>({
   isLoading = false,
   disableSaveWhenNotDirty = false,
   wrapInContainer = true,
+  submitButtonText,
 }: Props<T>) {
   const {isSticky, sentinelRef} = useStickySentinel();
   const isDirty = !disableSaveWhenNotDirty
@@ -69,7 +71,7 @@ export function CrupdateResourceLayout<T extends FieldValues>({
             type="submit"
             disabled={isLoading || !isDirty}
           >
-            <Trans message="Save" />
+            {submitButtonText ?? <Trans message="Save" />}
           </Button>
         </div>
       </div>

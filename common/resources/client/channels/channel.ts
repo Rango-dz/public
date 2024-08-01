@@ -13,8 +13,8 @@ export interface ChannelConfig {
   autoUpdateProvider?: string;
   disablePagination?: boolean;
   disablePlayback?: boolean;
-  restriction?: string;
-  restrictionModelId?: 'urlParam' | number;
+  restriction?: string | null;
+  restrictionModelId?: 'urlParam' | number | null;
   contentModel: string;
   contentType: 'listAll' | 'manual' | 'autoUpdate';
   contentOrder: string;
@@ -27,6 +27,8 @@ export interface ChannelConfig {
   lockSlug?: boolean;
   preventDeletion?: boolean;
   actions?: {tooltip: string; icon: string; route: string}[];
+  adminDescription?: string;
+  paginationType?: 'infiniteScroll' | 'lengthAware' | 'simple';
 }
 
 export interface Channel<T = ChannelContentItem> {

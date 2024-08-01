@@ -30,11 +30,11 @@ apiClient.defaults.headers = {
   },
 };
 
+const internalEndpoints = ['auth', 'secure', 'log-viewer', 'horizon'];
 // @ts-ignore
 apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
   if (
-    !config.url?.startsWith('auth') &&
-    !config.url?.startsWith('secure') &&
+    !internalEndpoints.some(endpoint => config.url?.startsWith(endpoint)) &&
     !isAbsoluteUrl(config?.url)
   ) {
     config.url = `api/v1/${config.url}`;

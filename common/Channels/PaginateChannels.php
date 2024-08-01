@@ -5,50 +5,35 @@ namespace Common\Channels;
 use App\Models\Channel;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Pagination\AbstractPaginator;
-use Illuminate\Support\Arr;
 
 class PaginateChannels
 {
-    public function execute(
-        array $params,
-        mixed $builder = null,
-    ): AbstractPaginator {
-        if (!$builder) {
-            $builder = Channel::query();
-        }
+    public function execute(array $params): AbstractPaginator
+    {
+        //        $builder = Channel::where('type', 'channel')->whereNotExists(function (
+        //            $query,
+        //        ) {
+        //            $query
+        //                ->select('id')
+        //                ->from('channelables')
+        //                ->whereColumn('channelable_id', 'channels.id');
+        //        });
 
-        if ($channelIds = Arr::get($params, 'channelIds')) {
-            $builder->whereIn('id', explode(',', $channelIds));
-        }
-
-        if ($userId = Arr::get($params, 'userId')) {
-            $builder->where('user_id', $userId);
-        }
-
-        if (Arr::get($params, 'hideInternal')) {
-            $builder->where('internal', false);
-        }
-
-        if ($type = Arr::get($params, 'type')) {
-            $builder->where('type', $type);
-        }
+        $builder = Channel::where('type', 'channel');
 
         $paginator = new Datasource($builder, $params);
 
+        if (!isset($params['orderBy'])) {
+            $builder->orderByRaw('`internal` = "1" desc, `updated_at` desc');
+            $paginator->order = false;
+        }
+
         $pagination = $paginator->paginate();
 
-        if (Arr::get($params, 'loadItemsCount')) {
-            $pagination->loadCount('items');
-        }
-
-        if (Arr::get($params, 'loadFirstItems')) {
-            $pagination->load([
-                'items' => fn($query) => $query
-                    ->orderBy('order')
-                    ->where('order', '<=', 4)
-                    ->compact(),
-            ]);
-        }
+        $pagination->transform(function (Channel $channel) {
+            $channel->makeVisible(['internal']);
+            return $channel;
+        });
 
         return $pagination;
     }

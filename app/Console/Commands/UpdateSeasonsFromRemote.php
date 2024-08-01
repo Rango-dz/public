@@ -17,7 +17,9 @@ class UpdateSeasonsFromRemote extends Command
             ->get();
 
         $this->withProgressBar($seasons, function (Season $season) {
-            $season->maybeUpdateFromExternal($season->title);
+            if ($season->title) {
+                $season->maybeUpdateFromExternal($season->title);
+            }
         });
 
         $this->info('Seasons updated');

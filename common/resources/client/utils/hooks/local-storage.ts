@@ -16,11 +16,6 @@ export function useLocalStorage<T>(key: string, initialValue: T | null = null) {
     const valueToStore = value instanceof Function ? value(storedValue) : value;
     setStoredValue(valueToStore);
     setInLocalStorage(key, valueToStore);
-    window.dispatchEvent(
-      new CustomEvent('storage', {
-        detail: {key, newValue: valueToStore},
-      })
-    );
   };
 
   // update state value using custom storage event. This will re-render
@@ -41,7 +36,7 @@ export function useLocalStorage<T>(key: string, initialValue: T | null = null) {
 
 export function getFromLocalStorage<T>(
   key: string,
-  initialValue: T | null = null
+  initialValue: T | null = null,
 ) {
   if (typeof window === 'undefined') {
     return initialValue;
@@ -58,6 +53,11 @@ export function setInLocalStorage<T>(key: string, value: T) {
   try {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(key, JSON.stringify(value));
+      window.dispatchEvent(
+        new CustomEvent('storage', {
+          detail: {key, newValue: value},
+        }),
+      );
     }
   } catch (error) {
     //

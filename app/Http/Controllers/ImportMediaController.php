@@ -67,7 +67,7 @@ class ImportMediaController extends BaseController
         ];
 
         if (request('country')) {
-            $tmdbParams['with_origin_country'] = strtolower(request('country'));
+            $tmdbParams['with_origin_country'] = strtoupper(request('country'));
         }
         if (request('language')) {
             $tmdbParams['with_original_language'] = request('language');

@@ -98,11 +98,11 @@ export default function HlsProvider() {
               label: track.name,
               language: track.lang || '',
               kind: 'main',
-            })
+            }),
           );
           store.getState().emit('audioTracks', {tracks: audioTracks});
         }
-      }
+      },
     );
 
     hlsInstance.attachMedia(videoRef.current);
@@ -143,7 +143,7 @@ export default function HlsProvider() {
         setPlaybackQuality: (quality: string) => {
           if (!hls.current) return;
           hls.current.currentLevel = hls.current.levels.findIndex(
-            level => levelToPlaybackQuality(level) === quality
+            level => levelToPlaybackQuality(level) === quality,
           );
           store.getState().emit('playbackQualityChange', {quality});
         },

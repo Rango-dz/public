@@ -6,6 +6,10 @@ import {IconButton} from '@common/ui/buttons/icon-button';
 import {EditIcon} from '@common/icons/material/Edit';
 import React from 'react';
 import {Channel} from '@common/channels/channel';
+import {Chip} from '@common/ui/forms/input-field/chip-field/chip';
+import {Tooltip} from '@common/ui/tooltip/tooltip';
+import {useSettings} from '@common/core/settings/use-settings';
+import {HomeIcon} from '@common/icons/material/Home';
 
 export const ChannelsDatatableColumns: ColumnConfig<Channel>[] = [
   {
@@ -15,24 +19,25 @@ export const ChannelsDatatableColumns: ColumnConfig<Channel>[] = [
     visibleInMode: 'all',
     header: () => <Trans message="Name" />,
     body: channel => {
-      // link will not work without specific genre name in channel url
-      if (
-        channel.config.restriction &&
-        channel.config.restrictionModelId === 'urlParam'
-      ) {
-        return channel.name;
-      }
       return (
-        <a
-          className="hover:underline focus-visible:underline outline-none"
-          href={`channel/${channel.slug}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {channel.name}
-        </a>
+        <div>
+          <div className="overflow-hidden overflow-ellipsis whitespace-nowrap font-medium">
+            <ChannelName channel={channel} />
+          </div>
+          {channel.config.adminDescription && (
+            <p className="max-w-680 whitespace-normal text-xs text-muted">
+              {channel.config.adminDescription}
+            </p>
+          )}
+        </div>
       );
     },
+  },
+  {
+    key: 'content',
+    allowsSorting: false,
+    header: () => <Trans message="Content" />,
+    body: channel => <ContentType channel={channel} />,
   },
   {
     key: 'content_type',
@@ -47,24 +52,12 @@ export const ChannelsDatatableColumns: ColumnConfig<Channel>[] = [
     ),
   },
   {
-    key: 'layout',
-    allowsSorting: false,
-    header: () => <Trans message="Layout" />,
-    body: channel => (
-      <span className="capitalize">
-        {channel.config.layout ? (
-          <Trans message={channel.config.layout} />
-        ) : undefined}
-      </span>
-    ),
-  },
-  {
-    key: 'auto_update',
-    allowsSorting: false,
-    header: () => <Trans message="Auto update" />,
-    body: channel => (
-      <span className="capitalize">{channel.config.autoUpdateMethod}</span>
-    ),
+    key: 'internal',
+    allowsSorting: true,
+    maxWidth: 'max-w-100',
+    hideHeader: true,
+    header: () => <Trans message="Internal" />,
+    body: channel => <InternalColumn channel={channel} />,
   },
   {
     key: 'updated_at',
@@ -90,3 +83,69 @@ export const ChannelsDatatableColumns: ColumnConfig<Channel>[] = [
     ),
   },
 ];
+
+interface ContentTypeProps {
+  channel: Channel;
+}
+function ContentType({channel}: ContentTypeProps) {
+  switch (channel.config.contentType) {
+    case 'listAll':
+      return <Trans message="List all" />;
+    case 'manual':
+      return <Trans message="Managed manually" />;
+    case 'autoUpdate':
+      return <Trans message="Updated automatically" />;
+  }
+}
+
+interface ChannelNameProps {
+  channel: Channel;
+}
+function ChannelName({channel}: ChannelNameProps) {
+  // link will not work without specific genre name in channel url
+  if (
+    channel.config.restriction &&
+    channel.config.restrictionModelId === 'urlParam'
+  ) {
+    return channel.name;
+  }
+  return (
+    <a
+      className="outline-none hover:underline focus-visible:underline"
+      href={`channel/${channel.slug}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {channel.name}
+    </a>
+  );
+}
+
+function InternalColumn({channel}: ChannelNameProps) {
+  const {homepage} = useSettings();
+  const internalLabel = channel.internal ? (
+    <Tooltip
+      label={
+        <Trans message="This channel is required for some site functionality to work properly and can't be deleted." />
+      }
+    >
+      <div>
+        <Chip className="w-max" size="xs" radius="rounded-panel">
+          <Trans message="Internal" />
+        </Chip>
+      </div>
+    </Tooltip>
+  ) : (
+    ''
+  );
+
+  const isHomepage =
+    homepage?.type === 'channels' && `${homepage.value}` === `${channel.id}`;
+
+  return (
+    <div className="flex items-center gap-6">
+      {internalLabel}
+      {isHomepage ? <HomeIcon className="text-muted" size="sm" /> : null}
+    </div>
+  );
+}

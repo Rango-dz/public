@@ -6,16 +6,21 @@ import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-c
 import {SlugEditor} from '@common/ui/slug-editor';
 import {useTrans} from '@common/i18n/use-trans';
 import {message} from '@common/i18n/message';
+import clsx from 'clsx';
 
-export function ChannelNameField() {
+interface Props {
+  className?: string;
+  autoFocus?: boolean;
+}
+export function ChannelNameField({className, autoFocus}: Props) {
   return (
     <Fragment>
       <FormTextField
         name="name"
-        label={<Trans message="Name" />}
-        className="mb-10"
+        label={<Trans message="Title" />}
         required
-        autoFocus
+        autoFocus={autoFocus}
+        className={clsx('mb-10', className)}
       />
       <FormSlugField />
     </Fragment>

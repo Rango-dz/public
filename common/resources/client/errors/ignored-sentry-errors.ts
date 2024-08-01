@@ -5,4 +5,6 @@ export const ignoredSentryErrors = [
   'ResizeObserver loop limit exceeded',
   'ResizeObserver loop completed with undelivered notifications',
   'Importing a module script failed.',
+  'chrome-extension://',
+  'AbortError: Share canceled',
 ];

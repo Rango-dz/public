@@ -9,10 +9,10 @@ import {
   shift,
   size,
   useFloating,
+  UseFloatingOptions,
 } from '@floating-ui/react-dom';
 import {CSSProperties, Ref, useMemo, useRef} from 'react';
 import {mergeRefs} from 'react-merge-refs';
-import {UseFloatingOptions} from '@floating-ui/react-dom/src/types';
 
 interface Props {
   floatingWidth?: 'auto' | 'matchTrigger';
@@ -75,7 +75,7 @@ export function useFloatingPosition({
 
   const mergedReferenceRef = useMemo(
     () => mergeRefs<ReferenceType>([ref!, floatingProps.refs.setReference]),
-    [floatingProps.refs.setReference, ref]
+    [floatingProps.refs.setReference, ref],
   );
 
   const {x: arrowX, y: arrowY} = floatingProps.middlewareData.arrow || {};

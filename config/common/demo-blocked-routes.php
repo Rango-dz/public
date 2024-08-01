@@ -76,13 +76,4 @@ return [
     ['method' => 'POST', 'name' => 'media/import'],
     ['method' => 'GET', 'name' => 'tmdb/import'],
     ['method' => 'POST', 'name' => 'news/import-from-remote-provider'],
-
-    // Channels
-    ['method' => 'POST', 'name' => 'channel/{channel}/detach-item'],
-    ['method' => 'POST', 'name' => 'channel/{channel}/attach-item'],
-    ['method' => 'POST', 'name' => 'channel/{channel}/change-order'],
-    ['method' => 'POST', 'name' => 'channel'],
-    ['method' => 'PUT', 'name' => 'channel/{channel}'],
-    ['method' => 'DELETE', 'name' => 'channel/{ids}'],
-    ['method' => 'POST', 'name' => 'channel/reset-to-default'],
 ];

@@ -3,7 +3,6 @@
 namespace Common\Billing\Gateways\Paypal;
 
 use Carbon\Carbon;
-use Common\Settings\Settings;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
@@ -14,7 +13,7 @@ trait InteractsWithPaypalRestApi
 
     public function paypal(): PendingRequest
     {
-        $baseUrl = app(Settings::class)->get('billing.paypal_test_mode')
+        $baseUrl = settings('billing.paypal_test_mode')
             ? 'https://api-m.sandbox.paypal.com/v1'
             : 'https://api-m.paypal.com/v1';
 
@@ -25,6 +24,7 @@ trait InteractsWithPaypalRestApi
             $clientId = config('services.paypal.client_id');
             $secret = config('services.paypal.secret');
             $response = Http::withBasicAuth($clientId, $secret)
+                ->throw()
                 ->asForm()
                 ->post("$baseUrl/oauth2/token", [
                     'grant_type' => 'client_credentials',

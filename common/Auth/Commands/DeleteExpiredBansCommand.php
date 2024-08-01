@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 class DeleteExpiredBansCommand extends Command
 {
     protected $signature = 'bans:deleteExpired';
+    protected $description = 'Unban users whose ban date has expired.';
 
     public function handle(): int
     {
@@ -20,6 +21,8 @@ class DeleteExpiredBansCommand extends Command
             $ban->created_by->fill(['banned_at' => null])->save();
             $ban->delete();
         });
+
+        $this->info("Unbanned {$bans->count()} users.");
 
         return Command::SUCCESS;
     }

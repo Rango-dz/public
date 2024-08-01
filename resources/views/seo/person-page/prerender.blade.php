@@ -79,45 +79,46 @@
                     </h4>
                     <ul>
                         @foreach ($creditGroup as $credit)
-                            <li style="margin-bottom: 15px">
-                                <div class="meta">
-                                    <a
-                                        href="{{ urls()->title($credit) }}"
-                                    >
-                                        {{ $credit['name'] }}
-                                    </a>
-                                    @if (isset($credit['pivot']))
-                                        <div>
-                                            {{ $credit['pivot']['character'] }}
-                                        </div>
-                                        <div>
-                                            {{ $credit['pivot']['job'] }}
-                                        </div>
-                                        <div>
-                                            {{ $credit['pivot']['department'] }}
-                                        </div>
-                                    @endif
+                            @if($credit)
+                                <li style="margin-bottom: 15px">
+                                    <div class="meta">
+                                        <a
+                                            href="{{ urls()->title($credit) }}"
+                                        >
+                                            {{ $credit['name'] }}
+                                        </a>
+                                        @if (isset($credit['pivot']))
+                                            <div>
+                                                {{ $credit['pivot']['character'] }}
+                                            </div>
+                                            <div>
+                                                {{ $credit['pivot']['job'] }}
+                                            </div>
+                                            <div>
+                                                {{ $credit['pivot']['department'] }}
+                                            </div>
+                                        @endif
 
-                                    @if (isset($credit['episodes']))
-                                        <div class="episode-list">
-                                            @foreach ($credit['episodes'] as $episodeCredit)
-                                                <div class="episode-credit">
-                                                    <div class="episode-name">
-                                                        <span>-</span>
-                                                        <a
-                                                            href="{{ urls()->episode($episodeCredit, $credit) }}"
-                                                        >
-                                                            {{ $episodeCredit['name'] }}
-                                                        </a>
-                                                        <span>
+                                        @if (isset($credit['episodes']))
+                                            <div class="episode-list">
+                                                @foreach ($credit['episodes'] as $episodeCredit)
+                                                    <div class="episode-credit">
+                                                        <div class="episode-name">
+                                                            <span>-</span>
+                                                            <a
+                                                                href="{{ urls()->episode($episodeCredit, $credit) }}"
+                                                            >
+                                                                {{ $episodeCredit['name'] }}
+                                                            </a>
+                                                            <span>
                                                             ({{ $episodeCredit['year'] }})
                                                         </span>
-                                                        <span
-                                                            class="episode-separator"
-                                                        >
+                                                            <span
+                                                                class="episode-separator"
+                                                            >
                                                             ...
                                                         </span>
-                                                        <span>
+                                                            <span>
                                                             <span>
                                                                 {{ $episodeCredit['pivot']['character'] }}
                                                             </span>
@@ -128,14 +129,15 @@
                                                                 {{ $episodeCredit['pivot']['department'] }}
                                                             </span>
                                                         </span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="year">{{ $credit['year'] }}</div>
-                            </li>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="year">{{ $credit['year'] }}</div>
+                                </li>
+                            @endif
                         @endforeach
                     </ul>
                 </li>

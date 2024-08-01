@@ -34,6 +34,22 @@ class FileEntryUser extends BaseUser
 
     public function getEntryPermissionsAttribute()
     {
+        if ($this->pivot->owner) {
+            return [
+                'edit' => true,
+                'view' => true,
+                'download' => true,
+            ];
+        }
+
         return $this->pivot->permissions;
+    }
+
+    public function toArray(bool $showAll = false): array
+    {
+        return array_merge(
+            $this->attributesToArray(),
+            $this->relationsToArray(),
+        );
     }
 }

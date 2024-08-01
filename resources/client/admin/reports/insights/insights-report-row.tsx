@@ -5,7 +5,7 @@ interface Props {
 }
 export function InsightsReportRow({children}: Props) {
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center overflow-x-auto gap-12 md:gap-24 mb-12 md:mb-24">
+    <div className="mb-12 flex flex-col gap-12 overflow-x-auto md:mb-18 md:gap-18 lg:flex-row lg:items-center">
       {children}
     </div>
   );

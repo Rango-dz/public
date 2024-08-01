@@ -1,16 +1,104 @@
 <?php namespace Common\Billing\Gateways\Stripe;
 
 use App\Models\User;
+use Carbon\Carbon;
+use Common\Billing\Invoices\Invoice;
 use Common\Billing\Models\Price;
 use Common\Billing\Models\Product;
+use Common\Billing\Notifications\NewInvoiceAvailable;
 use Common\Billing\Subscription;
 use Stripe\Exception\InvalidRequestException;
+use Stripe\Invoice as StripeInvoice;
 use Stripe\StripeClient;
+use Stripe\Subscription as StripeSubscription;
 
 class StripeSubscriptions
 {
     public function __construct(public StripeClient $client)
     {
+    }
+
+    public function isIncomplete(Subscription $subscription): bool
+    {
+        return $subscription->gateway_status ===
+            StripeSubscription::STATUS_INCOMPLETE ||
+            ($subscription->gateway_status ===
+                StripeSubscription::STATUS_INCOMPLETE_EXPIRED &&
+                $subscription->gateway_status !==
+                    StripeSubscription::STATUS_UNPAID);
+    }
+
+    public function isPastDue(Subscription $subscription): bool
+    {
+        return $subscription->gateway_status ===
+            StripeSubscription::STATUS_PAST_DUE;
+    }
+
+    public function sync(string $stripeSubscriptionId): void
+    {
+        $stripeSubscription = $this->client->subscriptions->retrieve(
+            $stripeSubscriptionId,
+            ['expand' => ['latest_invoice']],
+        );
+        $price = Price::where(
+            'stripe_id',
+            $stripeSubscription->items->data[0]->price->id,
+        )->firstOrFail();
+        $user = User::where(
+            'stripe_id',
+            $stripeSubscription->customer,
+        )->firstOrFail();
+
+        $subscription = $user->subscriptions()->firstOrNew([
+            'gateway_name' => 'stripe',
+            'gateway_id' => $stripeSubscription->id,
+        ]);
+
+        // Cancellation date...
+        if ($stripeSubscription->cancel_at_period_end) {
+            $subscription->ends_at = $subscription->onTrial()
+                ? $subscription->trial_ends_at
+                : Carbon::createFromTimestamp(
+                    $stripeSubscription->current_period_end,
+                );
+        } elseif (
+            $stripeSubscription->cancel_at ||
+            $stripeSubscription->canceled_at
+        ) {
+            $subscription->ends_at = Carbon::createFromTimestamp(
+                $stripeSubscription->cancel_at ??
+                    $stripeSubscription->canceled_at,
+            );
+        } else {
+            $subscription->ends_at = null;
+        }
+
+        $subscription
+            ->fill([
+                'price_id' => $price->id,
+                'product_id' => $price->product_id,
+                'gateway_name' => 'stripe',
+                'gateway_id' => $stripeSubscription->id,
+                'gateway_status' => $stripeSubscription->status,
+                'renews_at' =>
+                    $subscription->ends_at ||
+                    $stripeSubscription->status ===
+                        StripeSubscription::STATUS_INCOMPLETE
+                        ? null
+                        : Carbon::createFromTimestamp(
+                            $stripeSubscription->current_period_end,
+                        ),
+            ])
+            ->save();
+
+        if ($stripeSubscription->latest_invoice) {
+            $this->createOrUpdateInvoice(
+                $subscription,
+                $stripeSubscription->latest_invoice->id,
+                $stripeSubscription->latest_invoice->status ===
+                    StripeInvoice::STATUS_PAID,
+            );
+        }
     }
 
     public function createPartial(
@@ -83,13 +171,22 @@ class StripeSubscriptions
                     'cancel_at_period_end' => true,
                 ],
             );
+            $subscription
+                ->fill([
+                    'gateway_status' => $updatedSubscription->status,
+                ])
+                ->save();
             return $updatedSubscription->cancel_at_period_end;
             // cancel and delete subscription instantly
         } else {
-            $stripeSubscription = $this->client->subscriptions->cancel(
-                $stripeSubscription->id,
-            );
-            return $stripeSubscription->status === 'cancelled';
+            try {
+                $stripeSubscription = $this->client->subscriptions->cancel(
+                    $stripeSubscription->id,
+                );
+                return $stripeSubscription->status === 'cancelled';
+            } catch (InvalidRequestException $e) {
+                return $e->getStripeCode() === 'resource_missing';
+            }
         }
     }
 
@@ -108,6 +205,12 @@ class StripeSubscriptions
                 $params,
             ),
         );
+
+        $subscription
+            ->fill([
+                'gateway_status' => $updatedSubscription->status,
+            ])
+            ->save();
 
         return $updatedSubscription->status === 'active';
     }
@@ -135,6 +238,31 @@ class StripeSubscriptions
         );
 
         return $updatedSubscription->status === 'active';
+    }
+
+    public function createOrUpdateInvoice(
+        Subscription $subscription,
+        string $stripeInvoiceId,
+        bool $isPaid,
+    ): void {
+        $invoice = Invoice::where('uuid', $stripeInvoiceId)->first();
+        if ($invoice) {
+            // paid invoices should never be set to unpaid
+            if (!$invoice->paid) {
+                $invoice->update(['paid' => $isPaid]);
+            }
+        } else {
+            $invoice = Invoice::create([
+                'subscription_id' => $subscription->id,
+                'uuid' => $stripeInvoiceId,
+                'paid' => $isPaid,
+            ]);
+        }
+
+        if ($invoice->paid && !$invoice->notified) {
+            $subscription->user->notify(new NewInvoiceAvailable($invoice));
+            $invoice->update(['notified' => true]);
+        }
     }
 
     protected function syncStripeCustomer(User $user): User

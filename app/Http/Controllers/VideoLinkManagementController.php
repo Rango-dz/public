@@ -63,12 +63,82 @@ class VideoLinkManagementController extends BaseController
 
     public function searchTitle(Request $request)
     {
-        Log::info("cCCCCCCCCCCCCCCCCCCCCCCC");
-        $title = Title::where(function ($query) use ($request) {
-            return $query->where("name", "like", "%{$request->clean_title}%");
-        })->first();
+        // type='movie' for movies
+        // type='tv' for tv series
+        $isEpisodeSearch = !empty($request->type) && $request->type === 'tv';
 
-        return response()->json(['data' => $title]);
+        if ($isEpisodeSearch) {
+            if (empty($request->season) || empty($request->episode)) {
+                // both season and episode should be set for episode search
+                return response()->json(['info' => 'When searching TV show, both season and episode are required']);
+            }
+        }
+
+        $conditions = [];
+
+        if (!empty($request->clean_title)) {
+            //$conditions[] = ["name", "like", "%{$request->clean_title}%"];
+            $titleWords = explode(' ', $request->clean_title);
+            foreach ($titleWords as $titleWord) {
+                $conditions[] = ["name", "like", "%{$titleWord}%"];
+            }
+        } else if (!empty($request->id)) {
+            if (!is_numeric($request->id)) {
+                return response()->json(['info' => 'Search by ID is only allowed with integer "id"']);
+            }
+            $conditions[] = ["id", "=", $request->id];
+        } else {
+            return response()->json(['info' => 'Either "id" or "clean_title" is required for search']);
+        }
+
+        $conditions[] = ["is_series", "=", (int)$isEpisodeSearch];
+        try {
+            $title = Title::where(function ($query) use ($conditions) {
+                return $query->where($conditions);
+            })->first();
+        } catch (\Exception $e) {
+            return response()->json(['info' => 'Something went wrong while processing your request']);
+        }
+
+        if ($isEpisodeSearch && !empty($title)) {
+            try {
+                $episode = $title->episodes()
+                    ->where('season_number', (int)$request->season)
+                    ->where('episode_number', (int)$request->episode)
+                    ->first();
+            } catch (\Exception $e) {
+                if (strpos($e->getMessage(), 'No query results for model') !== false) {
+                    $episode = null;
+                } else {
+                    return response()->json(['info' => 'Something went wrong while searching for episode']);
+                }
+            }
+
+            // searching for TV show, filter the episode's year
+            if (!empty($episode) && !empty($request->year) && (int)$episode->release_date->year !== (int)$request->year) {
+                $episode = null;
+            }
+
+            // if episode is not found, reset all results, explain what happened
+            if (!$episode) {
+                return response()->json(['info' => 'TV show is found, but episode is not']);
+            } else {
+                return response()->json(['data' => $title, 'episode' => $episode]);
+            }
+        } else if (!empty($title)) {
+            // searching for movie, filter the movie's year
+            if (!empty($request->year) && (int)$title->release_date->year !== (int)$request->year) {
+                $title = null;
+            }
+        }
+
+        if ($isEpisodeSearch && empty($title)) {
+            return response()->json(['info' => 'TV show is not found']);
+        } else if (empty($title)) {
+            return response()->json(['info' => 'Movie is not found']);
+        } else if (!empty($title)) {
+            return response()->json(['data' => $title]);
+        }
     }
 
 
@@ -136,21 +206,26 @@ class VideoLinkManagementController extends BaseController
      * @return array
      */
     private function formatOptions(array $data, array $requestData): array
-    {
-        $count = $requestData['links_count'] + 1;
+{
+    $count = $requestData['links_count'] + 1;
 
-        foreach ($requestData['src'] as $src) {
-            $data['videos'][] = [
-                'name' => $requestData['name'] . '-video-' . $count,
-                'type' => $requestData['video_type'],
-                'category' => $requestData['video_category'],
-                'src' => $src,
-                'quality' => $requestData['quality']
-            ];
+    foreach ($requestData['src'] as $src) {
+        $data['videos'][] = [
+            'name' =>'Watch ' . $requestData['name'] . ' Full Movie free Iwatchonline',
+            'video_type' => "embed",
+            'category' => "full",
+            'type' => 'embed',
+            'src' => $src,
+            'quality' => $requestData['quality'],
+            'season_num' => isset($requestData['season_num']) ? (int)$requestData['season_num'] : null,
+            'episode_num' => isset($requestData['episode_num']) ? (int)$requestData['episode_num'] : null,
+            'episode_id' => isset($requestData['episode_id']) ? (int)$requestData['episode_id'] : null,
+        ];
 
-            $count = $count + 1;
-        }
-
-        return $data;
+        $count++;
     }
+
+    return $data;
+}
+
 }

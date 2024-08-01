@@ -63,7 +63,7 @@ interface Options {
 
 export function useValueLists(
   names: (keyof FetchValueListsResponse)[],
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, any>,
   options: Options = {},
 ) {
   return useQuery({
@@ -103,7 +103,7 @@ export function prefetchValueLists(
 
 function fetchValueLists(
   names: (keyof FetchValueListsResponse)[],
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, string | number | undefined | null>,
 ): Promise<FetchValueListsResponse> {
   return apiClient
     .get(`value-lists/${names}`, {params})

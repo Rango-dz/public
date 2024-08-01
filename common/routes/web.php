@@ -4,7 +4,8 @@ use Common\Auth\Controllers\SocialAuthController;
 use Common\Auth\Controllers\TwoFactorQrCodeController;
 use Common\Billing\Invoices\InvoiceController;
 use Common\Core\Controllers\HomeController;
-use Common\Core\Update\UpdateController;
+use Common\Core\Install\InstallController;
+use Common\Core\Install\UpdateController;
 use Common\Csv\BaseCsvExportController;
 use Common\Domains\CustomDomainController;
 use Common\Files\Controllers\DownloadFileController;
@@ -13,12 +14,14 @@ use Common\Workspaces\Controllers\WorkspaceMembersController;
 
 Route::group(['middleware' => 'web'], function () {
     // Download
-    Route::get('file-entries/download/{hashes}', [DownloadFileController::class, 'download']);
+    Route::get('file-entries/download/{hashes}', [
+        DownloadFileController::class,
+        'download',
+    ]);
 
     // UPDATE
     Route::get('update', [UpdateController::class, 'show']);
-    Route::get('secure/update', [UpdateController::class, 'show']);
-    Route::post('secure/update/run', [UpdateController::class, 'update']);
+    Route::get('update/perform', [UpdateController::class, 'performUpdate']);
 
     // make sure workspace version of login and register pages are shown on frontend
     Route::get('workspace/join/login', [HomeController::class, 'show']);
@@ -100,3 +103,27 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('login', [HomeController::class, 'show'])->name('login');
     Route::get('register', [HomeController::class, 'show'])->name('register');
 });
+
+if (!config('common.site.installed')) {
+    Route::fallback(function () {
+        dd('x');
+    });
+    Route::get('install', [InstallController::class, 'introductionStep'])->name(
+        'install',
+    );
+    Route::get('install/requirements', [
+        InstallController::class,
+        'requirementsStep',
+    ]);
+    Route::get('install/database', [InstallController::class, 'databaseStep']);
+    Route::post('install/database/validate', [
+        InstallController::class,
+        'insertAndValidateDatabaseCredentials',
+    ]);
+    Route::get('install/admin', [InstallController::class, 'adminStep']);
+    Route::post('install/admin/validate', [
+        InstallController::class,
+        'validateAdminCredentials',
+    ]);
+    Route::get('install/finalize', [InstallController::class, 'finalizeStep']);
+}

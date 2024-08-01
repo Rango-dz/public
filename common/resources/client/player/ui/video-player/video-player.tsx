@@ -104,6 +104,16 @@ function PlayerLayout({apiRef, rightActions}: PlayerLayoutProps) {
     }
   }, [getState, setControlsVisible]);
 
+  // show controls when any key is pressed
+  useEffect(() => {
+    const listener = () => {
+      clearTimers();
+      setControlsVisible(true);
+    };
+    document.addEventListener('keydown', listener);
+    return () => document.removeEventListener('keydown', listener);
+  }, [setControlsVisible]);
+
   useEffect(() => {
     if (apiRef) {
       apiRef.current = actions;
@@ -125,7 +135,7 @@ function PlayerLayout({apiRef, rightActions}: PlayerLayoutProps) {
         clearTimers();
       }}
       onPointerMove={() => {
-        if (pointerIsOverControls.current) {
+        if (pointerIsOverControls.current && controlsVisible) {
           return;
         }
         if (inactiveTimerRef.current) {

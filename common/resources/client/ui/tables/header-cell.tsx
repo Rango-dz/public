@@ -71,8 +71,8 @@ export function HeaderCell({index}: HeaderCellProps) {
       aria-sort={ariaSort}
       className={clsx(
         style,
-        'text-muted font-medium text-xs',
-        allowSorting && 'cursor-pointer'
+        'text-xs font-medium text-muted',
+        allowSorting && 'cursor-pointer',
       )}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -89,7 +89,7 @@ export function HeaderCell({index}: HeaderCellProps) {
       onClick={toggleSorting}
     >
       {column.hideHeader ? (
-        <div className="sr-only">{column.header()}</div>
+        <div className="opacity-0">{column.header()}</div>
       ) : (
         column.header()
       )}
@@ -101,7 +101,7 @@ export function HeaderCell({index}: HeaderCellProps) {
             initial={false}
             transition={{type: 'tween'}}
             key="sort-icon"
-            className="inline-block ml-6 -mt-2"
+            className="-mt-2 ml-6 inline-block"
             data-testid="table-sort-button"
             aria-hidden={!sortVisible}
           >
@@ -111,7 +111,7 @@ export function HeaderCell({index}: HeaderCellProps) {
                 'text-muted',
                 orderDir === 'asc' &&
                   orderBy === sortingKey &&
-                  'rotate-180 transition-transform'
+                  'rotate-180 transition-transform',
               )}
             />
           </m.span>

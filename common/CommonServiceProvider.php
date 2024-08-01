@@ -11,6 +11,7 @@ use Common\Admin\Appearance\Themes\CssTheme;
 use Common\Admin\Appearance\Themes\CssThemePolicy;
 use Common\Auth\BaseUser;
 use Common\Auth\Commands\DeleteExpiredBansCommand;
+use Common\Auth\Commands\DeleteExpiredOtpCodesCommand;
 use Common\Auth\Events\UsersDeleted;
 use Common\Auth\Middleware\ForbidBannedUser;
 use Common\Auth\Middleware\OptionalAuthenticate;
@@ -33,12 +34,15 @@ use Common\Core\Commands\GenerateSitemap;
 use Common\Core\Commands\SeedCommand;
 use Common\Core\Commands\UpdateSimplePaginateTables;
 use Common\Core\Contracts\AppUrlGenerator;
+use Common\Core\Install\RedirectIfNotInstalledMiddleware;
+use Common\Core\Install\UpdateActionsCommand;
 use Common\Core\Middleware\EnableDebugIfLoggedInAsAdmin;
 use Common\Core\Middleware\EnsureEmailIsVerified;
 use Common\Core\Middleware\IsAdmin;
 use Common\Core\Middleware\PrerenderIfCrawler;
 use Common\Core\Middleware\RestrictDemoSiteFunctionality;
 use Common\Core\Middleware\SetAppLocale;
+use Common\Core\Middleware\SetSentryUserMiddleware;
 use Common\Core\Middleware\SimulateSlowConnectionMiddleware;
 use Common\Core\Policies\AppearancePolicy;
 use Common\Core\Policies\FileEntryPolicy;
@@ -52,13 +56,14 @@ use Common\Core\Policies\SubscriptionPolicy;
 use Common\Core\Policies\TagPolicy;
 use Common\Core\Policies\UserPolicy;
 use Common\Core\Prerender\BaseUrlGenerator;
-use Common\Core\Update\UpdateActionsCommand;
 use Common\Csv\DeleteExpiredCsvExports;
 use Common\Database\AppCursorPaginator;
 use Common\Database\CustomLengthAwarePaginator;
+use Common\Database\CustomSimplePaginator;
 use Common\Domains\CustomDomain;
 use Common\Domains\CustomDomainPolicy;
 use Common\Domains\CustomDomainsEnabled;
+use Common\Domains\ShowCustomDomainConnectedMessage;
 use Common\Files\Actions\Deletion\DeleteEntries;
 use Common\Files\Commands\DeleteUploadArtifacts;
 use Common\Files\Events\FileUploaded;
@@ -75,6 +80,10 @@ use Common\Localizations\Commands\ExportTranslations;
 use Common\Localizations\Commands\GenerateFooTranslations;
 use Common\Localizations\Listeners\UpdateAllUsersLanguageWhenDefaultLocaleChanges;
 use Common\Localizations\Localization;
+use Common\Logging\CleanLogTables;
+use Common\Logging\Mail\OutgoingEmailLogSubscriber;
+use Common\Logging\Schedule\MonitorsSchedule;
+use Common\Logging\Schedule\ScheduleHealthCommand;
 use Common\Pages\CustomPage;
 use Common\Search\Drivers\Mysql\MysqlSearchEngine;
 use Common\ServerTiming\ServerTiming;
@@ -99,7 +108,9 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -117,6 +128,8 @@ require_once 'helpers.php';
 
 class CommonServiceProvider extends ServiceProvider
 {
+    use MonitorsSchedule;
+
     const CONFIG_FILES = [
         'permissions',
         'default-settings',
@@ -182,6 +195,16 @@ class CommonServiceProvider extends ServiceProvider
         Vite::usePreloadTagAttributes([
             'data-keep' => 'true',
         ]);
+
+        // install/update page components
+        Blade::component(
+            'common::install.components.install-layout',
+            'install-layout',
+        );
+        Blade::component(
+            'common::install.components.install-button',
+            'install-button',
+        );
     }
 
     public function register()
@@ -233,6 +256,7 @@ class CommonServiceProvider extends ServiceProvider
             LengthAwarePaginator::class,
             CustomLengthAwarePaginator::class,
         );
+        $this->app->bind(Paginator::class, CustomSimplePaginator::class);
 
         $this->registerDevProviders();
 
@@ -327,75 +351,59 @@ class CommonServiceProvider extends ServiceProvider
         $request->server->set('REQUEST_URI', $normalizedUri);
     }
 
-    /**
-     * Register package middleware.
-     */
-    private function registerMiddleware()
+    private function registerMiddleware(): void
     {
-        // web
-        $this->app['router']->aliasMiddleware('isAdmin', IsAdmin::class);
-        $this->app['router']->aliasMiddleware(
-            'verified',
-            EnsureEmailIsVerified::class,
-        );
-        $this->app['router']->aliasMiddleware(
-            'optionalAuth',
-            OptionalAuthenticate::class,
-        );
-        $this->app['router']->aliasMiddleware(
-            'customDomainsEnabled',
-            CustomDomainsEnabled::class,
-        );
-        $this->app['router']->aliasMiddleware(
-            'prerenderIfCrawler',
-            PrerenderIfCrawler::class,
-        );
-        $this->app['router']->aliasMiddleware(
-            'verifyApiAccess',
-            VerifyApiAccessMiddleware::class,
-        );
-        $this->app['router']->pushMiddlewareToGroup(
-            'api',
-            EnableDebugIfLoggedInAsAdmin::class,
-        );
-        $this->app['router']->pushMiddlewareToGroup(
-            'web',
-            EnableDebugIfLoggedInAsAdmin::class,
-        );
-        $this->app['router']->pushMiddlewareToGroup(
-            'api',
-            SimulateSlowConnectionMiddleware::class,
-        );
-
-        // locale needs to be set in both web and api requests
-        $this->app['router']->pushMiddlewareToGroup('api', SetAppLocale::class);
-        $this->app['router']->pushMiddlewareToGroup('web', SetAppLocale::class);
-
-        $this->app['router']->pushMiddlewareToGroup(
-            'web',
-            ServerTimingMiddleware::class,
-        );
-
-        // banned users
-        $this->app['router']->pushMiddlewareToGroup(
-            'api',
-            ForbidBannedUser::class,
-        );
-        $this->app['router']->pushMiddlewareToGroup(
-            'web',
-            ForbidBannedUser::class,
-        );
-
-        // demo site
-        if ($this->app['config']->get('common.site.demo')) {
-            $this->app['router']->pushMiddlewareToGroup(
-                'api',
-                RestrictDemoSiteFunctionality::class,
-            );
+        if (!config('common.site.installed')) {
             $this->app['router']->pushMiddlewareToGroup(
                 'web',
-                RestrictDemoSiteFunctionality::class,
+                RedirectIfNotInstalledMiddleware::class,
             );
+            return;
+        }
+
+        $aliasMiddleware = [
+            'isAdmin' => IsAdmin::class,
+            'verified' => EnsureEmailIsVerified::class,
+            'optionalAuth' => OptionalAuthenticate::class,
+            'customDomainsEnabled' => CustomDomainsEnabled::class,
+            'prerenderIfCrawler' => PrerenderIfCrawler::class,
+            'verifyApiAccess' => VerifyApiAccessMiddleware::class,
+        ];
+
+        $apiMiddleware = [
+            EnableDebugIfLoggedInAsAdmin::class,
+            SimulateSlowConnectionMiddleware::class,
+            SetAppLocale::class,
+            ForbidBannedUser::class,
+            SetSentryUserMiddleware::class,
+            ShowCustomDomainConnectedMessage::class,
+        ];
+
+        $webMiddleware = [
+            EnableDebugIfLoggedInAsAdmin::class,
+            SimulateSlowConnectionMiddleware::class,
+            ServerTimingMiddleware::class,
+            SetAppLocale::class,
+            ForbidBannedUser::class,
+            SetSentryUserMiddleware::class,
+            ShowCustomDomainConnectedMessage::class,
+        ];
+
+        if (config('common.site.demo')) {
+            $apiMiddleware[] = RestrictDemoSiteFunctionality::class;
+            $webMiddleware[] = RestrictDemoSiteFunctionality::class;
+        }
+
+        foreach ($apiMiddleware as $middleware) {
+            $this->app['router']->pushMiddlewareToGroup('api', $middleware);
+        }
+
+        foreach ($webMiddleware as $middleware) {
+            $this->app['router']->pushMiddlewareToGroup('web', $middleware);
+        }
+
+        foreach ($aliasMiddleware as $alias => $middleware) {
+            $this->app['router']->aliasMiddleware($alias, $middleware);
         }
     }
 
@@ -470,10 +478,13 @@ class CommonServiceProvider extends ServiceProvider
             DeleteExpiredTusUploads::class,
             UpdateSimplePaginateTables::class,
             DeleteExpiredBansCommand::class,
+            DeleteExpiredOtpCodesCommand::class,
             StartSsr::class,
             StopSsr::class,
             UpdateActionsCommand::class,
             GenerateSitemap::class,
+            ScheduleHealthCommand::class,
+            CleanLogTables::class,
         ];
 
         if ($this->app->environment() !== 'production') {
@@ -487,6 +498,10 @@ class CommonServiceProvider extends ServiceProvider
 
         // schedule commands
         $this->app->booted(function () {
+            if (!$this->app->runningInConsole()) {
+                return;
+            }
+
             $schedule = $this->app->make(Schedule::class);
             $schedule->command(DeleteUploadArtifacts::class)->daily();
             $schedule->command(DeleteExpiredCsvExports::class)->daily();
@@ -494,6 +509,11 @@ class CommonServiceProvider extends ServiceProvider
             $schedule->command(DeleteExpiredTusUploads::class)->daily();
             $schedule->command(UpdateSimplePaginateTables::class)->daily();
             $schedule->command(DeleteExpiredBansCommand::class)->daily();
+            $schedule->command(DeleteExpiredOtpCodesCommand::class)->hourly();
+            $schedule->command(ScheduleHealthCommand::class)->everyMinute();
+            $schedule->command(CleanLogTables::class)->daily();
+
+            $this->monitorSchedule($schedule);
         });
     }
 
@@ -560,16 +580,13 @@ class CommonServiceProvider extends ServiceProvider
             config('common.site.public_disk_driver') === $name;
     }
 
-    private function registerEventListeners()
+    private function registerEventListeners(): void
     {
-        Event::listen(
-            SettingsSaved::class,
+        Event::listen(SettingsSaved::class, [
             SyncPlansWhenBillingSettingsChange::class,
-        );
-        Event::listen(
-            SettingsSaved::class,
             UpdateAllUsersLanguageWhenDefaultLocaleChanges::class,
-        );
+        ]);
+        Event::subscribe(OutgoingEmailLogSubscriber::class);
         Event::listen(
             FileUploaded::class,
             CreateThumbnailForUploadedFile::class,

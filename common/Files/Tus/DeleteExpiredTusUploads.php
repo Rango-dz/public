@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\File;
 
 class DeleteExpiredTusUploads extends Command
 {
-    protected $signature = 'tus:expired';
+    protected $signature = 'tus:abort_expired';
 
-    protected $description = 'Deletes expired tus uploads.';
+    protected $description = 'Abort and delete expired TUS uploads.';
 
     public function handle(): int
     {
@@ -33,7 +33,7 @@ class DeleteExpiredTusUploads extends Command
             }
         }
 
-        $this->info('Uploads deleted!');
+        $this->info('Expired TUS uploads deleted.');
 
         return Command::SUCCESS;
     }

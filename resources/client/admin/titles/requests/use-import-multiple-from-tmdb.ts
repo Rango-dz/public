@@ -82,7 +82,7 @@ export function useImportMultipleFromTmdb() {
         stopped = true;
       };
 
-      let currentPage = startFromPage;
+      let currentPage = startFromPage === 1 ? 0 : startFromPage;
       setIsLoading(true);
 
       controller.current.signal.addEventListener('abort', () =>
@@ -194,9 +194,10 @@ function formValueToPayload(values: ImportMultipleFromTmdbFormValue): Payload {
   if (values.keywords) {
     payload.keywords = values.keywords.map(keyword => keyword.id).join(',');
   }
+
   if (values.release_date) {
     payload.start_date = values.release_date.start;
-    payload.end_date = values.release_date.start;
+    payload.end_date = values.release_date.end;
   }
 
   return payload;

@@ -4,10 +4,11 @@ namespace Common\Channels;
 
 use App\Http\Resources\ChannelResource;
 use App\Models\Channel;
-use App\Services\GenerateDefaultChannels;
+use App\Services\ChannelPresets;
 use Common\Core\BaseController;
 use Common\Core\Prerender\Actions\ReplacePlaceholders;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,15 +16,14 @@ class ChannelController extends BaseController
 {
     public function index(): Response
     {
-        $this->authorize('index', [
-            Channel::class,
-            request('userId'),
-            request('type'),
+        $this->authorize('index', [Channel::class, 'channel']);
+
+        $pagination = (new PaginateChannels())->execute(request()->all());
+
+        return $this->success([
+            'pagination' => $pagination,
+            'presets' => (new ChannelPresets())->getAll(),
         ]);
-
-        $pagination = app(PaginateChannels::class)->execute(request()->all());
-
-        return $this->success(['pagination' => $pagination]);
     }
 
     public function show(Channel $channel)
@@ -37,7 +37,7 @@ class ChannelController extends BaseController
             $params['normalizeContent'] = true;
         } elseif ($loader === 'editChannelPage') {
             $params['normalizeContent'] = true;
-            $params['perPage'] = 200;
+            $params['perPage'] = $params['perPage'] ?? 100;
         }
 
         $channel->loadContent($params);
@@ -162,8 +162,10 @@ class ChannelController extends BaseController
 
         $builder = app($namespace);
 
-        if (request('query')) {
-            $builder = $builder->mysqlSearch(request('query'));
+        if ($query = request('query')) {
+            $builder = $builder
+                ->mysqlSearch($query)
+                ->when(is_numeric($query), fn($q) => $q->orWhere('id', $query));
         }
 
         $results = $builder
@@ -177,15 +179,19 @@ class ChannelController extends BaseController
                 return true;
             })
             ->map(fn($result) => $result->toNormalizedArray())
-            ->slice(0, request('limit', 5))
+            ->slice(0, request('limit', 10))
             ->values();
 
         return $this->success(['results' => $results]);
     }
 
-    public function resetToDefault()
+    public function applyPreset()
     {
         $this->authorize('destroy', Channel::class);
+
+        $data = request()->validate([
+            'preset' => 'required|string',
+        ]);
 
         $ids = Channel::where('type', 'channel')->pluck('id');
         DB::table('channelables')
@@ -193,7 +199,9 @@ class ChannelController extends BaseController
             ->delete();
         Channel::whereIn('id', $ids)->delete();
 
-        (new GenerateDefaultChannels())->execute();
+        (new ChannelPresets())->apply($data['preset']);
+
+        Cache::flush();
 
         return $this->success();
     }

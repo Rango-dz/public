@@ -43,7 +43,7 @@ class Stripe implements CommonSubscriptionGatewayActions
     public function changePlan(
         Subscription $subscription,
         Product $newProduct,
-        Price $newPrice
+        Price $newPrice,
     ): bool {
         return $this->subscriptions->changePlan(
             $subscription,
@@ -57,16 +57,26 @@ class Stripe implements CommonSubscriptionGatewayActions
         return $this->plans->delete($product);
     }
 
+    public function isSubscriptionIncomplete(Subscription $subscription): bool
+    {
+        return $this->subscriptions->isIncomplete($subscription);
+    }
+
+    public function isSubscriptionPastDue(Subscription $subscription): bool
+    {
+        return $this->subscriptions->isPastDue($subscription);
+    }
+
     public function cancelSubscription(
         Subscription $subscription,
-        bool $atPeriodEnd = true
+        bool $atPeriodEnd = true,
     ): bool {
         return $this->subscriptions->cancel($subscription, $atPeriodEnd);
     }
 
     public function resumeSubscription(
         Subscription $subscription,
-        array $gatewayParams = []
+        array $gatewayParams = [],
     ): bool {
         return $this->subscriptions->resume($subscription, $gatewayParams);
     }
@@ -82,7 +92,7 @@ class Stripe implements CommonSubscriptionGatewayActions
 
     public function changeDefaultPaymentMethod(
         User $user,
-        string $paymentMethodId
+        string $paymentMethodId,
     ): bool {
         $updatedUser = $this->client->customers->update($user->stripe_id, [
             'invoice_settings' => [
@@ -109,32 +119,12 @@ class Stripe implements CommonSubscriptionGatewayActions
         return $isSuccess;
     }
 
-    public function storeCardDetailsLocally(User $user, array $card)
+    public function storeCardDetailsLocally(User $user, array $card): void
     {
         $user->update([
             'card_brand' => $card['brand'],
             'card_last_four' => $card['last4'],
             'card_expires' => "{$card['exp_month']}/{$card['exp_year']}",
         ]);
-    }
-
-    public function storeSubscriptionDetailsLocally(
-        string $stripeSubscriptionId
-    ) {
-        $stripeSubscription = $this->client->subscriptions->retrieve(
-            $stripeSubscriptionId,
-        );
-
-        $stripePrice = $stripeSubscription->items->data[0]->price;
-
-        if ($stripeSubscription->status === 'active') {
-            $user = User::where(
-                'stripe_id',
-                $stripeSubscription->customer,
-            )->firstOrFail();
-            $price = Price::where('stripe_id', $stripePrice->id)->firstOrFail();
-
-            $user->subscribe('stripe', $stripeSubscription->id, $price);
-        }
     }
 }

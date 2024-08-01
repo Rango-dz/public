@@ -12,13 +12,13 @@ const radiusMap = {
     label: message('Square'),
     value: '0px',
   },
-  'rounded-sm': {
+  rounded: {
     label: message('Small'),
-    value: '0.125rem',
+    value: '0.25rem',
   },
   'rounded-md': {
     label: message('Medium'),
-    value: '0.25rem',
+    value: '0.375rem',
   },
   'rounded-lg': {
     label: message('Large'),

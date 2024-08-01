@@ -5,11 +5,11 @@ import {
   DateValue,
   isSameDay,
   toCalendarDate,
-  toZoned,
   ZonedDateTime,
 } from '@internationalized/date';
 import {useBaseDatePickerState} from '../use-base-date-picker-state';
 import {useCurrentDateTime} from '@common/i18n/use-current-date-time';
+import {toSafeZoned} from '@common/i18n/to-safe-zoned';
 
 export type Granularity = 'day' | 'minute';
 
@@ -101,7 +101,7 @@ export function useDatePickerState(
       // preserve time
       const value = internalValue
         ? internalValue.set(newValue)
-        : toZoned(newValue, timezone);
+        : toSafeZoned(newValue, timezone);
       setInternalValue(value);
       setCalendarDates([toCalendarDate(value)]);
       setIsPlaceholder(false);

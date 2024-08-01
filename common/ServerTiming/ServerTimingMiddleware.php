@@ -17,10 +17,6 @@ class ServerTimingMiddleware
 
     public function handle(Request $request, Closure $next)
     {
-//        if (!config('timing.enabled', true)) {
-//            return $next($request);
-//        }
-
         $this->timing->setDuration('Bootstrap', $this->getElapsedTimeInMs());
 
         $this->timing->start('App');

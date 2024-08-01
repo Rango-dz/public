@@ -23,7 +23,7 @@ export function ContextMenu({position, children, ...props}: Props) {
     placement: 'right-start',
     floatingWidth: 'auto',
     role: 'menu',
-    loopFocus: true,
+    focusLoopingMode: 'loop',
     children:
       (children as ReactElement)?.type === Menu
         ? (children as ReactElement).props.children

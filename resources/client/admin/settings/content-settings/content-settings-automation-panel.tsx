@@ -9,6 +9,7 @@ import {AdminSettings} from '@common/admin/settings/admin-settings';
 import {SettingsErrorGroup} from '@common/admin/settings/settings-error-group';
 import {FormTextField} from '@common/ui/forms/input-field/text-field/text-field';
 import {useValueLists} from '@common/http/value-lists';
+import {LearnMoreLink} from '@common/admin/settings/learn-more-link';
 
 export function ContentSettingsAutomationPanel() {
   const {watch} = useFormContext<AdminSettings>();
@@ -124,6 +125,9 @@ function TmdbFields() {
             label={<Trans message="TheMovieDB API Key" />}
             className="mb-24"
             required
+            description={
+              <LearnMoreLink link="https://support.vebto.com/hc/articles/35/65/221/creating-themoviedb-api-key" />
+            }
           />
           <FormSelect
             className="mb-24"
@@ -133,7 +137,7 @@ function TmdbFields() {
             name="client.tmdb.language"
             label={<Trans message="TheMovieDB language" />}
             description={
-              <Trans message="In what language should content be fetched from TMDb. If translation is not available data will default to english." />
+              <Trans message="In what language should content be fetched from TMDb. If translation is not available, data will be in original language for that movie or series." />
             }
           >
             {data?.tmdbLanguages.map(({code, name}) => (

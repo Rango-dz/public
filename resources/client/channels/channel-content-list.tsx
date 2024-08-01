@@ -1,19 +1,27 @@
 import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
 import React, {Fragment, ReactNode} from 'react';
 import {ChannelContentProps} from '@app/channels/channel-content';
-import {usePaginatedChannelContent} from '@common/channels/requests/use-paginated-channel-content';
+import {useInfiniteChannelContent} from '@common/channels/requests/use-infinite-channel-content';
 import {ChannelHeader} from '@app/channels/channel-header/channel-header';
 import {ChannelContentModel} from '@app/admin/channels/channel-content-config';
 import {ChannelContentListItem} from '@app/channels/channel-content-list-item';
 import {useChannelContent} from '@common/channels/requests/use-channel-content';
 import clsx from 'clsx';
+import {
+  PaginationControls,
+  PaginationControlsType,
+} from '@common/ui/navigation/pagination-controls';
 
 export function ChannelContentList(props: ChannelContentProps) {
+  const isInfiniteScroll =
+    !props.isNested &&
+    (!props.channel.config.paginationType ||
+      props.channel.config.paginationType === 'infiniteScroll');
   return (
     <Fragment>
       <ChannelHeader {...props} />
-      {props.isNested || props.channel.config.contentType !== 'listAll' ? (
-        <SimpleList {...props} />
+      {isInfiniteScroll ? (
+        <InfiniteScrollList {...props} />
       ) : (
         <PaginatedList {...props} />
       )}
@@ -21,13 +29,8 @@ export function ChannelContentList(props: ChannelContentProps) {
   );
 }
 
-function SimpleList({channel}: ChannelContentProps) {
-  const {data} = useChannelContent<ChannelContentModel>(channel);
-  return <Content content={data} />;
-}
-
-function PaginatedList({channel}: ChannelContentProps) {
-  const query = usePaginatedChannelContent<ChannelContentModel>(channel);
+function InfiniteScrollList({channel}: ChannelContentProps) {
+  const query = useInfiniteChannelContent<ChannelContentModel>(channel);
   return (
     <Content
       content={query.items}
@@ -35,6 +38,36 @@ function PaginatedList({channel}: ChannelContentProps) {
     >
       <InfiniteScrollSentinel query={query} />
     </Content>
+  );
+}
+
+function PaginatedList({channel, isNested}: ChannelContentProps) {
+  const shouldPaginate = !isNested;
+  const query = useChannelContent(channel, null, {paginate: shouldPaginate});
+  return (
+    <div
+      className={clsx(
+        'transition-opacity',
+        query.isPlaceholderData && 'opacity-70',
+      )}
+    >
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mb-24"
+        />
+      )}
+      <Content content={query.data?.data} />
+      {shouldPaginate && (
+        <PaginationControls
+          pagination={query.data}
+          type={channel.config.paginationType as PaginationControlsType}
+          className="mt-24"
+          scrollToTop
+        />
+      )}
+    </div>
   );
 }
 

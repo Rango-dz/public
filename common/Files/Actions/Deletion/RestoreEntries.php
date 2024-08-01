@@ -13,10 +13,10 @@ class RestoreEntries extends SoftDeleteEntries
             ->onlyTrashed()
             ->whereIn('id', $entryIds)
             ->get();
-        $entries = $this->loadChildEntries($entries, true);
 
-        $this->entry->whereIn('id', $entries->pluck('id'))->restore();
-
-        event(new FileEntriesRestored($entries->pluck('id')->toArray()));
+        $this->chunkChildEntries($entries, function ($chunk) {
+            $this->entry->whereIn('id', $chunk->pluck('id'))->restore();
+            event(new FileEntriesRestored($chunk->pluck('id')->toArray()));
+        });
     }
 }

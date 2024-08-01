@@ -2,11 +2,12 @@ import {useMutation} from '@tanstack/react-query';
 import {useTrans} from '@common/i18n/use-trans';
 import {toast} from '@common/ui/toast/toast';
 import {message} from '@common/i18n/message';
-import {apiClient} from '@common/http/query-client';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {showHttpErrorToast} from '@common/utils/http/show-http-error-toast';
 import {NormalizedModel} from '@common/datatable/filters/normalized-model';
 import {Channel, ChannelConfig} from '@common/channels/channel';
+import {channelQueryKey} from '@common/channels/requests/use-channel';
 
 interface Response extends BackendResponse {
   channel: Channel<NormalizedModel>;
@@ -20,7 +21,10 @@ export function useUpdateChannelContent(channelId: number | string) {
   const {trans} = useTrans();
   return useMutation({
     mutationFn: (payload: Payload) => updateChannel(channelId, payload),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: channelQueryKey(channelId),
+      });
       toast(trans(message('Channel content updated')));
     },
     onError: err => showHttpErrorToast(err),

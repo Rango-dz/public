@@ -31,8 +31,8 @@ export function ChannelContentSlider({
     scrollToNextPage,
     scrollToPreviousPage,
   } = useCarousel({rotate: true});
-  const {data} = useChannelContent<ChannelContentItem<Title>>(channel);
-  const titles = data || [];
+  const {data: pagination} =
+    useChannelContent<ChannelContentItem<Title>>(channel);
 
   return (
     <Fragment>
@@ -47,7 +47,7 @@ export function ChannelContentSlider({
             ref={scrollContainerRef}
             className="hidden-scrollbar flex h-full select-none snap-x snap-mandatory snap-always items-center overflow-x-auto"
           >
-            {titles.map((item, index) => (
+            {pagination?.data.map((item, index) => (
               <Slide key={item.id} item={item} index={index} />
             ))}
           </div>
@@ -76,7 +76,7 @@ export function ChannelContentSlider({
             </div>
           </div>
         </div>
-        <UpNext titles={titles} activePage={activePage} />
+        <UpNext titles={pagination?.data ?? []} activePage={activePage} />
       </div>
     </Fragment>
   );

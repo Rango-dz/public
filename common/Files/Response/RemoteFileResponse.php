@@ -12,7 +12,7 @@ class RemoteFileResponse implements FileResponse
      * @param array $options
      * @return mixed
      */
-    public function make(FileEntry $entry, $options)
+    public function make(FileEntry $entry, $options): mixed
     {
         if ($options['disposition'] === 'attachment') {
             $fileName = rawurlencode($entry->name);

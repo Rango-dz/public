@@ -38,17 +38,6 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
     ),
   },
   {
-    key: 'subscribed',
-    header: () => <Trans message="Subscribed" />,
-    width: 'w-96',
-    body: user =>
-      user.subscriptions?.length ? (
-        <CheckIcon className="text-positive icon-md" />
-      ) : (
-        <CloseIcon className="text-danger icon-md" />
-      ),
-  },
-  {
     key: 'roles',
     header: () => <Trans message="Roles" />,
     body: user => (
@@ -68,21 +57,41 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
     ),
   },
   {
-    key: 'firstName',
-    allowsSorting: true,
-    header: () => <Trans message="First name" />,
-    body: user => user.first_name,
+    key: 'subscribed',
+    header: () => <Trans message="Subscribed" />,
+    width: 'w-96',
+    body: user =>
+      user.subscriptions?.length ? (
+        <CheckIcon className="text-positive icon-md" />
+      ) : (
+        <CloseIcon className="text-danger icon-md" />
+      ),
   },
   {
-    key: 'lastName',
+    key: 'banned_at',
     allowsSorting: true,
-    header: () => <Trans message="Last name" />,
-    body: user => user.last_name,
+    header: () => <Trans message="Suspended" />,
+    width: 'w-96',
+    body: user =>
+      user.banned_at ? <CheckIcon className="text-danger icon-md" /> : null,
+  },
+  {
+    key: 'last_login',
+    width: 'w-110',
+    header: () => <Trans message="Last active" />,
+    body: user =>
+      user.last_login ? (
+        <time>
+          <FormattedDate date={user.last_login.created_at} />
+        </time>
+      ) : (
+        '-'
+      ),
   },
   {
     key: 'createdAt',
     allowsSorting: true,
-    width: 'w-96',
+    width: 'w-110',
     header: () => <Trans message="Created at" />,
     body: user => (
       <time>

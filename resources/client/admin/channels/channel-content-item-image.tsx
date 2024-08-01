@@ -10,8 +10,8 @@ export function ChannelContentItemImage({item}: Props) {
   const src = useImageSrc(item.image, {size: 'sm'});
 
   const imageClassName = clsx(
-    'aspect-square w-46 rounded object-cover',
-    !src ? 'flex items-center justify-center' : 'block'
+    'aspect-square w-40 rounded object-cover',
+    !src ? 'flex items-center justify-center' : 'block',
   );
 
   return src ? (

@@ -53,7 +53,7 @@ function EpisodeSelectorDialog({title, currentEpisode, onSelected}: Props) {
   const darkThemeVars = useDarkThemeVariables();
   const [activeTab, setActiveTab] = useState<SelectorPanel>('episodes');
   const [selectedSeason, setSelectedSeason] = useState(
-    currentEpisode.season_number
+    currentEpisode.season_number,
   );
 
   const heading =
@@ -83,7 +83,7 @@ function EpisodeSelectorDialog({title, currentEpisode, onSelected}: Props) {
         {heading}
       </DialogHeader>
       <DialogBody
-        className="stable-scrollbar relative h-400 text-main"
+        className="stable-scrollbar relative h-780 text-main md:h-400"
         padding="p-0"
       >
         <AnimatePresence initial={false}>
@@ -167,7 +167,7 @@ function EpisodeList({
   const query = useSeasonEpisodes(
     undefined,
     {truncateDescriptions: 'true'},
-    {titleId: title.id, season}
+    {titleId: title.id, season},
   );
 
   let content: ReactNode;
@@ -186,7 +186,7 @@ function EpisodeList({
         title={<Trans message="This season has not episodes yet." />}
       />
     );
-  } else if (query.isInitialLoading) {
+  } else if (query.isLoading) {
     content = <FullPageLoader />;
   } else {
     content = (
@@ -245,9 +245,10 @@ function EpisodeItem({
     >
       <EpisodePoster
         wrapWithLink={false}
-        size="w-224"
+        size="w-84 md:w-224"
         title={title}
         episode={episode}
+        className="overflow-hidden rounded-panel"
       >
         {isPlayable ? (
           <IconButton variant="flat" color="white">

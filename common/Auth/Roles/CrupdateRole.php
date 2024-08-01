@@ -3,7 +3,7 @@
 namespace Common\Auth\Roles;
 
 use Common\Auth\Permissions\Traits\SyncsPermissions;
-use Arr;
+use Illuminate\Support\Arr;
 
 class CrupdateRole
 {
@@ -29,7 +29,7 @@ class CrupdateRole
      */
     public function execute($data, $role = null)
     {
-        if ( ! $role) {
+        if (!$role) {
             $role = $this->role->newInstance([]);
         }
 

@@ -20,7 +20,7 @@ class VideosController extends BaseController
         $builder = Video::with([
             'captions',
             'title' => fn(BelongsTo $query) => $query->with('seasons'),
-        ])->withCount(['reports', 'plays']);
+        ]);
 
         $filters = new DatasourceFilters(request('filters'));
 

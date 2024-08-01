@@ -2,8 +2,15 @@ import React, {KeyboardEvent} from 'react';
 import {UseListboxReturn} from './types';
 
 export function useListboxKeyboardNavigation({
-  state: {isOpen, setIsOpen, selectedIndex, activeIndex, setInputValue},
-  loopFocus,
+  state: {
+    isOpen,
+    setIsOpen,
+    selectedIndex,
+    activeIndex,
+    setInputValue,
+    setActiveIndex,
+  },
+  focusLoopingMode,
   collection,
   focusItem,
   handleItemSelection,
@@ -23,7 +30,7 @@ export function useListboxKeyboardNavigation({
       setIsOpen(true);
       focusItem(
         'decrement',
-        selectedIndex != null ? selectedIndex : collection.size - 1
+        selectedIndex != null ? selectedIndex : collection.size - 1,
       );
       return true;
     } else if (e.key === 'Enter' || e.key === 'Space') {
@@ -35,7 +42,7 @@ export function useListboxKeyboardNavigation({
   };
 
   const handleListboxKeyboardNavigation = (
-    e: React.KeyboardEvent
+    e: React.KeyboardEvent,
   ): true | void => {
     const lastIndex = Math.max(0, collection.size - 1);
     // ignore if event bubbled up from portal, or dropdown is closed
@@ -48,8 +55,10 @@ export function useListboxKeyboardNavigation({
           focusItem('increment', 0);
         } else if (activeIndex >= lastIndex) {
           // if focus is not looping, stay on last index
-          if (loopFocus) {
+          if (focusLoopingMode === 'loop') {
             focusItem('increment', 0);
+          } else if (focusLoopingMode === 'deselect') {
+            setActiveIndex(null);
           }
         } else {
           focusItem('increment', activeIndex + 1);
@@ -61,8 +70,10 @@ export function useListboxKeyboardNavigation({
           focusItem('decrement', lastIndex);
         } else if (activeIndex <= 0) {
           // if focus is not looping, stay on first index
-          if (loopFocus) {
+          if (focusLoopingMode === 'loop') {
             focusItem('decrement', lastIndex);
+          } else if (focusLoopingMode === 'deselect') {
+            setActiveIndex(null);
           }
         } else {
           focusItem('decrement', activeIndex - 1);
@@ -83,7 +94,7 @@ export function useListboxKeyboardNavigation({
   };
 
   const handleListboxSearchFieldKeydown = (
-    e: KeyboardEvent<HTMLInputElement>
+    e: KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === 'Enter' && activeIndex != null && collection.size) {
       // prevent form submit when selecting item in combobox via "enter"

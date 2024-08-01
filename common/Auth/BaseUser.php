@@ -1,6 +1,7 @@
 <?php namespace Common\Auth;
 
 use App\Models\User;
+use Common\Auth\Notifications\VerifyEmailWithOtp;
 use Common\Auth\Permissions\Permission;
 use Common\Auth\Permissions\Traits\HasPermissionsRelation;
 use Common\Auth\Roles\Role;
@@ -250,6 +251,24 @@ abstract class BaseUser extends BaseModel implements
         );
     }
 
+    protected function otpCodes(): HasMany
+    {
+        return $this->hasMany(OtpCode::class);
+    }
+
+    public function emailVerificationOtpIsValid(string $code): bool
+    {
+        $otp = $this->otpCodes()
+            ->where('type', OtpCode::TYPE_EMAIL_VERIFICATION)
+            ->first();
+
+        if (!$otp || $otp->code !== $code || $otp->isExpired()) {
+            return false;
+        }
+
+        return true;
+    }
+
     protected function emailVerifiedAt(): Attribute
     {
         return Attribute::make(
@@ -262,6 +281,22 @@ abstract class BaseUser extends BaseModel implements
                 return $value;
             },
         );
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $otp = OtpCode::createForEmailVerification($this->id);
+        $this->notify(new VerifyEmailWithOtp($otp->code));
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        $this->otpCodes()
+            ->where('type', OtpCode::TYPE_EMAIL_VERIFICATION)
+            ->delete();
+        return $this->forceFill([
+            'email_verified_at' => $this->freshTimestamp(),
+        ])->save();
     }
 
     public function loadPermissions($force = false): self

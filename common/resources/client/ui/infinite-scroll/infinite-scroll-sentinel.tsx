@@ -61,7 +61,7 @@ export function InfiniteScrollSentinel({
         <Button
           size={size === 'md' ? 'sm' : 'xs'}
           className={clsx(
-            size === 'sm' ? 'min-h-24 min-w-96' : 'min-h-36 min-w-112'
+            size === 'sm' ? 'min-h-24 min-w-96' : 'min-h-36 min-w-112',
           )}
           variant="outline"
           color="primary"
@@ -84,7 +84,7 @@ export function InfiniteScrollSentinel({
       <AnimatePresence>
         {isFetchingNextPage && (
           <m.div
-            className={clsx('flex justify-center w-full', loaderMarginTop)}
+            className={clsx('flex w-full justify-center', loaderMarginTop)}
             {...opacityAnimation}
           >
             <ProgressCircle size={size} isIndeterminate aria-label="loading" />

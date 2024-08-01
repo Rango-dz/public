@@ -21,7 +21,7 @@ export function useHtmlMediaEvents({
   const onTextTracksChange = useCallback(() => {
     if (!ref.current) return;
     const tracks = Array.from(ref.current.textTracks).filter(
-      t => t.label && (t.kind === 'subtitles' || t.kind === 'captions')
+      t => t.label && (t.kind === 'subtitles' || t.kind === 'captions'),
     );
 
     let trackId = -1;

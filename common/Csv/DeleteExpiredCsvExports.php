@@ -5,53 +5,32 @@ namespace Common\Csv;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Storage;
+use Illuminate\Support\Facades\Storage;
 
 class DeleteExpiredCsvExports extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'csvExports:delete';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Deleted csv exports that are expired.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function handle(): int
     {
-        parent::__construct();
-    }
+        $count = 0;
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
-    public function handle()
-    {
         CsvExport::where(
             'created_at',
             '<',
             Carbon::now()->addDays(-1),
-        )->chunkById(10, function (Collection $chunk) {
+        )->chunkById(10, function (Collection $chunk) use ($count) {
+            $count += $chunk->count();
             CsvExport::whereIn('id', $chunk->pluck('id'))->delete();
-            $filePaths = $chunk->map(function(CsvExport $export) {
+            $filePaths = $chunk->map(function (CsvExport $export) {
                 return $export->filePath();
             });
             Storage::delete($filePaths);
         });
 
-        return 0;
+        $this->info("Deleted $count expired csv exports");
+
+        return Command::SUCCESS;
     }
 }

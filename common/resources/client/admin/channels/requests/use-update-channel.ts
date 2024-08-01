@@ -39,6 +39,7 @@ export function useUpdateChannel(form: UseFormReturn<UpdateChannelPayload>) {
 
 function updateChannel({
   id,
+  content, // don't need to send content to the server
   ...payload
 }: UpdateChannelPayload): Promise<Response> {
   return apiClient.put(Endpoint(id), payload).then(r => r.data);

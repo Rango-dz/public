@@ -5,7 +5,6 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
-  now,
   startOfMonth,
   startOfWeek,
   startOfYear,
@@ -13,9 +12,9 @@ import {
 import {startOfDay} from '@common/utils/date/start-of-day';
 import {endOfDay} from '@common/utils/date/end-of-day';
 import {getBootstrapData} from '@common/core/bootstrap-data/use-backend-bootstrap-data';
-import {getUserTimezone} from '@common/i18n/get-user-timezone';
+import {getCurrentDateTime} from '@common/i18n/use-current-date-time';
 
-const Now = startOfDay(now(getUserTimezone()));
+const Now = startOfDay(getCurrentDateTime());
 const locale = getBootstrapData()?.i18n?.language || 'en';
 
 export interface DateRangePreset {

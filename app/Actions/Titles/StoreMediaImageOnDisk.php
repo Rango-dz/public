@@ -38,6 +38,10 @@ class StoreMediaImageOnDisk
             );
         }
 
-        return "storage/media-images/backdrops/$hash/original.$extension";
+        $endpoint = config('common.site.file_preview_endpoint');
+        $uri = "media-images/backdrops/$hash/original.$extension";
+        return $endpoint
+            ? "$endpoint/storage/$uri"
+            : Storage::disk('public')->url($uri);
     }
 }

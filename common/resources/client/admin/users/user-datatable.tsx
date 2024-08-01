@@ -26,7 +26,7 @@ export function UserDatatable() {
         filters={UserDatatableFilters}
         columns={filteredColumns}
         actions={<Actions />}
-        queryParams={{with: 'subscriptions,bans'}}
+        queryParams={{with: 'subscriptions,bans,lastLogin'}}
         selectedActions={<DeleteSelectedItemsAction />}
         emptyStateMessage={
           <DataTableEmptyStateMessage

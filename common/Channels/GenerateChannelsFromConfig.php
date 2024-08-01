@@ -3,51 +3,54 @@
 namespace Common\Channels;
 
 use App\Models\Channel;
+use App\Models\User;
 use Illuminate\Support\Arr;
 
 class GenerateChannelsFromConfig
 {
     public function execute(array $configPaths): Channel|null
     {
-        foreach ($configPaths as $configPath) {
-            $configs = json_decode(file_get_contents($configPath), true);
+        $createdChannels = [];
 
-            $createdChannels = [];
+        $configs = collect($configPaths)
+            ->map(
+                fn($configPath) => json_decode(
+                    file_get_contents($configPath),
+                    true,
+                ),
+            )
+            ->flatten(1)
+            ->sortBy(fn($config) => !empty($config['nestedChannels']));
 
-            foreach ($configs as $config) {
-                $nestedChannelSlugs = Arr::pull($config, 'nestedChannels');
-                $channel = Channel::create(
-                    array_merge($config, [
-                        'type' => 'channel',
-                        'public' => true,
-                        'internal' => false,
-                    ]),
-                );
-                $createdChannels[] = [
-                    'parent' => $channel,
-                    'nestedChannelSlugs' => $nestedChannelSlugs,
-                ];
-            }
+        foreach ($configs as $config) {
+            $nestedChannelSlugs = Arr::pull($config, 'nestedChannels');
+            $presetDescription = Arr::pull($config, 'presetDescription');
+            $config['config']['adminDescription'] = $presetDescription;
+            $channel = Channel::create(
+                array_merge($config, [
+                    'type' => 'channel',
+                    'public' => true,
+                    'internal' => $config['internal'] ?? false,
+                    'user_id' => app(User::class)->findAdmin()?->id,
+                ]),
+            );
+            $createdChannels[] = [
+                'parent' => $channel,
+                'nestedChannelSlugs' => $nestedChannelSlugs,
+            ];
+        }
 
-            foreach ($createdChannels as $createdChannel) {
-                if (isset($createdChannel['nestedChannelSlugs'])) {
-                    foreach ($createdChannel['nestedChannelSlugs'] as $slug) {
-                        $nestedChannel = Channel::where('slug', $slug)->first();
-                        $createdChannel['parent']
-                            ->channels()
-                            ->attach($nestedChannel->id);
-                    }
+        foreach ($createdChannels as $createdChannel) {
+            if (isset($createdChannel['nestedChannelSlugs'])) {
+                foreach ($createdChannel['nestedChannelSlugs'] as $slug) {
+                    $nestedChannel = Channel::where('slug', $slug)->first();
+                    $createdChannel['parent']
+                        ->channels()
+                        ->attach($nestedChannel->id);
                 }
             }
-
-            $homeChannel = Arr::first(
-                $createdChannels,
-                fn($c) => $c['parent']->slug === 'homepage',
-            );
-
-            if (isset($homeChannel)) {
-                return $homeChannel['parent'];
-            }
         }
+
+        return Channel::whereIn('slug', ['homepage', 'discover'])->first();
     }
 }

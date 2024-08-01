@@ -10,7 +10,6 @@ import {
   minDate,
   startOfMonth,
   toCalendarDate,
-  toZoned,
   ZonedDateTime,
 } from '@internationalized/date';
 import {
@@ -22,6 +21,7 @@ import {useBaseDatePickerState} from '../use-base-date-picker-state';
 import {startOfDay} from '@common/utils/date/start-of-day';
 import {endOfDay} from '@common/utils/date/end-of-day';
 import {useCurrentDateTime} from '@common/i18n/use-current-date-time';
+import {toSafeZoned} from '@common/i18n/to-safe-zoned';
 
 export interface IsPlaceholderValue {
   start: boolean;
@@ -99,7 +99,10 @@ export function useDateRangePickerState(
         end = minDate(end, max);
       }
 
-      return {start: toZoned(start, timezone), end: toZoned(end, timezone)};
+      return {
+        start: toSafeZoned(start, timezone),
+        end: toSafeZoned(end, timezone),
+      };
     },
     [min, max, timezone],
   );
@@ -243,8 +246,8 @@ interface MakeRangeProps {
   timezone: string;
 }
 function makeRange(props: MakeRangeProps): DateRangeValue {
-  const start = toZoned(props.start, props.timezone);
-  const end = toZoned(props.end, props.timezone);
+  const start = toSafeZoned(props.start, props.timezone);
+  const end = toSafeZoned(props.end, props.timezone);
   if (start.compare(end) > 0) {
     return {start: end, end: start};
   }

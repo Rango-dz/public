@@ -9,6 +9,7 @@ import {Item} from '../../../ui/forms/listbox/item';
 import {FormSwitch} from '../../../ui/forms/toggle/switch';
 import {FormPermissionSelector} from '../../../auth/ui/permission-selector';
 import {useSettings} from '../../../core/settings/use-settings';
+import {Button} from '@common/ui/buttons/button';
 
 interface CrupdateRolePageSettingsPanelProps {
   isInternal?: boolean;
@@ -18,7 +19,7 @@ export function CrupdateRolePageSettingsPanel({
 }: CrupdateRolePageSettingsPanelProps) {
   const {trans} = useTrans();
   const {workspaces} = useSettings();
-  const {watch} = useFormContext<Role>();
+  const {watch, setValue} = useFormContext<Role>();
   const watchedType = watch('type');
 
   return (
@@ -78,9 +79,18 @@ export function CrupdateRolePageSettingsPanel({
           )}
         </>
       )}
-      <h2 className="mb-10 mt-30 text-lg">
-        <Trans message="Permissions" />
-      </h2>
+      <div className="mb-14 mt-30 flex items-end justify-between gap-12">
+        <h2 className="text-lg leading-tight">
+          <Trans message="Permissions" />
+        </h2>
+        <Button
+          variant="outline"
+          size="xs"
+          onClick={() => setValue('permissions', [])}
+        >
+          <Trans message="Remove all" />
+        </Button>
+      </div>
       <FormPermissionSelector
         name="permissions"
         valueListKey={

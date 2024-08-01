@@ -455,15 +455,15 @@ class TransformData
             'src' => $videorigin,
             'type' => Video::VIDEO_TYPE_EMBED,
             'origin' => 'tmdb',
-            'category' => strtolower(Arr::get($video, 'type', 'Full Movie or Episode')),
+            'category' => strtolower(Arr::get($video,'type', 'full')),
         ];
     }, $videos);
 
     // show trailers first
     usort($videos, function ($a, $b) {
-        if ($a['category'] === 'trailer') {
+        if ($a['category'] === 'full') {
             return -1;
-        } elseif ($b['category'] === 'trailer') {
+        } elseif ($b['category'] === 'full') {
             return 1;
         } else {
             return 0;

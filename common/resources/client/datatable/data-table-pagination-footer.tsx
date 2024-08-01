@@ -64,7 +64,7 @@ export function DataTablePaginationFooter({
       )}
     >
       {!isMobile && perPageSelect}
-      {pagination.from && pagination.to && 'total' in pagination && (
+      {pagination.from && pagination.to && 'total' in pagination ? (
         <div className="text-sm">
           <Trans
             message=":from - :to of :total"
@@ -75,7 +75,7 @@ export function DataTablePaginationFooter({
             }}
           />
         </div>
-      )}
+      ) : null}
       <div className="text-muted">
         <IconButton
           disabled={query.isFetching || pagination.current_page < 2}

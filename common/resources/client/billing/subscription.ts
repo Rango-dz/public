@@ -10,7 +10,9 @@ export interface Subscription {
   on_grace_period?: boolean;
   gateway_name: 'stripe' | 'paypal' | 'none';
   gateway_id: string;
+  gateway_status: string;
   valid?: boolean;
+  past_due?: boolean;
   active?: boolean;
   cancelled?: boolean;
   on_trial?: boolean;

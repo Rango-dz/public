@@ -39,8 +39,10 @@ class StoreFile
             $payload->filename === '.htaccess' ||
             // dont store php files in public disk
             ($payload->public && $this->isPhpFile($payload, $fileOptions)) ||
-            // prevent path traversal in user specified folder
-            ($payload->diskPrefix && Str::contains($payload->diskPrefix, '..'))
+            // prevent path traversal or storing at root in user specified folder
+            ($payload->diskPrefix &&
+                (Str::contains($payload->diskPrefix, '..') ||
+                    $payload->diskPrefix === '/'))
         ) {
             abort(403);
         }
@@ -102,7 +104,11 @@ class StoreFile
         FileEntryPayload $payload,
         array $fileOptions,
     ): bool {
-        if ($payload->clientExtension === 'php') {
+        if (
+            Str::of($payload->clientExtension)
+                ->lower()
+                ->startsWith(['php', 'phtml'])
+        ) {
             return true;
         }
 

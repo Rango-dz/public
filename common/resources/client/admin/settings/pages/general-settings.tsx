@@ -3,7 +3,6 @@ import {FormTextField} from '@common/ui/forms/input-field/text-field/text-field'
 import {FormSelect, Option} from '../../../ui/forms/select/select';
 import {FormSwitch} from '@common/ui/forms/toggle/switch';
 import {Button} from '@common/ui/buttons/button';
-import {useGenerateSitemap} from '../generate-sitemap';
 import {ExternalLink} from '@common/ui/buttons/external-link';
 import {SettingsPanel} from '../settings-panel';
 import {SettingsSeparator} from '../settings-separator';
@@ -16,6 +15,7 @@ import {useBootstrapData} from '@common/core/bootstrap-data/bootstrap-data-conte
 import {useValueLists} from '@common/http/value-lists';
 import {useFormContext} from 'react-hook-form';
 import {AdminSettingsWithFiles} from '@common/admin/settings/requests/update-admin-settings';
+import {useGenerateSitemap} from '@common/admin/settings/requests/use-generate-sitemap';
 
 export function GeneralSettings() {
   return (
@@ -66,7 +66,7 @@ function SiteUrlSection() {
         name="server.app_url"
         label={<Trans message="Primary site url" />}
         description={
-          <LearnMoreLink link="https://support.vebto.com/help-center/articles/35/primary-site-url" />
+          <LearnMoreLink link="https://support.vebto.com/hc/articles/35/primary-site-url" />
         }
       />
       {append}

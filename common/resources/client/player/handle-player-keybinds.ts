@@ -3,11 +3,11 @@ import {isCtrlOrShiftPressed} from '@common/utils/keybinds/is-ctrl-or-shift-pres
 
 export function handlePlayerKeybinds(
   e: KeyboardEvent,
-  state: () => PlayerState
+  state: () => PlayerState,
 ) {
   if (
     ['input', 'textarea'].includes(
-      (e.target as HTMLElement)?.tagName.toLowerCase()
+      (e.target as HTMLElement)?.tagName.toLowerCase(),
     )
   )
     return;
@@ -21,13 +21,21 @@ export function handlePlayerKeybinds(
     }
   }
 
-  if (e.key === 'ArrowRight' && isCtrlOrShiftPressed(e)) {
+  if (e.key === 'ArrowLeft') {
     e.preventDefault();
-    state().playNext();
+    if (isCtrlOrShiftPressed(e)) {
+      state().playPrevious();
+    } else {
+      state().seek(state().getCurrentTime() - 10);
+    }
   }
 
-  if (e.key === 'ArrowLeft' && isCtrlOrShiftPressed(e)) {
+  if (e.key === 'ArrowRight') {
     e.preventDefault();
-    state().playPrevious();
+    if (isCtrlOrShiftPressed(e)) {
+      state().playNext();
+    } else {
+      state().seek(state().getCurrentTime() + 10);
+    }
   }
 }

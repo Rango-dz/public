@@ -11,6 +11,7 @@ export interface ChannelContentConfig {
       sortMethods: string[];
       layoutMethods: string[];
       autoUpdateMethods?: string[];
+      restrictions?: string[];
     }
   >;
   sortingMethods: Record<
@@ -31,7 +32,7 @@ export interface ChannelContentConfig {
     string,
     {
       label: MessageDescriptor;
-      provider?: string;
+      providers: string[];
       value?: {
         label: MessageDescriptor;
         inputType: 'text' | 'number';
@@ -39,4 +40,11 @@ export interface ChannelContentConfig {
     }
   >;
   userSelectableLayouts: string[];
+  restrictions: Record<
+    string,
+    {
+      label: MessageDescriptor;
+      value: string;
+    }
+  >;
 }

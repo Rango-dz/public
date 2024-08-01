@@ -24,6 +24,7 @@ export function ChannelContentSearchField({
   const {isFetching, data} = useAddableContent({
     query,
     modelType: contentModel,
+    limit: 20,
   });
   return (
     <ComboBox

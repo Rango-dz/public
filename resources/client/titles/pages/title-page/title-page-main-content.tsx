@@ -49,7 +49,8 @@ export function TitlePageMainContent({data, className}: Props) {
       {title.tagline && (
         <blockquote className="mt-16">“{title.tagline}”</blockquote>
       )}
-      <TruncatedDescription className="mt-16" description={title.description} />
+      {/* <TruncatedDescription className="mt-16" description={title.description} /> */}
+      <div className="prose text dark:prose-invert" dangerouslySetInnerHTML={{__html: title.description}}/>
       <CompactCredits credits={credits} />
       <AdHost slot="title_top" className="pt-48" />
       {title_page?.sections?.map(name => (

@@ -12,7 +12,7 @@ class PaypalController extends BaseController
     public function __construct(
         protected Request $request,
         protected Subscription $subscription,
-        protected Paypal $paypal
+        protected Paypal $paypal,
     ) {
         $this->middleware('auth');
     }
@@ -23,9 +23,9 @@ class PaypalController extends BaseController
             'paypal_subscription_id' => 'required|string',
         ]);
 
-        $this->paypal->storeSubscriptionDetailsLocally(
+        $this->paypal->subscriptions->sync(
             $data['paypal_subscription_id'],
-            Auth::user(),
+            Auth::id(),
         );
 
         return $this->success();

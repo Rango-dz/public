@@ -128,7 +128,7 @@ module.exports = {
       warning: '#f3a432',
       google: '#d34836',
       facebook: '#3b5998',
-      twitter: '#1da1f2',
+      twitter: '#000000',
       envato: '#6ca12b',
       tumblr: '#2b5a9f',
       background: 'rgb(var(--be-background) / <alpha-value>)',

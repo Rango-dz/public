@@ -1,5 +1,52 @@
-<h2>2023 September 15 - Version 4.0.3</h2>
+<h2>2024 June 05 - Version 4.0.5</h2>
+<ul>
+  <li>new: added last login and suspension status in users datatable in admin area</li>
+  <li>fix: show watchlist button on mobile</li>
+  <li>fix: invoice notification sometimes not being sent</li>
+</ul>
 
+<h2>2024 June 01 - Version 4.0.4</h2>
+<ul>
+  <li>new: it's now possible to show pagination on channel pages</li>
+  <li>new: updated channel management pages in admin area</li>
+  <li>
+    new: it's now possible to change default font, border radius and navbar color from appearance
+    editor.
+  </li>
+  <li>new: errors on the site will now show more details, if logged in as admin.</li>
+  <li>new: translations can now be downloaded and uploaded as .json file</li>
+  <li>new: added CRON, outgoing email and error logs in admin area</li>
+  <li>new: changed email verification to use one time password, instead of verification link</li>
+  <li>new: request password before allowing user to delete account</li>
+  <li>new: allow sitemap generation via command line</li>
+  <li>new: added social icons in the icon selector in menu manager</li>
+  <li>new: added logout button to verify email page</li>
+  <li>new: show user suspension reason on edit user page</li>
+  <li>fix: update seasons when importing series by ID from admin area, even if that series is already imported</li>
+  <li>fix: title backdrops not uploading when s3 provider is selected</li>
+  <li>fix: episode grid starting at the wrong season on episode page</li>
+  <li>fix: some layout issues in user profile page</li>
+  <li>fix: subscription activation sometimes being delayed when using stripe</li>
+  <li>fix: paypal subscription state sometimes not syncing with the site</li>
+  <li>fix: hidden plans being used for discount calculation</li>
+  <li>fix: incorrect link in checkout error page</li>
+  <li>fix: old settings sometimes being cached</li>
+  <li>fix: resending email verification from admin area</li>
+  <li>fix: some issues with appearance editor color pickers</li>
+  <li>fix: seo tags being duplicated sometimes</li>
+  <li>fix: a few issues with user passwords and login</li>
+  <li>fix: issue with when switching from stripe test mode to live</li>
+  <li>fix: custom landing page SEO tags not showing sometimes</li>
+  <li>fix: date range picker issue when starting selection from end date</li>
+  <li>
+    fix: mark all notification as unread, instead of just visible ones via mark as unread button
+  </li>
+  <li>fix: api docs authentication</li>
+  <li>fix: mobile menu sometimes opening links in new window</li>
+  <li>fix: cookie notice layout on mobile</li>
+</ul>
+
+<h2>2023 September 15 - Version 4.0.3</h2>
 <ul>
   <li>new: improved first page load speed</li>
   <li>new: improved SEO tags editor in admin area</li>
@@ -669,7 +716,7 @@
   <li>Improved person page layout on mobile.</li>
   <li>Added some missing translation strings.</li>
   <li>Improved season page layout on mobile.</li>
-  <li>Improved data migration from old versions (< 3.0.0).</li>
+  <li>Improved data migration from old versions (3.0.0 and lower).</li>
   <li>Menu for custom pages can now be created via menu manager.</li>
 </ul>
 <h4>Bug Fixes</h4>

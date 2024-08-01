@@ -4,38 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Title;
 use Common\Core\BaseController;
-use DB;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VideoOrderController extends BaseController
 {
-    public function __construct(private Title $title, private Request $request)
+    public function changeOrder(int $titleId)
     {
-    }
-
-    /**
-     * @param int $titleId
-     * @return JsonResponse
-     */
-    public function changeOrder($titleId) {
-
-        $title = $this->title->findOrFail($titleId);
+        $title = Title::findOrFail($titleId);
 
         $this->authorize('update', $title);
 
-        $this->validate($this->request, [
-            'ids'   => 'array|min:1',
-            'ids.*' => 'integer'
+        request()->validate([
+            'ids' => 'array|min:1',
+            'ids.*' => 'integer',
         ]);
 
         $queryPart = '';
-        foreach($this->request->get('ids') as $order => $id) {
+        foreach (request('ids') as $order => $id) {
             $queryPart .= " when id=$id then $order";
         }
 
         DB::table('videos')
-            ->whereIn('id', $this->request->get('ids'))
+            ->whereIn('id', request('ids'))
             ->update(['order' => DB::raw("(case $queryPart end)")]);
 
         return $this->success();

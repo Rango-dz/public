@@ -32,7 +32,7 @@ export interface ButtonBaseProps
   replace?: boolean;
   end?: boolean;
   elementType?: 'button' | 'a' | JSXElementConstructor<any>;
-  download?: boolean;
+  download?: boolean | string;
 }
 
 export const ButtonBase = forwardRef<
@@ -86,7 +86,7 @@ export const ButtonBase = forwardRef<
         getSharedButtonStyle({variant, color, border, whitespace, display}),
         radius,
         justify,
-        className
+        className,
       )}
       {...domProps}
     >

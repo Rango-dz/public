@@ -31,5 +31,4 @@ export interface LandingPageContent {
     description: string;
     image: string;
   }[];
-  channelIds: number[];
 }

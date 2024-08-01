@@ -68,7 +68,6 @@ return [
                         'id' => '886nz4',
                         'action' => '/admin',
                         'type' => 'route',
-                        'condition' => 'admin',
                         'icon' => [
                             [
                                 'tag' => 'path',
@@ -159,7 +158,6 @@ return [
                         'action' => '/admin/subscriptions',
                         'type' => 'route',
                         'id' => 'sdcb5a',
-                        'condition' => 'admin',
                         'icon' => [
                             [
                                 'tag' => 'path',
@@ -170,6 +168,7 @@ return [
                             ],
                         ],
                         'permissions' => ['subscriptions.update'],
+                        'settings' => ['billing.enable' => true],
                     ],
                     [
                         'label' => 'Users',
@@ -434,7 +433,7 @@ return [
                     ],
 
                     [
-                        'label' => 'Localizations',
+                        'label' => 'Translations',
                         'action' => '/admin/localizations',
                         'type' => 'route',
                         'id' => 'w91yql',
@@ -472,6 +471,22 @@ return [
                         ],
                         'permissions' => ['settings.update'],
                     ],
+
+                    [
+                        'label' => 'Logs',
+                        'action' => '/admin/logs',
+                        'type' => 'route',
+                        'id' => '8j435f',
+                        'icon' => [
+                            [
+                                'tag' => 'path',
+                                'attr' => [
+                                    'd' =>
+                                        'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 14H6v-2h12v2zm0-4H6v-2h12v2zm-3-4H6V7h9v2z',
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'positions' => ['admin-sidebar'],
             ],
@@ -487,7 +502,6 @@ return [
                         'position' => 1,
                         'label' => 'Developers',
                         'action' => '/api-docs',
-                        'condition' => 'auth',
                         'permissions' => ['api.access'],
                     ],
                     [

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cache;
 
 class Settings
 {
+    use TransformsSettingsTableRowValue;
+
     protected Collection $all;
 
     /**
@@ -195,22 +197,71 @@ class Settings
 
     protected function loadSettings(): void
     {
-        $this->all = Cache::remember(
-            'settings.public',
-            now()->addDay(),
-            function () {
-                try {
-                    return Setting::select('name', 'value')
-                        ->get()
-                        ->pluck('value', 'name');
-                } catch (Exception $e) {
-                    return collect();
+        $value = Cache::get('settings.public');
+        $this->all = collect();
+
+        if ($value && count($value) > 0) {
+            $this->all = $value;
+        } else {
+            try {
+                $value = Setting::select('name', 'value')
+                    ->get()
+                    ->pluck('value', 'name');
+                if (!$value->isEmpty()) {
+                    $this->all = $value;
+                    Cache::set('settings.public', $value, now()->addDay());
                 }
-            },
-        );
+            } catch (Exception $e) {
+            }
+        }
+
         // add config keys that should be included
         foreach ($this->configKeys as $clientKey => $configKey) {
-            $this->set($clientKey, config($configKey));
+            $this->set($clientKey, config()->get($configKey));
+        }
+    }
+
+    public function getAllForFrontendForm(): array
+    {
+        $value = Setting::select('name', 'value')
+            ->get()
+            ->mapWithKeys(
+                fn($setting) => [
+                    $setting->name => $this->decodeDbValue(
+                        $setting->name,
+                        $setting->getRawOriginal('value'),
+                        forceJsonArray: false,
+                    ),
+                ],
+            )
+            ->toArray();
+
+        $value = dot($value, true)->all();
+
+        // prevent objects being converted to arrays to avoid issues with forms on settings page
+        foreach ($this->configKeys as $clientKey => $configKey) {
+            $value[$clientKey] = config()->get($configKey);
+        }
+        return $value;
+    }
+
+    function castToArrayPreserveEmptyObjects(mixed $obj)
+    {
+        if (is_object($obj) || is_array($obj)) {
+            $ret = (array) $obj;
+
+            // don't convert empty objects to array
+            if (is_object($obj) && empty($ret)) {
+                return $obj;
+            }
+
+            foreach ($ret as &$item) {
+                $item = $this->castToArrayPreserveEmptyObjects($item);
+            }
+
+            return $ret;
+        } else {
+            return $obj;
         }
     }
 }

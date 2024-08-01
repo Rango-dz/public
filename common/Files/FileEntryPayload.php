@@ -2,11 +2,11 @@
 
 namespace Common\Files;
 
-use Arr;
 use Common\Files\Traits\GetsEntryTypeFromMime;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Str;
+use Illuminate\Support\Str;
 
 class FileEntryPayload
 {
@@ -14,10 +14,10 @@ class FileEntryPayload
 
     private array $data;
     public mixed $diskName;
-    public string $clientName;
+    public string|null $clientName;
     public string $filename;
     public ?int $workspaceId;
-    public string $clientMime;
+    public string|null $clientMime;
     public string $type;
     public ?string $relativePath;
     public string $clientExtension;

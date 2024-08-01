@@ -11,8 +11,8 @@ import { createServer } from "http";
 import { QueryClient, useQuery, keepPreviousData, useMutation, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { StaticRouter } from "react-router-dom/server.mjs";
-import React, { forwardRef, memo, createContext, useContext, useMemo, Fragment, isValidElement, cloneElement, useCallback, useState, useEffect, StrictMode, useRef, useId, Children } from "react";
-import { LazyMotion, domAnimation, AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m, LazyMotion, domAnimation } from "framer-motion";
+import React, { forwardRef, memo, createContext, useContext, useMemo, Fragment, isValidElement, cloneElement, useCallback, Children, useRef, useState, useId, useEffect } from "react";
 import slugify from "slugify";
 import deepMerge from "deepmerge";
 import clsx from "clsx";
@@ -21,15 +21,16 @@ import memoize from "nano-memoize";
 import { create, useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { nanoid } from "nanoid";
-import { useNavigate as useNavigate$1, useLocation, createPath, resolvePath, Link, NavLink, Navigate, Outlet, useSearchParams, useParams, Route, Routes } from "react-router-dom";
-import { NumberFormatter } from "@internationalized/number";
-import { useController, FormProvider, useForm } from "react-hook-form";
-import { useObjectRef, mergeProps, useViewportSize, useLayoutEffect } from "@react-aria/utils";
-import { useControlledState } from "@react-stately/utils";
+import { mergeProps, useObjectRef, useViewportSize, useLayoutEffect } from "@react-aria/utils";
+import { useFocusManager, FocusScope } from "@react-aria/focus";
 import { offset, shift, flip, size, arrow, useFloating, autoUpdate } from "@floating-ui/react-dom";
 import { mergeRefs } from "react-merge-refs";
-import { FocusScope, useFocusManager } from "@react-aria/focus";
 import { createPortal } from "react-dom";
+import { useNavigate as useNavigate$1, useLocation, createPath, resolvePath, Link, NavLink, Navigate, Outlet, useSearchParams, useParams, Route, Routes } from "react-router-dom";
+import { NumberFormatter } from "@internationalized/number";
+import { FormProvider, useController, useForm } from "react-hook-form";
+import dot from "dot-object";
+import { useControlledState } from "@react-stately/utils";
 import { useIsSSR } from "@react-aria/ssr";
 import { enableMapSet, produce } from "immer";
 import axiosRetry from "axios-retry";
@@ -71,24 +72,28 @@ apiClient.defaults.headers = {
     Accept: "application/json"
   }
 };
+const internalEndpoints = ["auth", "secure", "log-viewer", "horizon"];
 apiClient.interceptors.request.use((config) => {
-  var _a, _b, _c, _d, _e, _f, _g;
-  if (!((_a = config.url) == null ? void 0 : _a.startsWith("auth")) && !((_b = config.url) == null ? void 0 : _b.startsWith("secure")) && !isAbsoluteUrl(config == null ? void 0 : config.url)) {
+  var _a, _b, _c, _d, _e;
+  if (!internalEndpoints.some((endpoint2) => {
+    var _a2;
+    return (_a2 = config.url) == null ? void 0 : _a2.startsWith(endpoint2);
+  }) && !isAbsoluteUrl(config == null ? void 0 : config.url)) {
     config.url = `api/v1/${config.url}`;
   }
-  const method = (_c = config.method) == null ? void 0 : _c.toUpperCase();
-  if (method === "GET" && Array.isArray((_d = config.params) == null ? void 0 : _d.with)) {
+  const method = (_a = config.method) == null ? void 0 : _a.toUpperCase();
+  if (method === "GET" && Array.isArray((_b = config.params) == null ? void 0 : _b.with)) {
     config.params.with = config.params.with.join(",");
   }
-  if (method === "GET" && Array.isArray((_e = config.params) == null ? void 0 : _e.load)) {
+  if (method === "GET" && Array.isArray((_c = config.params) == null ? void 0 : _c.load)) {
     config.params.load = config.params.load.join(",");
   }
-  if (method === "GET" && Array.isArray((_f = config.params) == null ? void 0 : _f.loadCount)) {
+  if (method === "GET" && Array.isArray((_d = config.params) == null ? void 0 : _d.loadCount)) {
     config.params.loadCount = config.params.loadCount.join(",");
   }
   const workspaceId = getActiveWorkspaceId();
   if (workspaceId) {
-    const method2 = (_g = config.method) == null ? void 0 : _g.toLowerCase();
+    const method2 = (_e = config.method) == null ? void 0 : _e.toLowerCase();
     if (["get", "post", "put"].includes(method2)) {
       config.params = { ...config.params, workspaceId };
     }
@@ -143,7 +148,7 @@ function useBackendBootstrapData() {
   });
 }
 const fetchBootstrapData = async () => {
-  return apiClient.get("http://bedesk.test/api/v1/bootstrap-data").then((response) => {
+  return apiClient.get("bootstrap-data").then((response) => {
     return decodeBootstrapData(response.data.data);
   });
 };
@@ -188,6 +193,7 @@ const SiteConfig = {
     getUserProfileLink
   },
   admin: {
+    channelsDocsLink: "https://support.vebto.com/hc/articles/35/38/220/channels",
     ads: [
       {
         image: generalTopImage,
@@ -666,6 +672,7 @@ const Button = React.forwardRef(
     disabled,
     elementType,
     to,
+    replace,
     href,
     download,
     ...other
@@ -687,6 +694,7 @@ const Button = React.forwardRef(
         href: disabled ? void 0 : href,
         download: disabled ? void 0 : download,
         elementType: disabled ? void 0 : elementType,
+        replace: disabled ? void 0 : replace,
         ...other,
         children: [
           startIcon && /* @__PURE__ */ jsx(InlineIcon, { position: "start", icon: startIcon, size: size2 }),
@@ -779,13 +787,22 @@ function handlePluralMessage(localeCode, { message: message2, values }) {
 const getRules = memoize((localeCode) => {
   return new Intl.PluralRules(localeCode);
 });
+function hasOwn(obj, key) {
+  if (obj == null) {
+    return false;
+  }
+  if (Object.hasOwn !== void 0) {
+    return Object.hasOwn(obj, key);
+  }
+  return Object.hasOwnProperty(key);
+}
 const Trans = memo((props) => {
   const { message: initialMessage, values } = props;
   const { lines, localeCode } = useSelectedLocale();
   let translatedMessage;
-  if (Object == null ? void 0 : Object.hasOwn(lines || {}, initialMessage)) {
+  if (hasOwn(lines, initialMessage)) {
     translatedMessage = lines == null ? void 0 : lines[initialMessage];
-  } else if (Object == null ? void 0 : Object.hasOwn(lines || {}, initialMessage == null ? void 0 : initialMessage.toLowerCase())) {
+  } else if (hasOwn(lines, initialMessage == null ? void 0 : initialMessage.toLowerCase())) {
     translatedMessage = lines == null ? void 0 : lines[initialMessage.toLowerCase()];
   } else {
     translatedMessage = initialMessage;
@@ -1053,13 +1070,978 @@ function getAxiosErrorMessage(err, field) {
     return response == null ? void 0 : response.message;
   }
 }
+const useDialogStore = create()(
+  immer((set, get) => ({
+    dialog: null,
+    data: void 0,
+    resolveClosePromise: null,
+    openDialog: (dialog, data) => {
+      return new Promise((resolve) => {
+        set((state) => {
+          state.dialog = dialog;
+          state.data = data;
+          state.resolveClosePromise = resolve;
+        });
+      });
+    },
+    closeActiveDialog: (value) => {
+      var _a, _b;
+      (_b = (_a = get()).resolveClosePromise) == null ? void 0 : _b.call(_a, value);
+      set((state) => {
+        state.dialog = null;
+        state.data = void 0;
+        state.resolveClosePromise = null;
+      });
+    }
+  }))
+);
+const openDialog = useDialogStore.getState().openDialog;
+const closeDialog = (value) => {
+  useDialogStore.getState().closeActiveDialog(value);
+};
+const DialogContext = React.createContext(null);
+function useDialogContext() {
+  return useContext(DialogContext);
+}
+function useTrans() {
+  const { lines, localeCode } = useSelectedLocale();
+  const trans = useCallback(
+    (props) => {
+      return translate({ ...props, lines, localeCode });
+    },
+    [lines, localeCode]
+  );
+  return { trans };
+}
+const translate = memoize(
+  (props) => {
+    let { lines, message: message2, values, localeCode } = props;
+    if (message2 == null) {
+      return "";
+    }
+    message2 = (lines == null ? void 0 : lines[message2]) || (lines == null ? void 0 : lines[message2.toLowerCase()]) || message2;
+    if (!values) {
+      return message2;
+    }
+    message2 = handlePluralMessage(localeCode, props);
+    Object.entries(values).forEach(([key, value]) => {
+      message2 = message2.replace(`:${key}`, `${value}`);
+    });
+    return message2;
+  },
+  { equals: shallowEqual, callTimeout: 0 }
+);
+function DismissButton({ onDismiss }) {
+  const { trans } = useTrans();
+  const onClick = () => {
+    if (onDismiss) {
+      onDismiss();
+    }
+  };
+  return /* @__PURE__ */ jsx(
+    "button",
+    {
+      className: "sr-only",
+      "aria-label": trans(message("Dismiss")),
+      tabIndex: -1,
+      onClick
+    }
+  );
+}
+function Dialog(props) {
+  const {
+    type = "modal",
+    dialogProps,
+    ...contextProps
+  } = useContext(DialogContext);
+  const {
+    children,
+    className,
+    size: size2 = "md",
+    background,
+    radius = "rounded",
+    maxWidth = "max-w-dialog",
+    ...domProps
+  } = props;
+  let dismissButton = null;
+  if (type === "popover" || type === "tray") {
+    dismissButton = /* @__PURE__ */ jsx(DismissButton, { onDismiss: contextProps.close });
+  }
+  const isTrayOrFullScreen = size2 === "fullscreenTakeover" || type === "tray";
+  const mergedClassName = clsx(
+    "mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden",
+    background || "bg",
+    type !== "tray" && sizeStyle(size2),
+    type === "tray" && "rounded-t border-b-bg",
+    size2 !== "fullscreenTakeover" && `shadow-2xl border max-h-dialog`,
+    !isTrayOrFullScreen && `${radius} ${maxWidth}`,
+    className
+  );
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      ...mergeProps({ role: "dialog", tabIndex: -1 }, dialogProps, domProps),
+      style: { ...props.style, "--be-dialog-padding": "24px" },
+      "aria-modal": true,
+      className: mergedClassName,
+      children: [
+        Children.toArray(children).map((child) => {
+          if (isValidElement(child)) {
+            return cloneElement(child, {
+              size: child.props.size ?? size2
+            });
+          }
+          return child;
+        }),
+        dismissButton
+      ]
+    }
+  );
+}
+function sizeStyle(dialogSize) {
+  switch (dialogSize) {
+    case "2xs":
+      return "w-256";
+    case "xs":
+      return "w-320";
+    case "sm":
+      return "w-384";
+    case "md":
+      return "w-440";
+    case "lg":
+      return "w-620";
+    case "xl":
+      return "w-780";
+    case "2xl":
+      return "w-850";
+    case "fullscreen":
+      return "w-1280";
+    case "fullscreenTakeover":
+      return "w-full h-full";
+    default:
+      return dialogSize;
+  }
+}
+const IconButton = forwardRef(
+  ({
+    children,
+    size: size2 = "md",
+    // only set icon size based on button size if "ButtonSize" is passed in and not custom className
+    iconSize = size2 && size2.length <= 3 ? size2 : "md",
+    variant = "text",
+    radius = "rounded-button",
+    className,
+    padding,
+    equalWidth = true,
+    badge,
+    ...other
+  }, ref) => {
+    const mergedClassName = clsx(
+      getButtonSizeStyle(size2, { padding, equalWidth, variant }),
+      className,
+      badge && "relative"
+    );
+    return /* @__PURE__ */ jsxs(
+      ButtonBase,
+      {
+        ...other,
+        ref,
+        radius,
+        variant,
+        className: mergedClassName,
+        children: [
+          cloneElement(children, { size: iconSize }),
+          badge
+        ]
+      }
+    );
+  }
+);
+const CloseIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" }),
+  "CloseOutlined"
+);
+function DialogHeader(props) {
+  const {
+    children,
+    className,
+    color,
+    onDismiss,
+    leftAdornment,
+    rightAdornment,
+    hideDismissButton = false,
+    size: size2,
+    showDivider,
+    justify = "justify-between",
+    titleFontWeight = "font-semibold",
+    titleTextSize = size2 === "xs" ? "text-xs" : "text-sm",
+    closeButtonSize = size2 === "xs" ? "xs" : "sm",
+    actions
+  } = props;
+  const { labelId, isDismissable, close } = useContext(DialogContext);
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: clsx(
+        className,
+        "flex flex-shrink-0 items-center gap-10",
+        titleFontWeight,
+        showDivider && "border-b",
+        getPadding$2(props),
+        color || "text-main",
+        justify
+      ),
+      children: [
+        leftAdornment,
+        /* @__PURE__ */ jsx(
+          "h3",
+          {
+            id: labelId,
+            className: clsx(titleTextSize, "mr-auto leading-5 opacity-90"),
+            children
+          }
+        ),
+        rightAdornment,
+        actions,
+        isDismissable && !hideDismissButton && /* @__PURE__ */ jsx(
+          IconButton,
+          {
+            "aria-label": "Dismiss",
+            onClick: () => {
+              if (onDismiss) {
+                onDismiss();
+              } else {
+                close();
+              }
+            },
+            size: closeButtonSize,
+            className: clsx("-mr-8 text-muted", rightAdornment && "sr-only"),
+            children: /* @__PURE__ */ jsx(CloseIcon, {})
+          }
+        )
+      ]
+    }
+  );
+}
+function getPadding$2({ size: size2, padding }) {
+  if (padding) {
+    return padding;
+  }
+  switch (size2) {
+    case "2xs":
+    case "xs":
+      return "px-14 py-4";
+    case "sm":
+      return "px-18 py-4";
+    default:
+      return "px-24 py-6";
+  }
+}
+const DialogBody = forwardRef(
+  (props, ref) => {
+    const { children, className, padding, size: size2, ...domProps } = props;
+    return /* @__PURE__ */ jsx(
+      "div",
+      {
+        ...domProps,
+        ref,
+        className: clsx(
+          className,
+          getPadding$1(props),
+          "overflow-y-auto overflow-x-hidden overscroll-contain text-sm flex-auto"
+        ),
+        children
+      }
+    );
+  }
+);
+function getPadding$1({ size: size2, padding }) {
+  if (padding) {
+    return padding;
+  }
+  switch (size2) {
+    case "xs":
+      return "p-14";
+    case "sm":
+      return "p-18";
+    default:
+      return "px-24 py-20";
+  }
+}
+const CancelFilledIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z" })
+);
+const WarningIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" }),
+  "WarningOutlined"
+);
+const PopoverAnimation = {
+  initial: { opacity: 0, y: 5 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 5 },
+  transition: { type: "tween", duration: 0.125 }
+};
+function useFloatingPosition({
+  floatingWidth,
+  ref,
+  disablePositioning = false,
+  placement = "bottom",
+  offset: offset$1 = 2,
+  showArrow = false,
+  maxHeight,
+  shiftCrossAxis = true,
+  fallbackPlacements
+}) {
+  const arrowRef = useRef(null);
+  const floatingConfig = { placement, strategy: "fixed" };
+  if (!disablePositioning) {
+    floatingConfig.whileElementsMounted = autoUpdate;
+    floatingConfig.middleware = [
+      offset(offset$1),
+      shift({ padding: 16, crossAxis: shiftCrossAxis, mainAxis: true }),
+      flip({
+        padding: 16,
+        fallbackPlacements
+      }),
+      size({
+        apply({ rects, availableHeight, availableWidth, elements }) {
+          if (floatingWidth === "matchTrigger" && maxHeight != null) {
+            Object.assign(elements.floating.style, {
+              width: `${rects.reference.width}px`,
+              maxWidth: `${availableWidth}`,
+              maxHeight: `${Math.min(availableHeight, maxHeight)}px`
+            });
+          } else if (maxHeight != null) {
+            Object.assign(elements.floating.style, {
+              maxHeight: `${Math.min(availableHeight, maxHeight)}px`
+            });
+          }
+        },
+        padding: 16
+      })
+    ];
+    if (showArrow) {
+      floatingConfig.middleware.push(arrow({ element: arrowRef }));
+    }
+  }
+  const floatingProps = useFloating(floatingConfig);
+  const mergedReferenceRef = useMemo(
+    () => mergeRefs([ref, floatingProps.refs.setReference]),
+    [floatingProps.refs.setReference, ref]
+  );
+  const { x: arrowX, y: arrowY } = floatingProps.middlewareData.arrow || {};
+  const staticSide = {
+    top: "bottom",
+    right: "left",
+    bottom: "top",
+    left: "right"
+  }[floatingProps.placement.split("-")[0]];
+  const arrowStyle = {
+    left: arrowX,
+    top: arrowY,
+    right: "",
+    bottom: "",
+    [staticSide]: "-4px"
+  };
+  return {
+    ...floatingProps,
+    reference: mergedReferenceRef,
+    arrowRef,
+    arrowStyle
+  };
+}
+let rootEl = typeof document !== "undefined" ? document.getElementById("root") ?? document.body : void 0;
+let themeEl = typeof document !== "undefined" ? document.documentElement : void 0;
+const TOOLTIP_COOLDOWN = 500;
+const tooltips = {};
+let globalWarmedUp = false;
+let globalWarmUpTimeout = null;
+let globalCooldownTimeout = null;
+const closeOpenTooltips = (tooltipId) => {
+  var _a;
+  for (const hideTooltipId in tooltips) {
+    if (hideTooltipId !== tooltipId) {
+      (_a = tooltips[hideTooltipId]) == null ? void 0 : _a.call(tooltips, true);
+      delete tooltips[hideTooltipId];
+    }
+  }
+};
+const Tooltip = forwardRef(
+  ({
+    children,
+    label,
+    placement = "top",
+    offset: offset2 = 10,
+    variant = "neutral",
+    delay = 1500,
+    isDisabled,
+    usePortal = true,
+    ...domProps
+  }, ref) => {
+    const { x, y, reference, strategy, arrowRef, arrowStyle, refs } = useFloatingPosition({
+      placement,
+      offset: offset2,
+      ref,
+      showArrow: true
+    });
+    const [isOpen, setIsOpen] = useState(false);
+    const tooltipId = useId();
+    const closeTimeout = useRef();
+    const showTooltip = () => {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = void 0;
+      closeOpenTooltips(tooltipId);
+      tooltips[tooltipId] = hideTooltip;
+      globalWarmedUp = true;
+      setIsOpen(true);
+      if (globalWarmUpTimeout) {
+        clearTimeout(globalWarmUpTimeout);
+        globalWarmUpTimeout = null;
+      }
+      if (globalCooldownTimeout) {
+        clearTimeout(globalCooldownTimeout);
+        globalCooldownTimeout = null;
+      }
+    };
+    const hideTooltip = useCallback(
+      (immediate) => {
+        if (immediate) {
+          clearTimeout(closeTimeout.current);
+          closeTimeout.current = void 0;
+          setIsOpen(false);
+        } else if (!closeTimeout.current) {
+          closeTimeout.current = setTimeout(() => {
+            closeTimeout.current = void 0;
+            setIsOpen(false);
+          }, TOOLTIP_COOLDOWN);
+        }
+        if (globalWarmUpTimeout) {
+          clearTimeout(globalWarmUpTimeout);
+          globalWarmUpTimeout = null;
+        }
+        if (globalWarmedUp) {
+          if (globalCooldownTimeout) {
+            clearTimeout(globalCooldownTimeout);
+          }
+          globalCooldownTimeout = setTimeout(() => {
+            delete tooltips[tooltipId];
+            globalCooldownTimeout = null;
+            globalWarmedUp = false;
+          }, TOOLTIP_COOLDOWN);
+        }
+      },
+      [tooltipId]
+    );
+    const warmupTooltip = () => {
+      closeOpenTooltips(tooltipId);
+      tooltips[tooltipId] = hideTooltip;
+      if (!isOpen && !globalWarmUpTimeout && !globalWarmedUp) {
+        globalWarmUpTimeout = setTimeout(() => {
+          globalWarmUpTimeout = null;
+          globalWarmedUp = true;
+          showTooltip();
+        }, delay);
+      } else if (!isOpen) {
+        showTooltip();
+      }
+    };
+    const showTooltipWithWarmup = (immediate) => {
+      if (!immediate && delay > 0 && !closeTimeout.current) {
+        warmupTooltip();
+      } else {
+        showTooltip();
+      }
+    };
+    useEffect(() => {
+      return () => {
+        clearTimeout(closeTimeout.current);
+        const tooltip = tooltips[tooltipId];
+        if (tooltip) {
+          delete tooltips[tooltipId];
+        }
+      };
+    }, [tooltipId]);
+    useEffect(() => {
+      const onKeyDown = (e) => {
+        if (e.key === "Escape") {
+          hideTooltip(true);
+        }
+      };
+      if (isOpen) {
+        document.addEventListener("keydown", onKeyDown, true);
+        return () => {
+          document.removeEventListener("keydown", onKeyDown, true);
+        };
+      }
+    }, [isOpen, hideTooltip]);
+    const tooltipContent = /* @__PURE__ */ jsx(AnimatePresence, { children: isOpen && /* @__PURE__ */ jsxs(
+      m.div,
+      {
+        ...PopoverAnimation,
+        ref: refs.setFloating,
+        id: tooltipId,
+        role: "tooltip",
+        onPointerEnter: () => {
+          showTooltipWithWarmup(true);
+        },
+        onPointerLeave: () => {
+          hideTooltip();
+        },
+        className: clsx(
+          "z-tooltip my-4 max-w-240 break-words rounded px-8 py-4 text-xs text-white shadow",
+          variant === "positive" && "bg-positive",
+          variant === "danger" && "bg-danger",
+          variant === "neutral" && "bg-toast"
+        ),
+        style: {
+          position: strategy,
+          top: y ?? "",
+          left: x ?? ""
+        },
+        children: [
+          /* @__PURE__ */ jsx(
+            "div",
+            {
+              ref: arrowRef,
+              className: "absolute h-8 w-8 rotate-45 bg-inherit",
+              style: arrowStyle
+            }
+          ),
+          label
+        ]
+      }
+    ) });
+    return /* @__PURE__ */ jsxs(Fragment, { children: [
+      cloneElement(
+        children,
+        // pass dom props down to child element, in case tooltip is wrapped in menu trigger
+        mergeProps(
+          {
+            "aria-describedby": isOpen ? tooltipId : void 0,
+            ref: reference,
+            onPointerEnter: (e) => {
+              if (e.pointerType === "mouse") {
+                showTooltipWithWarmup();
+              }
+            },
+            onFocus: (e) => {
+              if (e.target.matches(":focus-visible")) {
+                showTooltipWithWarmup(true);
+              }
+            },
+            onPointerLeave: (e) => {
+              if (e.pointerType === "mouse") {
+                hideTooltip();
+              }
+            },
+            onPointerDown: () => {
+              hideTooltip(true);
+            },
+            onBlur: () => {
+              hideTooltip();
+            },
+            "aria-label": typeof label === "string" ? label : label.props.message
+          },
+          domProps
+        )
+      ),
+      usePortal ? rootEl && createPortal(tooltipContent, rootEl) : tooltipContent
+    ] });
+  }
+);
+function Chip(props) {
+  const {
+    onRemove,
+    disabled,
+    invalid,
+    errorMessage,
+    children,
+    className,
+    selectable = false,
+    radius = "rounded-full",
+    elementType = "div",
+    to,
+    onClick
+  } = props;
+  const chipRef = useRef(null);
+  const deleteButtonRef = useRef(null);
+  const focusManager = useFocusManager();
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        focusManager == null ? void 0 : focusManager.focusNext({ tabbable: true });
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        focusManager == null ? void 0 : focusManager.focusPrevious({ tabbable: true });
+        break;
+      case "Backspace":
+      case "Delete":
+        if (chipRef.current === document.activeElement) {
+          onRemove == null ? void 0 : onRemove();
+        }
+        break;
+    }
+  };
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick(e);
+    } else {
+      chipRef.current.focus();
+    }
+  };
+  const sizeStyle2 = sizeClassNames(props);
+  let adornment = invalid || errorMessage != null ? /* @__PURE__ */ jsx(WarningIcon, { className: "text-danger", size: "sm" }) : props.adornment && cloneElement(props.adornment, {
+    size: sizeStyle2.adornment.size,
+    circle: true,
+    className: clsx(
+      props.adornment.props.className,
+      sizeStyle2.adornment.margin
+    )
+  });
+  if (errorMessage && adornment) {
+    adornment = /* @__PURE__ */ jsx(Tooltip, { label: errorMessage, variant: "danger", children: adornment });
+  }
+  const Element = elementType;
+  return /* @__PURE__ */ jsxs(
+    Element,
+    {
+      tabIndex: selectable ? 0 : void 0,
+      ref: chipRef,
+      to,
+      onKeyDown: selectable ? handleKeyDown : void 0,
+      onClick: selectable ? handleClick : void 0,
+      className: clsx(
+        "relative flex flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none",
+        "min-w-0 max-w-full after:pointer-events-none after:absolute after:inset-0",
+        onClick && "cursor-pointer",
+        radius,
+        colorClassName(props),
+        sizeStyle2.chip,
+        !disabled && selectable && "hover:after:bg-black/5 focus:after:bg-black/10",
+        className
+      ),
+      children: [
+        adornment,
+        /* @__PURE__ */ jsx("div", { className: "flex-auto overflow-hidden overflow-ellipsis", children }),
+        onRemove && /* @__PURE__ */ jsx(
+          ButtonBase,
+          {
+            ref: deleteButtonRef,
+            className: clsx(
+              "text-black/30 dark:text-white/50",
+              sizeStyle2.closeButton
+            ),
+            onClick: (e) => {
+              e.stopPropagation();
+              onRemove();
+            },
+            tabIndex: -1,
+            children: /* @__PURE__ */ jsx(CancelFilledIcon, { className: "block", width: "100%", height: "100%" })
+          }
+        )
+      ]
+    }
+  );
+}
+function sizeClassNames({ size: size2, onRemove }) {
+  switch (size2) {
+    case "xs":
+      return {
+        adornment: { size: "xs", margin: "-ml-3" },
+        chip: clsx("pl-8 h-20 text-xs font-medium w-max", !onRemove && "pr-8"),
+        closeButton: "mr-4 w-14 h-14"
+      };
+    case "sm":
+      return {
+        adornment: { size: "xs", margin: "-ml-3" },
+        chip: clsx("pl-8 h-26 text-xs", !onRemove && "pr-8"),
+        closeButton: "mr-4 w-18 h-18"
+      };
+    case "lg":
+      return {
+        adornment: { size: "md", margin: "-ml-12" },
+        chip: clsx("pl-18 h-38 text-base", !onRemove && "pr-18"),
+        closeButton: "mr-6 w-24 h-24"
+      };
+    default:
+      return {
+        adornment: { size: "sm", margin: "-ml-6" },
+        chip: clsx("pl-12 h-32 text-sm", !onRemove && "pr-12"),
+        closeButton: "mr-6 w-22 h-22"
+      };
+  }
+}
+function colorClassName({ color }) {
+  switch (color) {
+    case "primary":
+      return `bg-primary text-on-primary`;
+    case "positive":
+      return `bg-positive-lighter text-positive-darker`;
+    case "danger":
+      return `bg-danger-lighter text-danger-darker`;
+    default:
+      return `bg-chip text-main`;
+  }
+}
+const ErrorIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" }),
+  "ErrorOutlined"
+);
+function highlightAllCode(el, themeMode = "dark") {
+  el.querySelectorAll("pre code").forEach((e) => {
+    highlightCode(e, themeMode);
+  });
+}
+async function highlightCode(el, themeMode = "dark") {
+  const { hljs } = await import("./assets/highlight-31acaf62.mjs");
+  if (!el.dataset.highlighted) {
+    el.classList.add(themeMode === "dark" ? "hljs-dark" : "hljs-light");
+    hljs.highlightElement(el);
+  }
+}
+const KeyboardArrowDownIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" }),
+  "KeyboardArrowDownOutlined"
+);
+const UnfoldMoreIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M12 5.83 15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z" }),
+  "UnfoldMoreOutlined"
+);
+const UnfoldLessIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z" }),
+  "UnfoldLessOutlined"
+);
+function IgnitionStackTrace({
+  trace,
+  onSelectedIndexChange,
+  selectedIndex,
+  totalVendorGroups
+}) {
+  const [expandedVendorGroups, setExpandedVendorGroups] = useState(
+    []
+  );
+  const allVendorGroupsExpanded = expandedVendorGroups.length === totalVendorGroups;
+  return /* @__PURE__ */ jsxs("div", { className: "max-w-440 border-r text-sm", children: [
+    /* @__PURE__ */ jsx("div", { className: "border-b px-30 py-16", children: /* @__PURE__ */ jsx(
+      Button,
+      {
+        variant: "outline",
+        size: "2xs",
+        startIcon: allVendorGroupsExpanded ? /* @__PURE__ */ jsx(UnfoldLessIcon, {}) : /* @__PURE__ */ jsx(UnfoldMoreIcon, {}),
+        onClick: () => {
+          if (allVendorGroupsExpanded) {
+            setExpandedVendorGroups([]);
+          } else {
+            setExpandedVendorGroups(
+              trace.map((frame, index) => "vendorGroup" in frame ? index : -1).filter((index) => index !== -1)
+            );
+          }
+        },
+        children: allVendorGroupsExpanded ? /* @__PURE__ */ jsx(Trans, { message: "Collapse vendor frames" }) : /* @__PURE__ */ jsx(Trans, { message: "Expand vendor frames" })
+      }
+    ) }),
+    trace.map((frame, index) => {
+      if ("vendorGroup" in frame) {
+        if (expandedVendorGroups.includes(index)) {
+          return /* @__PURE__ */ jsx(Fragment, { children: frame.items.map((vendorFrame, index2) => /* @__PURE__ */ jsx(
+            StackTrackItem,
+            {
+              frame: vendorFrame,
+              onClick: () => onSelectedIndexChange(vendorFrame.flatIndex),
+              isSelected: selectedIndex === vendorFrame.flatIndex
+            },
+            `vendor-${index2}`
+          )) }, index);
+        }
+        return /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: "flex cursor-pointer items-center gap-4 border-b px-30 py-16 hover:bg-hover",
+            onClick: () => setExpandedVendorGroups((prev) => [...prev, index]),
+            children: [
+              /* @__PURE__ */ jsx(
+                Trans,
+                {
+                  message: ":count vendor [one frame|other frames]",
+                  values: { count: frame.items.length }
+                }
+              ),
+              /* @__PURE__ */ jsx(KeyboardArrowDownIcon, { className: "text-muted" })
+            ]
+          },
+          index
+        );
+      }
+      return /* @__PURE__ */ jsx(
+        StackTrackItem,
+        {
+          frame,
+          onClick: () => onSelectedIndexChange(frame.flatIndex),
+          isSelected: selectedIndex === frame.flatIndex
+        },
+        index
+      );
+    })
+  ] });
+}
+function StackTrackItem({ frame, onClick, isSelected }) {
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      onClick,
+      className: clsx(
+        "cursor-pointer border-b px-30 py-16",
+        isSelected ? "bg-danger text-on-primary" : "hover:bg-danger/10"
+      ),
+      children: [
+        /* @__PURE__ */ jsx(IgnitionFilePath, { frame }),
+        /* @__PURE__ */ jsx("div", { className: "font-semibold", children: frame.method })
+      ]
+    }
+  );
+}
+function IgnitionFilePath({ frame }) {
+  return /* @__PURE__ */ jsxs("div", { className: "inline-flex flex-wrap items-baseline", children: [
+    frame.path.map(
+      (part, index) => frame.path.length - 1 === index ? /* @__PURE__ */ jsx("div", { className: "font-semibold", children: part }, index) : /* @__PURE__ */ jsxs("div", { children: [
+        part,
+        "/"
+      ] }, index)
+    ),
+    /* @__PURE__ */ jsxs("div", { children: [
+      ":",
+      frame.lineNumber
+    ] })
+  ] });
+}
+function IgnitionErrorDialog({ error }) {
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    for (const frame of error.trace) {
+      if (!("vendorGroup" in frame)) {
+        return frame.flatIndex;
+      }
+    }
+    return 0;
+  });
+  const selectedFrame = useMemo(() => {
+    for (const frame of error.trace) {
+      if ("vendorGroup" in frame) {
+        for (const vendorFrame of frame.items) {
+          if (vendorFrame.flatIndex === selectedIndex) {
+            return vendorFrame;
+          }
+        }
+      } else if (frame.flatIndex === selectedIndex) {
+        return frame;
+      }
+    }
+  }, [error, selectedIndex]);
+  return /* @__PURE__ */ jsxs(Dialog, { size: "fullscreen", children: [
+    /* @__PURE__ */ jsx(
+      DialogHeader,
+      {
+        showDivider: true,
+        leftAdornment: /* @__PURE__ */ jsx(ErrorIcon, {}),
+        color: "text-danger",
+        actions: /* @__PURE__ */ jsx(DownloadButton, {}),
+        children: /* @__PURE__ */ jsx(Trans, { message: "An error occured" })
+      }
+    ),
+    /* @__PURE__ */ jsxs(DialogBody, { padding: "p-0 stack", children: [
+      /* @__PURE__ */ jsxs("div", { className: "sticky top-0 z-10 border-b bg p-24", children: [
+        /* @__PURE__ */ jsx(Chip, { className: "w-max", radius: "rounded-panel", children: error.exception }),
+        /* @__PURE__ */ jsx("div", { className: "mt-16 line-clamp-2 text-lg font-semibold leading-snug", children: error.message })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-stretch gap-10", children: [
+        /* @__PURE__ */ jsx(
+          IgnitionStackTrace,
+          {
+            trace: error.trace,
+            onSelectedIndexChange: setSelectedIndex,
+            selectedIndex,
+            totalVendorGroups: error.totalVendorGroups
+          }
+        ),
+        selectedFrame && /* @__PURE__ */ jsx(CodeSnippet, { frame: selectedFrame })
+      ] })
+    ] })
+  ] });
+}
+function CodeSnippet({ frame }) {
+  const codeRef = useRef(null);
+  const lineNumbers = Object.keys(frame.codeSnippet).map(Number);
+  const highlightedIndex = lineNumbers.indexOf(frame.lineNumber);
+  const lines = Object.values(frame.codeSnippet);
+  return /* @__PURE__ */ jsxs("div", { className: "sticky top-120 flex-auto", children: [
+    /* @__PURE__ */ jsx("div", { className: "px-30 py-16 text-right text-muted", children: /* @__PURE__ */ jsx(IgnitionFilePath, { frame }) }),
+    /* @__PURE__ */ jsxs("div", { className: "flex", children: [
+      /* @__PURE__ */ jsx("div", { className: "mr-8 select-none text-right", children: lineNumbers.map((lineNumber, index) => /* @__PURE__ */ jsx(
+        "div",
+        {
+          className: clsx(
+            "px-8 font-mono leading-loose text-muted",
+            index == highlightedIndex && "bg-danger/30"
+          ),
+          children: lineNumber
+        },
+        index
+      )) }),
+      /* @__PURE__ */ jsx("div", { className: "compact-scrollbar flex-grow overflow-x-auto", children: /* @__PURE__ */ jsx("pre", { children: /* @__PURE__ */ jsx("code", { className: "language-php", ref: codeRef, children: lines.map((line, index) => /* @__PURE__ */ jsx(
+        CodeSnippetLine,
+        {
+          isHighlighted: highlightedIndex === index,
+          line
+        },
+        `${frame.path}.${index}`
+      )) }) }) })
+    ] })
+  ] });
+}
+const CodeSnippetLine = memo(({ line, isHighlighted }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    highlightCode(el, "light");
+    return () => {
+      delete el.dataset.highlighted;
+    };
+  }, []);
+  return /* @__PURE__ */ jsx(
+    "span",
+    {
+      className: clsx("block leading-loose", isHighlighted && "bg-danger/20"),
+      children: /* @__PURE__ */ jsx("span", { className: "language-php", ref, children: line + "\n" })
+    }
+  );
+});
+function DownloadButton() {
+  return /* @__PURE__ */ jsx(
+    Button,
+    {
+      variant: "outline",
+      className: "text-main",
+      elementType: "a",
+      download: true,
+      href: "api/v1/logs/error/download-latest",
+      size: "2xs",
+      children: /* @__PURE__ */ jsx(Trans, { message: "Download log" })
+    }
+  );
+}
 const defaultErrorMessage = message("There was an issue. Please try again.");
 function showHttpErrorToast(err, defaultMessage = defaultErrorMessage, field, toastOptions) {
-  var _a, _b;
-  toast.danger(getAxiosErrorMessage(err, field) || defaultMessage, {
-    action: (_b = (_a = err.response) == null ? void 0 : _a.data) == null ? void 0 : _b.action,
-    ...toastOptions
-  });
+  var _a, _b, _c, _d;
+  if (axios.isAxiosError(err) && ((_b = (_a = err.response) == null ? void 0 : _a.data) == null ? void 0 : _b.ignitionTrace)) {
+    openDialog(IgnitionErrorDialog, { error: err.response.data });
+  } else {
+    toast.danger(getAxiosErrorMessage(err, field) || defaultMessage, {
+      action: (_d = (_c = err.response) == null ? void 0 : _c.data) == null ? void 0 : _d.action,
+      ...toastOptions
+    });
+  }
 }
 function useMarkNotificationsAsRead() {
   const { data, mergeBootstrapData: mergeBootstrapData2 } = useBootstrapData();
@@ -1321,10 +2303,6 @@ function useDeleteInvite() {
     }
   });
 }
-const DialogContext = React.createContext(null);
-function useDialogContext() {
-  return useContext(DialogContext);
-}
 function WorkspaceInviteNotificationRenderer(props) {
   const { notification } = props;
   const joinWorkspace2 = useJoinWorkspace();
@@ -1381,8 +2359,6 @@ const BaseSiteConfig = {
     ]
   }
 };
-let rootEl = typeof document !== "undefined" ? document.getElementById("root") ?? document.body : void 0;
-let themeEl = typeof document !== "undefined" ? document.documentElement : void 0;
 function setThemeValue(key, value) {
   themeEl == null ? void 0 : themeEl.style.setProperty(key, value);
 }
@@ -1462,7 +2438,7 @@ function BootstrapDataProvider({ children }) {
 }
 const mergedConfig = deepMerge(BaseSiteConfig, SiteConfig);
 function CommonProvider({ children }) {
-  return /* @__PURE__ */ jsx(StrictMode, { children: /* @__PURE__ */ jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsx(LazyMotion, { features: domAnimation, children: /* @__PURE__ */ jsx(SiteConfigContext.Provider, { value: mergedConfig, children: /* @__PURE__ */ jsx(BootstrapDataProvider, { children: /* @__PURE__ */ jsx(ThemeProvider, { children }) }) }) }) }) });
+  return /* @__PURE__ */ jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsx(LazyMotion, { features: domAnimation, children: /* @__PURE__ */ jsx(SiteConfigContext.Provider, { value: mergedConfig, children: /* @__PURE__ */ jsx(BootstrapDataProvider, { children: /* @__PURE__ */ jsx(ThemeProvider, { children }) }) }) }) });
 }
 function useAppearanceEditorMode() {
   return {
@@ -1477,11 +2453,6 @@ function useLocalStorage(key, initialValue = null) {
     const valueToStore = value instanceof Function ? value(storedValue) : value;
     setStoredValue(valueToStore);
     setInLocalStorage(key, valueToStore);
-    window.dispatchEvent(
-      new CustomEvent("storage", {
-        detail: { key, newValue: valueToStore }
-      })
-    );
   };
   useEffect(() => {
     const handleStorageChange = (event) => {
@@ -1510,6 +2481,11 @@ function setInLocalStorage(key, value) {
   try {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(key, JSON.stringify(value));
+      window.dispatchEvent(
+        new CustomEvent("storage", {
+          detail: { key, newValue: value }
+        })
+      );
     }
   } catch (error) {
   }
@@ -1602,45 +2578,6 @@ function useAuth() {
     getRedirectUri
   };
 }
-const IconButton = forwardRef(
-  ({
-    children,
-    size: size2 = "md",
-    // only set icon size based on button size if "ButtonSize" is passed in and not custom className
-    iconSize = size2 && size2.length <= 3 ? size2 : "md",
-    variant = "text",
-    radius = "rounded-button",
-    className,
-    padding,
-    equalWidth = true,
-    badge,
-    ...other
-  }, ref) => {
-    const mergedClassName = clsx(
-      getButtonSizeStyle(size2, { padding, equalWidth, variant }),
-      className,
-      badge && "relative"
-    );
-    return /* @__PURE__ */ jsxs(
-      ButtonBase,
-      {
-        ...other,
-        ref,
-        radius,
-        variant,
-        className: mergedClassName,
-        children: [
-          cloneElement(children, { size: iconSize }),
-          badge
-        ]
-      }
-    );
-  }
-);
-const CloseIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" }),
-  "CloseOutlined"
-);
 function MixedText({ value }) {
   if (!value) {
     return null;
@@ -1936,20 +2873,17 @@ function useUser(id, params) {
 function fetchUser(id, params) {
   return apiClient.get(`users/${id}`, { params }).then((response) => response.data);
 }
-const mailSentSvg = "/assets/mail-sent-c2a25732.svg";
 function useResendVerificationEmail() {
-  const { user } = useAuth();
   return useMutation({
-    mutationFn: (payload) => resendEmail(user, payload),
+    mutationFn: (payload) => resendEmail(payload),
     onSuccess: () => {
       toast(message("Email sent"));
     },
     onError: (err) => showHttpErrorToast(err)
   });
 }
-function resendEmail(loggedInUser, payload) {
-  const endpoint2 = loggedInUser.email === payload.email ? "auth/email/verification-notification" : `users/${loggedInUser.id}/resend-verification-email`;
-  return apiClient.post(endpoint2, payload).then((response) => response.data);
+function resendEmail(payload) {
+  return apiClient.post("resend-email-verification", payload).then((response) => response.data);
 }
 function useIsDarkMode() {
   const { selectedTheme } = useThemeSelector();
@@ -1981,528 +2915,29 @@ function logout() {
 function noopLogout() {
   return Promise.reject(appearanceMessage);
 }
-function EmailVerificationPage() {
-  const { data } = useUser("me");
-  const resendEmail2 = useResendVerificationEmail();
-  const {
-    branding: { logo_light, logo_dark }
-  } = useSettings();
-  const isDarkMode = useIsDarkMode();
-  const logoSrc = isDarkMode ? logo_light : logo_dark;
-  const logout2 = useLogout();
-  return /* @__PURE__ */ jsxs("div", { className: "flex min-h-screen w-screen flex-col items-center bg-alt p-24", children: [
-    logoSrc && /* @__PURE__ */ jsx(
-      "img",
-      {
-        src: logoSrc,
-        alt: "Site logo",
-        className: "my-60 block h-42 w-auto"
-      }
-    ),
-    /* @__PURE__ */ jsxs("div", { className: "flex max-w-580 flex-col items-center rounded border bg-paper px-14 py-28 text-center shadow", children: [
-      /* @__PURE__ */ jsx(SvgImage, { src: mailSentSvg, height: "h-144" }),
-      /* @__PURE__ */ jsx("h1", { className: "mb-20 mt-40 text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Verify your email" }) }),
-      /* @__PURE__ */ jsx("div", { className: "mb-24 text-sm", children: /* @__PURE__ */ jsx(
-        Trans,
-        {
-          message: "We've sent an email to “:email“ to verify your email address and activate your account. The link in the the email will expire in 24 hours.",
-          values: { email: data == null ? void 0 : data.user.email }
-        }
-      ) }),
-      /* @__PURE__ */ jsx("div", { className: "text-sm", children: /* @__PURE__ */ jsx(Trans, { message: "If you did not receive an email, click the button below and we will send you another one." }) }),
-      /* @__PURE__ */ jsxs("div", { className: "mt-30", children: [
-        /* @__PURE__ */ jsx(
-          Button,
-          {
-            className: "mr-10",
-            variant: "flat",
-            color: "primary",
-            disabled: resendEmail2.isPending || !(data == null ? void 0 : data.user.email),
-            onClick: () => {
-              resendEmail2.mutate({ email: data.user.email });
-            },
-            children: /* @__PURE__ */ jsx(Trans, { message: "Resend email" })
-          }
-        ),
-        /* @__PURE__ */ jsx(Button, { variant: "outline", onClick: () => logout2.mutate(), children: /* @__PURE__ */ jsx(Trans, { message: "Logout" }) })
-      ] })
-    ] })
-  ] });
-}
-class LazyLoader {
-  constructor() {
-    __publicField(this, "loadedAssets", {});
-  }
-  loadAsset(url, params = { type: "js" }) {
-    var _a;
-    const currentState = (_a = this.loadedAssets[url]) == null ? void 0 : _a.state;
-    if (currentState === "loaded" && !params.force) {
-      return new Promise((resolve) => resolve());
-    }
-    const neverLoaded = !currentState || this.loadedAssets[url].doc !== params.document;
-    if (neverLoaded || params.force && currentState === "loaded") {
-      this.loadedAssets[url] = {
-        state: new Promise((resolve) => {
-          const finalUrl = isAbsoluteUrl(url) ? url : `assets/${url}`;
-          const finalId = buildId(url, params.id);
-          const assetOptions = {
-            url: finalUrl,
-            id: finalId,
-            resolve,
-            parentEl: params.parentEl,
-            document: params.document
-          };
-          if (params.type === "css") {
-            this.loadStyleAsset(assetOptions);
-          } else {
-            this.loadScriptAsset(assetOptions);
-          }
-        }),
-        doc: params.document
-      };
-      return this.loadedAssets[url].state;
-    }
-    return this.loadedAssets[url].state;
-  }
-  /**
-   * Check whether asset is loading or has already loaded.
-   */
-  isLoadingOrLoaded(url) {
-    return this.loadedAssets[url] != null;
-  }
-  loadStyleAsset(options) {
-    var _a;
-    const doc = options.document || document;
-    const parentEl = options.parentEl || doc.head;
-    const style = doc.createElement("link");
-    const prefixedId = buildId(options.url, options.id);
-    style.rel = "stylesheet";
-    style.id = prefixedId;
-    style.href = options.url;
-    try {
-      if (parentEl.querySelector(`#${prefixedId}`)) {
-        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
-      }
-    } catch (e) {
-    }
-    style.onload = () => {
-      this.loadedAssets[options.url].state = "loaded";
-      options.resolve();
-    };
-    parentEl.appendChild(style);
-  }
-  loadScriptAsset(options) {
-    var _a;
-    const doc = options.document || document;
-    const parentEl = options.parentEl || doc.body;
-    const script = doc.createElement("script");
-    const prefixedId = buildId(options.url, options.id);
-    script.async = true;
-    script.id = prefixedId;
-    script.src = options.url;
-    try {
-      if (parentEl.querySelector(`#${prefixedId}`)) {
-        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
-      }
-    } catch (e) {
-    }
-    script.onload = () => {
-      this.loadedAssets[options.url].state = "loaded";
-      options.resolve();
-    };
-    (parentEl || parentEl).appendChild(script);
-  }
-}
-function buildId(url, id) {
-  if (id)
-    return id;
-  return btoa(url.split("/").pop());
-}
-const lazyLoader = new LazyLoader();
-function prefixId(id) {
-  return `be-fonts-${id}`;
-}
-function loadFonts(fonts, options) {
-  const doc = options.document || document;
-  const googleFonts = [];
-  const customFonts = [];
-  let promises = [];
-  fonts.forEach((font) => {
-    if ("google" in font && font.google) {
-      googleFonts.push(font);
-    } else if ("src" in font) {
-      customFonts.push(font);
-    }
-  });
-  if (googleFonts == null ? void 0 : googleFonts.length) {
-    const weights = options.weights || [400];
-    const families = fonts.map((f) => `${f.family}:${weights.join(",")}`).join("|");
-    const googlePromise = lazyLoader.loadAsset(
-      `https://fonts.googleapis.com/css?family=${families}&display=swap`,
-      {
-        type: "css",
-        id: prefixId(options.id),
-        force: options.forceAssetLoad,
-        document: doc
-      }
-    );
-    promises.push(googlePromise);
-  }
-  if (customFonts == null ? void 0 : customFonts.length) {
-    const customFontPromises = customFonts.map(async (fontConfig) => {
-      const loadedFont = Array.from(doc.fonts.values()).find((current) => {
-        return current.family === fontConfig.family;
-      });
-      if (loadedFont) {
-        return loadedFont.loaded;
-      }
-      const fontFace = new FontFace(
-        fontConfig.family,
-        `url(${(options == null ? void 0 : options.prefixSrc) ? options.prefixSrc(fontConfig.src) : fontConfig.src})`,
-        fontConfig.descriptors
-      );
-      doc.fonts.add(fontFace);
-      return fontFace.load();
-    });
-    promises = promises.concat(customFontPromises);
-  }
-  return Promise.all(promises);
-}
-function AppearanceListener() {
-  const navigate = useNavigate$1();
-  const { mergeBootstrapData: mergeBootstrapData2, data: currentData } = useBootstrapData();
-  const handleCommand = useCallback(
-    (command) => {
-      switch (command.type) {
-        case "navigate":
-          return navigate(command.to);
-        case "setValues":
-          return mergeBootstrapData2({
-            themes: {
-              ...currentData.themes,
-              all: command.values.appearance.themes.all
-            },
-            settings: {
-              ...currentData.settings,
-              ...command.values.settings
-            }
-          });
-        case "setThemeFont":
-          if (command.value) {
-            setThemeValue("--be-font-family", command.value.family);
-            loadFonts([command.value], {
-              id: "be-primary-font",
-              forceAssetLoad: true
-            });
-          } else {
-            removeThemeValue("--be-font-family");
-          }
-          return;
-        case "setThemeValue":
-          return setThemeValue(command.name, command.value);
-        case "setActiveTheme":
-          const theme = currentData.themes.all.find(
-            (t) => t.id === command.themeId
-          );
-          if (theme) {
-            applyThemeToDom(theme);
-          }
-          return;
-        case "setCustomCode":
-          return renderCustomCode(command.mode, command.value);
-      }
-    },
-    [currentData, mergeBootstrapData2, navigate]
-  );
-  useEffect(() => {
-    const handleMessage = (e) => {
-      if (isAppearanceEvent(e) && eventIsTrusted(e)) {
-        handleCommand(e.data);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [navigate, handleCommand]);
-  return null;
-}
-function isAppearanceEvent(e) {
-  var _a;
-  return ((_a = e.data) == null ? void 0 : _a.source) === "be-appearance-editor";
-}
-function eventIsTrusted(e) {
-  return new URL(e.origin).hostname === window.location.hostname;
-}
-function renderCustomCode(mode, value) {
-  const parent = mode === "html" ? document.body : document.head;
-  const nodeType = mode === "html" ? "div" : "style";
-  let customNode = parent.querySelector("#be-custom-code");
-  if (!value) {
-    if (customNode) {
-      customNode.remove();
-    }
-  } else {
-    if (!customNode) {
-      customNode = document.createElement(nodeType);
-      customNode.id = "be-custom-code";
-      parent.appendChild(customNode);
-    }
-    customNode.innerHTML = value;
-  }
-}
-function useCustomMenu(menuOrPosition) {
-  var _a;
-  const settings = useSettings();
-  const { user, hasPermission } = useAuth();
-  if (!menuOrPosition) {
-    return null;
-  }
-  const menu = typeof menuOrPosition === "string" ? (_a = settings.menus) == null ? void 0 : _a.find((s) => {
-    var _a2;
-    return (_a2 = s.positions) == null ? void 0 : _a2.includes(menuOrPosition);
-  }) : menuOrPosition;
-  if (menu) {
-    menu.items = menu.items.filter((item) => {
-      const hasRoles = (item.roles || []).every(
-        (a) => user == null ? void 0 : user.roles.find((b) => b.id === a)
-      );
-      const hasPermissions = (item.permissions || []).every(
-        (a) => hasPermission(a)
-      );
-      return item.action && hasRoles && hasPermissions;
-    });
-  }
-  return menu;
-}
-function CustomMenu({
-  className,
-  iconClassName,
-  itemClassName: itemClassName2,
-  gap = "gap-30",
-  menu: menuOrPosition,
-  orientation = "horizontal",
+function Form({
   children,
-  matchDescendants,
-  onlyShowIcons,
-  iconSize,
-  unstyled = false
+  onBeforeSubmit,
+  onSubmit,
+  form,
+  className,
+  id,
+  onBlur
 }) {
-  const menu = useCustomMenu(menuOrPosition);
-  if (!menu)
-    return null;
-  return /* @__PURE__ */ jsx(
-    "div",
+  return /* @__PURE__ */ jsx(FormProvider, { ...form, children: /* @__PURE__ */ jsx(
+    "form",
     {
-      className: clsx(
-        "flex",
-        gap,
-        orientation === "vertical" ? "flex-col items-start" : "items-center",
-        className
-      ),
-      "data-menu-id": menu.id,
-      children: menu.items.map((item) => {
-        if (children) {
-          return children(item);
-        }
-        return /* @__PURE__ */ jsx(
-          CustomMenuItem,
-          {
-            unstyled,
-            onlyShowIcon: onlyShowIcons,
-            matchDescendants,
-            iconClassName,
-            iconSize,
-            className: (props) => {
-              return typeof itemClassName2 === "function" ? itemClassName2({ ...props, item }) : itemClassName2;
-            },
-            item
-          },
-          item.id
-        );
-      })
+      id,
+      onBlur,
+      className,
+      onSubmit: (e) => {
+        e.stopPropagation();
+        onBeforeSubmit == null ? void 0 : onBeforeSubmit();
+        form.handleSubmit(onSubmit)(e);
+      },
+      children
     }
-  );
-}
-const CustomMenuItem = forwardRef(
-  ({
-    item,
-    className,
-    matchDescendants,
-    unstyled,
-    onlyShowIcon,
-    iconClassName,
-    iconSize = "sm",
-    ...linkProps
-  }, ref) => {
-    const label = /* @__PURE__ */ jsx(Trans, { message: item.label });
-    const Icon = item.icon && createSvgIconFromTree(item.icon);
-    const content = /* @__PURE__ */ jsxs(Fragment, { children: [
-      Icon && /* @__PURE__ */ jsx(Icon, { size: iconSize, className: iconClassName }),
-      (!Icon || !onlyShowIcon) && label
-    ] });
-    const baseClassName = !unstyled && "whitespace-nowrap flex items-center justify-start gap-10";
-    const focusClassNames = !unstyled && "outline-none focus-visible:ring-2";
-    if (item.type === "link") {
-      return /* @__PURE__ */ jsx(
-        "a",
-        {
-          className: clsx(
-            baseClassName,
-            className == null ? void 0 : className({ isActive: false }),
-            focusClassNames
-          ),
-          href: item.action,
-          target: item.target,
-          "data-menu-item-id": item.id,
-          ref,
-          ...linkProps,
-          children: content
-        }
-      );
-    }
-    return /* @__PURE__ */ jsx(
-      NavLink,
-      {
-        end: typeof matchDescendants === "function" ? matchDescendants(item.action) : matchDescendants,
-        className: (props) => clsx(baseClassName, className == null ? void 0 : className(props), focusClassNames),
-        to: item.action,
-        target: item.target,
-        "data-menu-item-id": item.id,
-        ref,
-        ...linkProps,
-        children: content
-      }
-    );
-  }
-);
-function CookieNotice() {
-  const {
-    cookie_notice: { position, enable: enable2 }
-  } = useSettings();
-  const [, setCookie] = useCookie("cookie_notice");
-  const [alreadyAccepted, setAlreadyAccepted] = useState(() => {
-    return !getBootstrapData().show_cookie_notice;
-  });
-  if (!enable2 || alreadyAccepted) {
-    return null;
-  }
-  return /* @__PURE__ */ jsxs(
-    "div",
-    {
-      className: clsx(
-        "fixed z-50 flex w-full justify-center gap-14 bg-toast p-14 text-sm text-white shadow max-md:flex-col md:items-center md:gap-30",
-        position == "top" ? "top-0" : "bottom-0"
-      ),
-      children: [
-        /* @__PURE__ */ jsx(
-          Trans,
-          {
-            message: "We use cookies to optimize site functionality and provide you with the\n      best possible experience."
-          }
-        ),
-        /* @__PURE__ */ jsx(InfoLink, {}),
-        /* @__PURE__ */ jsx(
-          Button,
-          {
-            variant: "flat",
-            color: "primary",
-            size: "xs",
-            className: "max-w-100",
-            onClick: () => {
-              setCookie("true", { days: 30, path: "/" });
-              setAlreadyAccepted(true);
-            },
-            children: /* @__PURE__ */ jsx(Trans, { message: "OK" })
-          }
-        )
-      ]
-    }
-  );
-}
-function InfoLink() {
-  const {
-    cookie_notice: { button }
-  } = useSettings();
-  if (!(button == null ? void 0 : button.label)) {
-    return null;
-  }
-  return /* @__PURE__ */ jsx(
-    CustomMenuItem,
-    {
-      className: () => "text-primary-light hover:underline",
-      item: button
-    }
-  );
-}
-const imgUrl1 = "/assets/404-1-176145e9.png";
-const imgUrl2 = "/assets/404-2-14c4a897.png";
-function NotFoundPage() {
-  return /* @__PURE__ */ jsxs("div", { className: "lg:px-96 lg:py-96 md:py-80 md:px-176 px-16 py-96 items-center flex justify-center flex-col-reverse lg:flex-row md:gap-112 gap-64", children: [
-    /* @__PURE__ */ jsx("div", { className: "xl:pt-96 w-full xl:w-1/2 relative pb-48 lg:pb-0", children: /* @__PURE__ */ jsxs("div", { className: "relative", children: [
-      /* @__PURE__ */ jsx("div", { className: "absolute", children: /* @__PURE__ */ jsxs("div", { className: "relative z-10", children: [
-        /* @__PURE__ */ jsx("h1", { className: "my-8 text-main font-bold text-2xl", children: /* @__PURE__ */ jsx(Trans, { message: "Looks like you've found the doorway to the great nothing" }) }),
-        /* @__PURE__ */ jsx("p", { className: "my-16 text-main", children: /* @__PURE__ */ jsx(
-          Trans,
-          {
-            message: "Sorry about that! Please visit our homepage to get where you need\n                to go."
-          }
-        ) }),
-        /* @__PURE__ */ jsx(
-          Button,
-          {
-            className: "my-8",
-            elementType: Link,
-            size: "lg",
-            to: "/",
-            variant: "flat",
-            color: "primary",
-            children: /* @__PURE__ */ jsx(Trans, { message: "Take me there!" })
-          }
-        )
-      ] }) }),
-      /* @__PURE__ */ jsx("div", { className: "dark:opacity-5", children: /* @__PURE__ */ jsx("img", { src: imgUrl2, alt: "" }) })
-    ] }) }),
-    /* @__PURE__ */ jsx("div", { className: "dark:opacity-80", children: /* @__PURE__ */ jsx("img", { src: imgUrl1, alt: "" }) })
-  ] });
-}
-function AuthRoute({ children, permission, requireLogin = true }) {
-  const { isLoggedIn, hasPermission } = useAuth();
-  if (requireLogin && !isLoggedIn || permission && !hasPermission(permission)) {
-    if (isLoggedIn) {
-      return /* @__PURE__ */ jsx(NotFoundPage, {});
-    }
-    return /* @__PURE__ */ jsx(Navigate, { to: "/login", replace: true });
-  }
-  return children || /* @__PURE__ */ jsx(Outlet, {});
-}
-function FullPageLoader({ className, screen }) {
-  return /* @__PURE__ */ jsx(
-    "div",
-    {
-      className: clsx(
-        "flex items-center justify-center flex-auto",
-        screen ? "h-screen w-screen" : "h-full w-full",
-        className
-      ),
-      children: /* @__PURE__ */ jsx(ProgressCircle, { isIndeterminate: true, "aria-label": "Loading page..." })
-    }
-  );
-}
-function GuestRoute({ children }) {
-  const { isLoggedIn, getRedirectUri } = useAuth();
-  const { isAppearanceEditorActive } = useAppearanceEditorMode();
-  const redirectUri = getRedirectUri();
-  const { auth } = useContext(SiteConfigContext);
-  const { pathname } = useLocation();
-  if (isLoggedIn && !isAppearanceEditorActive) {
-    if (redirectUri !== pathname) {
-      return /* @__PURE__ */ jsx(Navigate, { to: redirectUri, replace: true });
-    } else if (auth.secondaryRedirectUri) {
-      return /* @__PURE__ */ jsx(Navigate, { to: auth.secondaryRedirectUri, replace: true });
-    }
-  }
-  return children || /* @__PURE__ */ jsx(Outlet, {});
+  ) });
 }
 function getInputFieldClassNames(props = {}) {
   const {
@@ -2648,10 +3083,10 @@ function getRadius(props) {
   return {
     input: clsx(
       !isInputGroup && "rounded-input",
-      startAppend && "rounded-input-r rounded-l-none",
-      endAppend && "rounded-input-l rounded-r-none"
+      startAppend && "rounded-r-input rounded-l-none",
+      endAppend && "rounded-l-input rounded-r-none"
     ),
-    append: startAppend ? "rounded-input-l" : "rounded-input-r"
+    append: startAppend ? "rounded-l-input" : "rounded-r-input"
   };
 }
 function inputSizeClass({ size: size2, flexibleHeight }) {
@@ -3006,39 +3441,10 @@ const FormTextField = React.forwardRef(({ name, ...props }, ref) => {
   };
   return /* @__PURE__ */ jsx(TextField, { ref, ...mergeProps(formProps, props) });
 });
-function Form({
-  children,
-  onBeforeSubmit,
-  onSubmit,
-  form,
-  className,
-  id,
-  onBlur
-}) {
-  return /* @__PURE__ */ jsx(FormProvider, { ...form, children: /* @__PURE__ */ jsx(
-    "form",
-    {
-      id,
-      onBlur,
-      className,
-      onSubmit: (e) => {
-        e.stopPropagation();
-        onBeforeSubmit == null ? void 0 : onBeforeSubmit();
-        form.handleSubmit(onSubmit)(e);
-      },
-      children
-    }
-  ) });
-}
-const LinkStyle = "text-link hover:underline hover:text-primary-dark focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 outline-none rounded transition-colors";
-function ExternalLink({
-  children,
-  className,
-  target = "_blank",
-  ...domProps
-}) {
-  return /* @__PURE__ */ jsx("a", { className: LinkStyle, target, ...domProps, children });
-}
+const KeyboardArrowLeftIcon = createSvgIcon(
+  /* @__PURE__ */ jsx("path", { d: "M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" }),
+  "KeyboardArrowLeftOutlined"
+);
 function onFormQueryError(r, form) {
   if (form && axios.isAxiosError(r) && r.response) {
     const response = r.response.data;
@@ -3060,6 +3466,624 @@ function onFormQueryError(r, form) {
       });
     }
   }
+}
+function useValidateEmailVerificationOtp(form) {
+  return useMutation({
+    mutationFn: (payload) => validate(payload),
+    onSuccess: () => {
+      window.location.reload();
+    },
+    onError: (err) => onFormQueryError(err, form)
+  });
+}
+function validate(payload) {
+  return apiClient.post("validate-email-verification-otp", payload).then((response) => response.data);
+}
+function EmailVerificationPage() {
+  const { trans } = useTrans();
+  const { data } = useUser("me");
+  const resendEmail2 = useResendVerificationEmail();
+  const {
+    branding: { logo_light, logo_dark }
+  } = useSettings();
+  const isDarkMode = useIsDarkMode();
+  const logoSrc = isDarkMode ? logo_light : logo_dark;
+  const logout2 = useLogout();
+  const form = useForm();
+  const validateOtp = useValidateEmailVerificationOtp(form);
+  return /* @__PURE__ */ jsx("div", { className: "flex min-h-screen w-screen bg-alt p-24", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto mt-40 max-w-440", children: [
+    /* @__PURE__ */ jsx(
+      Button,
+      {
+        variant: "outline",
+        onClick: () => logout2.mutate(),
+        startIcon: /* @__PURE__ */ jsx(KeyboardArrowLeftIcon, {}),
+        size: "xs",
+        className: "mb-54 mr-auto",
+        children: /* @__PURE__ */ jsx(Trans, { message: "Logout" })
+      }
+    ),
+    logoSrc && /* @__PURE__ */ jsx(
+      "img",
+      {
+        src: logoSrc,
+        alt: "Site logo",
+        className: "mx-auto mb-44 block h-42 w-auto"
+      }
+    ),
+    /* @__PURE__ */ jsxs("div", { className: "text-center", children: [
+      /* @__PURE__ */ jsx("h1", { className: "mb-24 text-3xl", children: /* @__PURE__ */ jsx(Trans, { message: "Verify your email" }) }),
+      /* @__PURE__ */ jsx("h2", { className: "text-lg", children: /* @__PURE__ */ jsx(
+        Trans,
+        {
+          message: "Enter the verification code we sent to :email",
+          values: { email: maskEmailAddress(data == null ? void 0 : data.user.email) }
+        }
+      ) }),
+      /* @__PURE__ */ jsxs(
+        Form,
+        {
+          form,
+          onSubmit: (values) => validateOtp.mutate(values),
+          className: "my-16",
+          children: [
+            /* @__PURE__ */ jsx(
+              FormTextField,
+              {
+                name: "code",
+                label: /* @__PURE__ */ jsx(Trans, { message: "Code" }),
+                placeholder: trans(message("Enter your verification code")),
+                autoFocus: true,
+                autoComplete: "one-time-code",
+                autoCorrect: "off",
+                autoCapitalize: "off",
+                maxLength: 6,
+                inputMode: "numeric",
+                required: true
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              Button,
+              {
+                type: "submit",
+                variant: "flat",
+                color: "primary",
+                size: "md",
+                className: "mt-24 w-full",
+                disabled: validateOtp.isPending,
+                children: /* @__PURE__ */ jsx(Trans, { message: "Next" })
+              }
+            )
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsx("div", { className: "mb-24 text-sm", children: /* @__PURE__ */ jsx(
+        Trans,
+        {
+          message: "If you don't see the email in your inbox, check your spam folder and promotions tab. If you still don't see it, <a>request a resend</a>.",
+          values: {
+            a: (text2) => /* @__PURE__ */ jsx(
+              Button,
+              {
+                variant: "link",
+                color: "primary",
+                disabled: resendEmail2.isPending || !(data == null ? void 0 : data.user.email),
+                onClick: () => {
+                  resendEmail2.mutate({ email: data.user.email });
+                },
+                children: text2
+              }
+            )
+          }
+        }
+      ) })
+    ] })
+  ] }) });
+}
+function maskEmailAddress(email) {
+  if (!email)
+    return "*******************";
+  const [username, domain] = email.split("@");
+  return `${username.slice(0, 2)}****@${domain}`;
+}
+class LazyLoader {
+  constructor() {
+    __publicField(this, "loadedAssets", {});
+  }
+  loadAsset(url, params = { type: "js" }) {
+    var _a;
+    url = url.startsWith("//") ? `${window.location.protocol}${url}` : url;
+    const currentState = (_a = this.loadedAssets[url]) == null ? void 0 : _a.state;
+    if (currentState === "loaded" && !params.force) {
+      return new Promise((resolve) => resolve());
+    }
+    const neverLoaded = !currentState || this.loadedAssets[url].doc !== params.document;
+    if (neverLoaded || params.force && currentState === "loaded") {
+      this.loadedAssets[url] = {
+        state: new Promise((resolve) => {
+          const finalUrl = isAbsoluteUrl(url) ? url : `assets/${url}`;
+          const finalId = buildId(url, params.id);
+          const assetOptions = {
+            url: finalUrl,
+            id: finalId,
+            resolve,
+            parentEl: params.parentEl,
+            document: params.document
+          };
+          if (params.type === "css") {
+            this.loadStyleAsset(assetOptions);
+          } else {
+            this.loadScriptAsset(assetOptions);
+          }
+        }),
+        doc: params.document
+      };
+      return this.loadedAssets[url].state;
+    }
+    return this.loadedAssets[url].state;
+  }
+  /**
+   * Check whether asset is loading or has already loaded.
+   */
+  isLoadingOrLoaded(url) {
+    return this.loadedAssets[url] != null;
+  }
+  loadStyleAsset(options) {
+    var _a;
+    const doc = options.document || document;
+    const parentEl = options.parentEl || doc.head;
+    const style = doc.createElement("link");
+    const prefixedId = buildId(options.url, options.id);
+    style.rel = "stylesheet";
+    style.id = prefixedId;
+    style.href = options.url;
+    try {
+      if (parentEl.querySelector(`#${prefixedId}`)) {
+        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
+      }
+    } catch (e) {
+    }
+    style.onload = () => {
+      this.loadedAssets[options.url].state = "loaded";
+      options.resolve();
+    };
+    parentEl.appendChild(style);
+  }
+  loadScriptAsset(options) {
+    var _a;
+    const doc = options.document || document;
+    const parentEl = options.parentEl || doc.body;
+    const script = doc.createElement("script");
+    const prefixedId = buildId(options.url, options.id);
+    script.async = true;
+    script.id = prefixedId;
+    script.src = options.url;
+    try {
+      if (parentEl.querySelector(`#${prefixedId}`)) {
+        (_a = parentEl.querySelector(`#${prefixedId}`)) == null ? void 0 : _a.remove();
+      }
+    } catch (e) {
+    }
+    script.onload = () => {
+      this.loadedAssets[options.url].state = "loaded";
+      options.resolve();
+    };
+    (parentEl || parentEl).appendChild(script);
+  }
+}
+function buildId(url, id) {
+  if (id)
+    return id;
+  return btoa(url.split("/").pop());
+}
+const lazyLoader = new LazyLoader();
+function prefixId(id) {
+  return `be-fonts-${id}`;
+}
+function loadFonts(fonts, options) {
+  const doc = options.document || document;
+  const googleFonts = [];
+  const customFonts = [];
+  let promises = [];
+  fonts.forEach((font) => {
+    if ("google" in font && font.google) {
+      googleFonts.push(font);
+    } else if ("src" in font) {
+      customFonts.push(font);
+    }
+  });
+  if (googleFonts == null ? void 0 : googleFonts.length) {
+    const weights = options.weights || [400];
+    const families = fonts.map((f) => `${f.family}:${weights.join(",")}`).join("|");
+    const googlePromise = lazyLoader.loadAsset(
+      `https://fonts.googleapis.com/css?family=${families}&display=swap`,
+      {
+        type: "css",
+        id: prefixId(options.id),
+        force: options.forceAssetLoad,
+        document: doc
+      }
+    );
+    promises.push(googlePromise);
+  }
+  if (customFonts == null ? void 0 : customFonts.length) {
+    const customFontPromises = customFonts.map(async (fontConfig) => {
+      const loadedFont = Array.from(doc.fonts.values()).find((current) => {
+        return current.family === fontConfig.family;
+      });
+      if (loadedFont) {
+        return loadedFont.loaded;
+      }
+      const fontFace = new FontFace(
+        fontConfig.family,
+        `url(${(options == null ? void 0 : options.prefixSrc) ? options.prefixSrc(fontConfig.src) : fontConfig.src})`,
+        fontConfig.descriptors
+      );
+      doc.fonts.add(fontFace);
+      return fontFace.load();
+    });
+    promises = promises.concat(customFontPromises);
+  }
+  return Promise.all(promises);
+}
+function AppearanceListener() {
+  const navigate = useNavigate$1();
+  const { mergeBootstrapData: mergeBootstrapData2, data: currentData } = useBootstrapData();
+  const handleCommand = useCallback(
+    (command) => {
+      switch (command.type) {
+        case "navigate":
+          return navigate(command.to);
+        case "setValues":
+          return mergeBootstrapData2({
+            themes: {
+              ...currentData.themes,
+              all: command.values.appearance.themes.all
+            },
+            settings: {
+              ...currentData.settings,
+              ...command.values.settings
+            }
+          });
+        case "setThemeFont":
+          if (command.value) {
+            setThemeValue("--be-font-family", command.value.family);
+            loadFonts([command.value], {
+              id: "be-primary-font",
+              forceAssetLoad: true
+            });
+          } else {
+            removeThemeValue("--be-font-family");
+          }
+          return;
+        case "setThemeValue":
+          return setThemeValue(command.name, command.value);
+        case "setActiveTheme":
+          const theme = currentData.themes.all.find(
+            (t) => t.id === command.themeId
+          );
+          if (theme) {
+            applyThemeToDom(theme);
+          }
+          return;
+        case "setCustomCode":
+          return renderCustomCode(command.mode, command.value);
+      }
+    },
+    [currentData, mergeBootstrapData2, navigate]
+  );
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (isAppearanceEvent(e) && eventIsTrusted(e)) {
+        handleCommand(e.data);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [navigate, handleCommand]);
+  return null;
+}
+function isAppearanceEvent(e) {
+  var _a;
+  return ((_a = e.data) == null ? void 0 : _a.source) === "be-appearance-editor";
+}
+function eventIsTrusted(e) {
+  return new URL(e.origin).hostname === window.location.hostname;
+}
+function renderCustomCode(mode, value) {
+  const parent = mode === "html" ? document.body : document.head;
+  const nodeType = mode === "html" ? "div" : "style";
+  let customNode = parent.querySelector("#be-custom-code");
+  if (!value) {
+    if (customNode) {
+      customNode.remove();
+    }
+  } else {
+    if (!customNode) {
+      customNode = document.createElement(nodeType);
+      customNode.id = "be-custom-code";
+      parent.appendChild(customNode);
+    }
+    customNode.innerHTML = value;
+  }
+}
+function useCustomMenu(menuOrPosition) {
+  const settings = useSettings();
+  const { user, hasPermission } = useAuth();
+  return useMemo(() => {
+    var _a;
+    if (!menuOrPosition) {
+      return null;
+    }
+    const menu = typeof menuOrPosition === "string" ? (_a = settings.menus) == null ? void 0 : _a.find((s) => {
+      var _a2;
+      return (_a2 = s.positions) == null ? void 0 : _a2.includes(menuOrPosition);
+    }) : menuOrPosition;
+    if (menu) {
+      menu.items = menu.items.filter((item) => {
+        const hasRoles = (item.roles || []).every(
+          (a) => user == null ? void 0 : user.roles.find((b) => b.id === a)
+        );
+        const hasPermissions = (item.permissions || []).every(
+          (a) => hasPermission(a)
+        );
+        const hasSettings = !item.settings || Object.entries(item.settings).every(([key, value]) => {
+          return dot.pick(key, settings) == value;
+        });
+        return item.action && hasRoles && hasPermissions && hasSettings && subscriptionStatusMatches(item, user);
+      });
+    }
+    return menu;
+  }, [hasPermission, settings, menuOrPosition, user]);
+}
+function subscriptionStatusMatches(item, user) {
+  var _a;
+  if (!item.subscriptionStatus) {
+    return true;
+  }
+  const hasActiveSubscription = !!((_a = user == null ? void 0 : user.subscriptions) == null ? void 0 : _a.find((sub) => sub.active));
+  if (item.subscriptionStatus === "subscribed") {
+    return hasActiveSubscription;
+  }
+  return !hasActiveSubscription;
+}
+function CustomMenu({
+  className,
+  iconClassName,
+  itemClassName: itemClassName2,
+  gap = "gap-30",
+  menu: menuOrPosition,
+  orientation = "horizontal",
+  children,
+  matchDescendants,
+  onlyShowIcons,
+  iconSize,
+  unstyled = false
+}) {
+  const menu = useCustomMenu(menuOrPosition);
+  if (!menu)
+    return null;
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: clsx(
+        "flex",
+        gap,
+        orientation === "vertical" ? "flex-col items-start" : "items-center",
+        className
+      ),
+      "data-menu-id": menu.id,
+      children: menu.items.map((item) => {
+        if (children) {
+          return children(item);
+        }
+        return /* @__PURE__ */ jsx(
+          CustomMenuItem,
+          {
+            unstyled,
+            onlyShowIcon: onlyShowIcons,
+            matchDescendants,
+            iconClassName,
+            iconSize,
+            className: (props) => {
+              return typeof itemClassName2 === "function" ? itemClassName2({ ...props, item }) : itemClassName2;
+            },
+            item
+          },
+          item.id
+        );
+      })
+    }
+  );
+}
+const CustomMenuItem = forwardRef(
+  ({
+    item,
+    className,
+    matchDescendants,
+    unstyled,
+    onlyShowIcon,
+    iconClassName,
+    iconSize = "sm",
+    ...linkProps
+  }, ref) => {
+    const label = /* @__PURE__ */ jsx(Trans, { message: item.label });
+    const Icon = item.icon && createSvgIconFromTree(item.icon);
+    const content = /* @__PURE__ */ jsxs(Fragment, { children: [
+      Icon && /* @__PURE__ */ jsx(Icon, { size: iconSize, className: iconClassName }),
+      (!Icon || !onlyShowIcon) && label
+    ] });
+    const baseClassName = !unstyled && "whitespace-nowrap flex items-center justify-start gap-10";
+    const focusClassNames = !unstyled && "outline-none focus-visible:ring-2";
+    if (item.type === "link") {
+      return /* @__PURE__ */ jsx(
+        "a",
+        {
+          className: clsx(
+            baseClassName,
+            className == null ? void 0 : className({ isActive: false }),
+            focusClassNames
+          ),
+          href: item.action,
+          target: item.target,
+          "data-menu-item-id": item.id,
+          ref,
+          ...linkProps,
+          children: content
+        }
+      );
+    }
+    return /* @__PURE__ */ jsx(
+      NavLink,
+      {
+        end: typeof matchDescendants === "function" ? matchDescendants(item.action) : matchDescendants,
+        className: (props) => clsx(baseClassName, className == null ? void 0 : className(props), focusClassNames),
+        to: item.action,
+        target: item.target,
+        "data-menu-item-id": item.id,
+        ref,
+        ...linkProps,
+        children: content
+      }
+    );
+  }
+);
+function CookieNotice() {
+  const { cookie_notice } = useSettings();
+  const [, setCookie] = useCookie("cookie_notice");
+  const [alreadyAccepted, setAlreadyAccepted] = useState(() => {
+    return !getBootstrapData().show_cookie_notice;
+  });
+  if (!(cookie_notice == null ? void 0 : cookie_notice.enable) || alreadyAccepted) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: clsx(
+        "fixed z-50 flex w-full justify-center gap-14 bg-toast p-14 text-sm text-white shadow max-md:flex-col md:items-center md:gap-30",
+        (cookie_notice == null ? void 0 : cookie_notice.position) == "top" ? "top-0" : "bottom-0"
+      ),
+      children: [
+        /* @__PURE__ */ jsx(
+          Trans,
+          {
+            message: "We use cookies to optimize site functionality and provide you with the\n      best possible experience."
+          }
+        ),
+        /* @__PURE__ */ jsx(InfoLink, {}),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            variant: "flat",
+            color: "primary",
+            size: "xs",
+            className: "max-w-100",
+            onClick: () => {
+              setCookie("true", { days: 30, path: "/" });
+              setAlreadyAccepted(true);
+            },
+            children: /* @__PURE__ */ jsx(Trans, { message: "OK" })
+          }
+        )
+      ]
+    }
+  );
+}
+function InfoLink() {
+  var _a;
+  const { cookie_notice } = useSettings();
+  if (!((_a = cookie_notice == null ? void 0 : cookie_notice.button) == null ? void 0 : _a.label)) {
+    return null;
+  }
+  return /* @__PURE__ */ jsx(
+    CustomMenuItem,
+    {
+      className: () => "text-primary-light hover:underline",
+      item: cookie_notice == null ? void 0 : cookie_notice.button
+    }
+  );
+}
+const imgUrl1 = "/assets/404-1-176145e9.png";
+const imgUrl2 = "/assets/404-2-14c4a897.png";
+function NotFoundPage() {
+  return /* @__PURE__ */ jsxs("div", { className: "lg:px-96 lg:py-96 md:py-80 md:px-176 px-16 py-96 items-center flex justify-center flex-col-reverse lg:flex-row md:gap-112 gap-64", children: [
+    /* @__PURE__ */ jsx("div", { className: "xl:pt-96 w-full xl:w-1/2 relative pb-48 lg:pb-0", children: /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+      /* @__PURE__ */ jsx("div", { className: "absolute", children: /* @__PURE__ */ jsxs("div", { className: "relative z-10", children: [
+        /* @__PURE__ */ jsx("h1", { className: "my-8 text-main font-bold text-2xl", children: /* @__PURE__ */ jsx(Trans, { message: "Looks like you've found the doorway to the great nothing" }) }),
+        /* @__PURE__ */ jsx("p", { className: "my-16 text-main", children: /* @__PURE__ */ jsx(
+          Trans,
+          {
+            message: "Sorry about that! Please visit our homepage to get where you need\n                to go."
+          }
+        ) }),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            className: "my-8",
+            elementType: Link,
+            size: "lg",
+            to: "/",
+            variant: "flat",
+            color: "primary",
+            children: /* @__PURE__ */ jsx(Trans, { message: "Take me there!" })
+          }
+        )
+      ] }) }),
+      /* @__PURE__ */ jsx("div", { className: "dark:opacity-5", children: /* @__PURE__ */ jsx("img", { src: imgUrl2, alt: "" }) })
+    ] }) }),
+    /* @__PURE__ */ jsx("div", { className: "dark:opacity-80", children: /* @__PURE__ */ jsx("img", { src: imgUrl1, alt: "" }) })
+  ] });
+}
+function AuthRoute({ children, permission, requireLogin = true }) {
+  const { isLoggedIn, hasPermission, isSubscribed } = useAuth();
+  const { billing } = useSettings();
+  if (requireLogin && !isLoggedIn || permission && !hasPermission(permission)) {
+    if (isLoggedIn) {
+      return billing.enable && !isSubscribed ? /* @__PURE__ */ jsx(Navigate, { to: "/pricing", replace: true }) : /* @__PURE__ */ jsx(NotFoundPage, {});
+    }
+    return /* @__PURE__ */ jsx(Navigate, { to: "/login", replace: true });
+  }
+  return children || /* @__PURE__ */ jsx(Outlet, {});
+}
+function FullPageLoader({ className, screen }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: clsx(
+        "flex items-center justify-center flex-auto",
+        screen ? "h-screen w-screen" : "h-full w-full",
+        className
+      ),
+      children: /* @__PURE__ */ jsx(ProgressCircle, { isIndeterminate: true, "aria-label": "Loading page..." })
+    }
+  );
+}
+function GuestRoute({ children }) {
+  const { isLoggedIn, getRedirectUri } = useAuth();
+  const { isAppearanceEditorActive } = useAppearanceEditorMode();
+  const redirectUri = getRedirectUri();
+  const { auth } = useContext(SiteConfigContext);
+  const { pathname } = useLocation();
+  if (isLoggedIn && !isAppearanceEditorActive) {
+    if (redirectUri !== pathname) {
+      return /* @__PURE__ */ jsx(Navigate, { to: redirectUri, replace: true });
+    } else if (auth.secondaryRedirectUri) {
+      return /* @__PURE__ */ jsx(Navigate, { to: auth.secondaryRedirectUri, replace: true });
+    }
+  }
+  return children || /* @__PURE__ */ jsx(Outlet, {});
+}
+const LinkStyle = "text-link hover:underline hover:text-primary-dark focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 outline-none rounded transition-colors";
+function ExternalLink({
+  children,
+  className,
+  target = "_blank",
+  ...domProps
+}) {
+  return /* @__PURE__ */ jsx("a", { className: LinkStyle, target, ...domProps, children });
 }
 function useRegister(form) {
   const navigate = useNavigate();
@@ -3096,232 +4120,6 @@ function useConnectSocialWithPassword(form) {
 }
 function connect(payload) {
   return apiClient.post("secure/auth/social/connect", payload).then((response) => response.data);
-}
-function useTrans() {
-  const { lines, localeCode } = useSelectedLocale();
-  const trans = useCallback(
-    (props) => {
-      return translate({ ...props, lines, localeCode });
-    },
-    [lines, localeCode]
-  );
-  return { trans };
-}
-const translate = memoize(
-  (props) => {
-    let { lines, message: message2, values, localeCode } = props;
-    if (message2 == null) {
-      return "";
-    }
-    message2 = (lines == null ? void 0 : lines[message2]) || (lines == null ? void 0 : lines[message2.toLowerCase()]) || message2;
-    if (!values) {
-      return message2;
-    }
-    message2 = handlePluralMessage(localeCode, props);
-    Object.entries(values).forEach(([key, value]) => {
-      message2 = message2.replace(`:${key}`, `${value}`);
-    });
-    return message2;
-  },
-  { equals: shallowEqual, callTimeout: 0 }
-);
-function DismissButton({ onDismiss }) {
-  const { trans } = useTrans();
-  const onClick = () => {
-    if (onDismiss) {
-      onDismiss();
-    }
-  };
-  return /* @__PURE__ */ jsx(
-    "button",
-    {
-      className: "sr-only",
-      "aria-label": trans(message("Dismiss")),
-      tabIndex: -1,
-      onClick
-    }
-  );
-}
-function Dialog(props) {
-  const {
-    type = "modal",
-    dialogProps,
-    ...contextProps
-  } = useContext(DialogContext);
-  const {
-    children,
-    className,
-    size: size2 = "md",
-    background,
-    radius = "rounded",
-    maxWidth = "max-w-dialog",
-    ...domProps
-  } = props;
-  let dismissButton = null;
-  if (type === "popover" || type === "tray") {
-    dismissButton = /* @__PURE__ */ jsx(DismissButton, { onDismiss: contextProps.close });
-  }
-  const isTrayOrFullScreen = size2 === "fullscreenTakeover" || type === "tray";
-  const mergedClassName = clsx(
-    "mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden",
-    background || "bg",
-    type !== "tray" && sizeStyle(size2),
-    type === "tray" && "rounded-t border-b-bg",
-    size2 !== "fullscreenTakeover" && `shadow-2xl border max-h-dialog`,
-    !isTrayOrFullScreen && `${radius} ${maxWidth}`,
-    className
-  );
-  return /* @__PURE__ */ jsxs(
-    "div",
-    {
-      ...mergeProps({ role: "dialog", tabIndex: -1 }, dialogProps, domProps),
-      style: { ...props.style, "--be-dialog-padding": "24px" },
-      "aria-modal": true,
-      className: mergedClassName,
-      children: [
-        Children.toArray(children).map((child) => {
-          if (isValidElement(child)) {
-            return cloneElement(child, {
-              size: child.props.size ?? size2
-            });
-          }
-          return child;
-        }),
-        dismissButton
-      ]
-    }
-  );
-}
-function sizeStyle(dialogSize) {
-  switch (dialogSize) {
-    case "2xs":
-      return "w-256";
-    case "xs":
-      return "w-320";
-    case "sm":
-      return "w-384";
-    case "md":
-      return "w-440";
-    case "lg":
-      return "w-620";
-    case "xl":
-      return "w-780";
-    case "2xl":
-      return "w-850";
-    case "fullscreen":
-      return "w-1280";
-    case "fullscreenTakeover":
-      return "w-full h-full";
-    default:
-      return dialogSize;
-  }
-}
-function DialogHeader(props) {
-  const {
-    children,
-    className,
-    color,
-    onDismiss,
-    leftAdornment,
-    rightAdornment,
-    hideDismissButton = false,
-    size: size2,
-    showDivider,
-    justify = "justify-between",
-    titleFontWeight = "font-semibold",
-    titleTextSize = size2 === "xs" ? "text-xs" : "text-sm",
-    closeButtonSize = size2 === "xs" ? "xs" : "sm",
-    actions
-  } = props;
-  const { labelId, isDismissable, close } = useContext(DialogContext);
-  return /* @__PURE__ */ jsxs(
-    "div",
-    {
-      className: clsx(
-        className,
-        "flex flex-shrink-0 items-center gap-10",
-        titleFontWeight,
-        showDivider && "border-b",
-        getPadding$2(props),
-        color || "text-main",
-        justify
-      ),
-      children: [
-        leftAdornment,
-        /* @__PURE__ */ jsx(
-          "h3",
-          {
-            id: labelId,
-            className: clsx(titleTextSize, "mr-auto leading-5 opacity-90"),
-            children
-          }
-        ),
-        rightAdornment,
-        actions,
-        isDismissable && !hideDismissButton && /* @__PURE__ */ jsx(
-          IconButton,
-          {
-            "aria-label": "Dismiss",
-            onClick: () => {
-              if (onDismiss) {
-                onDismiss();
-              } else {
-                close();
-              }
-            },
-            size: closeButtonSize,
-            className: clsx("-mr-8 text-muted", rightAdornment && "sr-only"),
-            children: /* @__PURE__ */ jsx(CloseIcon, {})
-          }
-        )
-      ]
-    }
-  );
-}
-function getPadding$2({ size: size2, padding }) {
-  if (padding) {
-    return padding;
-  }
-  switch (size2) {
-    case "2xs":
-    case "xs":
-      return "px-14 py-4";
-    case "sm":
-      return "px-18 py-4";
-    default:
-      return "px-24 py-6";
-  }
-}
-const DialogBody = forwardRef(
-  (props, ref) => {
-    const { children, className, padding, size: size2, ...domProps } = props;
-    return /* @__PURE__ */ jsx(
-      "div",
-      {
-        ...domProps,
-        ref,
-        className: clsx(
-          className,
-          getPadding$1(props),
-          "overflow-y-auto overflow-x-hidden overscroll-contain text-sm flex-auto"
-        ),
-        children
-      }
-    );
-  }
-);
-function getPadding$1({ size: size2, padding }) {
-  if (padding) {
-    return padding;
-  }
-  switch (size2) {
-    case "xs":
-      return "p-14";
-    case "sm":
-      return "p-18";
-    default:
-      return "px-24 py-20";
-  }
 }
 function DialogFooter(props) {
   const { children, startAction, className, dividerTop, padding, size: size2 } = props;
@@ -3474,80 +4272,14 @@ const GoogleIcon = createSvgIcon(
   ] })
 );
 const FacebookIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m13 2h-2.5A3.5 3.5 0 0 0 12 8.5V11h-2v3h2v7h3v-7h3v-3h-3V9a1 1 0 0 1 1-1h2V5z" })
+  /* @__PURE__ */ jsx("path", { d: "M48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 35.9789 8.77641 45.908 20.25 47.7084V30.9375H14.1562V24H20.25V18.7125C20.25 12.6975 23.8331 9.375 29.3152 9.375C31.9402 9.375 34.6875 9.84375 34.6875 9.84375V15.75H31.6613C28.68 15.75 27.75 17.6002 27.75 19.5V24H34.4062L33.3422 30.9375H27.75V47.7084C39.2236 45.908 48 35.9789 48 24Z" }),
+  "FacebookIcon",
+  "0 0 48 48"
 );
 const TwitterIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" })
+  /* @__PURE__ */ jsx("path", { d: "M14.095479,10.316482L22.286354,1h-1.940718l-7.115352,8.087682L7.551414,1H1l8.589488,12.231093L1,23h1.940717  l7.509372-8.542861L16.448587,23H23L14.095479,10.316482z M11.436522,13.338465l-0.871624-1.218704l-6.924311-9.68815h2.981339  l5.58978,7.82155l0.867949,1.218704l7.26506,10.166271h-2.981339L11.436522,13.338465z" }),
+  "TwitterIcon"
 );
-function useFloatingPosition({
-  floatingWidth,
-  ref,
-  disablePositioning = false,
-  placement = "bottom",
-  offset: offset$1 = 2,
-  showArrow = false,
-  maxHeight,
-  shiftCrossAxis = true,
-  fallbackPlacements
-}) {
-  const arrowRef = useRef(null);
-  const floatingConfig = { placement, strategy: "fixed" };
-  if (!disablePositioning) {
-    floatingConfig.whileElementsMounted = autoUpdate;
-    floatingConfig.middleware = [
-      offset(offset$1),
-      shift({ padding: 16, crossAxis: shiftCrossAxis, mainAxis: true }),
-      flip({
-        padding: 16,
-        fallbackPlacements
-      }),
-      size({
-        apply({ rects, availableHeight, availableWidth, elements }) {
-          if (floatingWidth === "matchTrigger" && maxHeight != null) {
-            Object.assign(elements.floating.style, {
-              width: `${rects.reference.width}px`,
-              maxWidth: `${availableWidth}`,
-              maxHeight: `${Math.min(availableHeight, maxHeight)}px`
-            });
-          } else if (maxHeight != null) {
-            Object.assign(elements.floating.style, {
-              maxHeight: `${Math.min(availableHeight, maxHeight)}px`
-            });
-          }
-        },
-        padding: 16
-      })
-    ];
-    if (showArrow) {
-      floatingConfig.middleware.push(arrow({ element: arrowRef }));
-    }
-  }
-  const floatingProps = useFloating(floatingConfig);
-  const mergedReferenceRef = useMemo(
-    () => mergeRefs([ref, floatingProps.refs.setReference]),
-    [floatingProps.refs.setReference, ref]
-  );
-  const { x: arrowX, y: arrowY } = floatingProps.middlewareData.arrow || {};
-  const staticSide = {
-    top: "bottom",
-    right: "left",
-    bottom: "top",
-    left: "right"
-  }[floatingProps.placement.split("-")[0]];
-  const arrowStyle = {
-    left: arrowX,
-    top: arrowY,
-    right: "",
-    bottom: "",
-    [staticSide]: "-4px"
-  };
-  return {
-    ...floatingProps,
-    reference: mergedReferenceRef,
-    arrowRef,
-    arrowStyle
-  };
-}
 function useMediaQuery(query, { noSSR } = { noSSR: true }) {
   const supportsMatchMedia = typeof window !== "undefined" && typeof window.matchMedia === "function";
   const [matches, setMatches] = useState(
@@ -3574,12 +4306,6 @@ function useMediaQuery(query, { noSSR } = { noSSR: true }) {
 function useIsMobileMediaQuery(options) {
   return useMediaQuery("(max-width: 768px)", options);
 }
-const PopoverAnimation = {
-  initial: { opacity: 0, y: 5 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 5 },
-  transition: { type: "tween", duration: 0.125 }
-};
 function useOverlayViewport() {
   const { width, height } = useViewportSize();
   return {
@@ -4028,7 +4754,7 @@ function useListbox(props, ref) {
     items,
     role = "listbox",
     virtualFocus,
-    loopFocus = false,
+    focusLoopingMode = "stay",
     autoFocusFirstItem = true,
     onItemSelected,
     clearInputOnItemSelection,
@@ -4110,10 +4836,13 @@ function useListbox(props, ref) {
       newIndex = getNonDisabledIndex(
         items2,
         newIndex,
-        loopFocus,
+        focusLoopingMode,
         fallbackOperation
       );
       setActiveIndex(newIndex);
+      if (newIndex == null) {
+        return;
+      }
       if (virtualFocus) {
         (_a = listItemsRef.current[newIndex]) == null ? void 0 : _a.scrollIntoView({
           block: "nearest"
@@ -4122,7 +4851,7 @@ function useListbox(props, ref) {
         (_b = listItemsRef.current[newIndex]) == null ? void 0 : _b.focus();
       }
     },
-    [collection, virtualFocus, loopFocus]
+    [collection, virtualFocus, focusLoopingMode]
   );
   const onInputChange = useCallback(
     (e) => {
@@ -4174,7 +4903,7 @@ function useListbox(props, ref) {
     // even handlers
     handleItemSelection,
     onInputChange,
-    loopFocus,
+    focusLoopingMode,
     // config
     floatingWidth,
     floatingMinWidth,
@@ -4216,26 +4945,30 @@ function useListbox(props, ref) {
     }
   };
 }
-function getNonDisabledIndex(items, newIndex, loopFocus, operation) {
+function getNonDisabledIndex(items, newIndex, focusLoopingMode, operation) {
   var _a;
   const lastIndex = items.length - 1;
   while ((_a = items[newIndex]) == null ? void 0 : _a.isDisabled) {
     if (operation === "increment") {
       newIndex++;
       if (newIndex >= lastIndex) {
-        if (loopFocus) {
+        if (focusLoopingMode === "loop") {
           newIndex = 0;
-        } else {
+        } else if (focusLoopingMode === "stay") {
           return newIndex - 1;
+        } else {
+          return null;
         }
       }
     } else {
       newIndex--;
       if (newIndex < 0) {
-        if (loopFocus) {
+        if (focusLoopingMode === "loop") {
           newIndex = lastIndex;
-        } else {
+        } else if (focusLoopingMode === "stay") {
           return newIndex + 1;
+        } else {
+          return null;
         }
       }
     }
@@ -4629,8 +5362,15 @@ function Item$1({
   );
 }
 function useListboxKeyboardNavigation({
-  state: { isOpen, setIsOpen, selectedIndex, activeIndex, setInputValue },
-  loopFocus,
+  state: {
+    isOpen,
+    setIsOpen,
+    selectedIndex,
+    activeIndex,
+    setInputValue,
+    setActiveIndex
+  },
+  focusLoopingMode,
   collection,
   focusItem,
   handleItemSelection,
@@ -4669,8 +5409,10 @@ function useListboxKeyboardNavigation({
         if (activeIndex == null) {
           focusItem("increment", 0);
         } else if (activeIndex >= lastIndex) {
-          if (loopFocus) {
+          if (focusLoopingMode === "loop") {
             focusItem("increment", 0);
+          } else if (focusLoopingMode === "deselect") {
+            setActiveIndex(null);
           }
         } else {
           focusItem("increment", activeIndex + 1);
@@ -4681,8 +5423,10 @@ function useListboxKeyboardNavigation({
         if (activeIndex == null) {
           focusItem("decrement", lastIndex);
         } else if (activeIndex <= 0) {
-          if (loopFocus) {
+          if (focusLoopingMode === "loop") {
             focusItem("decrement", lastIndex);
+          } else if (focusLoopingMode === "deselect") {
+            setActiveIndex(null);
           }
         } else {
           focusItem("decrement", activeIndex - 1);
@@ -4814,7 +5558,7 @@ const MenuTrigger = forwardRef(
         floatingWidth: isMobile ? "auto" : floatingWidth,
         virtualFocus: showSearchField,
         role: showSearchField ? "listbox" : "menu",
-        loopFocus: !showSearchField,
+        focusLoopingMode: showSearchField ? "stay" : "loop",
         children: menu.props.children
       },
       ref
@@ -5120,18 +5864,22 @@ function extractChildren(rawChildren, ctx) {
 const EnvatoIcon = createSvgIcon(
   /* @__PURE__ */ jsx("path", { d: "M 23.898438 47 C 13.65625 47 5.003906 38.355469 5.003906 28.125 L 5.003906 28 C 4.929688 23.074219 6.558594 19.714844 7.261719 18.5 C 8.621094 16.152344 10.296875 14.410156 10.8125 14.136719 C 11.566406 13.734375 12.121094 14.332031 12.363281 14.585938 C 12.832031 15.085938 12.597656 15.695313 12.507813 15.925781 C 11.613281 18.265625 10.929688 20.28125 11.003906 23.097656 C 11.097656 26.90625 12.488281 28.699219 13.085938 29.292969 C 13.460938 29.671875 13.769531 29.847656 14.015625 29.933594 C 14.054688 28.671875 14.203125 26.148438 14.773438 23.304688 C 15.113281 21.589844 16.28125 17.085938 19.6875 12.296875 C 23.714844 6.632813 28.449219 4.273438 29.214844 4.042969 C 30.570313 3.636719 33.535156 3.128906 35.957031 3.019531 C 38.53125 2.910156 39.160156 3.574219 39.921875 5.035156 L 40.046875 5.277344 C 41.820313 8.613281 45.03125 18.832031 43.65625 29.132813 C 42.011719 39.992188 34.257813 47 23.898438 47 Z M 14.648438 30 C 14.640625 30 14.632813 30 14.628906 30 L 14.652344 30 C 14.648438 30 14.648438 30 14.648438 30 Z " })
 );
+function useAllSocialLoginsDisabled() {
+  var _a, _b, _c, _d;
+  const { social } = useSettings();
+  return !((_a = social == null ? void 0 : social.google) == null ? void 0 : _a.enable) && !((_b = social == null ? void 0 : social.facebook) == null ? void 0 : _b.enable) && !((_c = social == null ? void 0 : social.twitter) == null ? void 0 : _c.enable) && !((_d = social == null ? void 0 : social.envato) == null ? void 0 : _d.enable);
+}
 const googleLabel = message("Continue with google");
 const facebookLabel = message("Continue with facebook");
 const twitterLabel = message("Continue with twitter");
 const envatoLabel = message("Continue with envato");
 function SocialAuthSection({ dividerMessage }) {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d;
   const { social } = useSettings();
   const navigate = useNavigate();
   const { getRedirectUri } = useAuth();
   const { loginWithSocial, requestingPassword, setIsRequestingPassword } = useSocialLogin();
-  const allSocialsDisabled = !((_a = social == null ? void 0 : social.google) == null ? void 0 : _a.enable) && !((_b = social == null ? void 0 : social.facebook) == null ? void 0 : _b.enable) && !((_c = social == null ? void 0 : social.twitter) == null ? void 0 : _c.enable) && !((_d = social == null ? void 0 : social.envato) == null ? void 0 : _d.enable);
-  if (allSocialsDisabled) {
+  if (useAllSocialLoginsDisabled()) {
     return null;
   }
   const handleSocialLogin = async (service) => {
@@ -5150,7 +5898,7 @@ function SocialAuthSection({ dividerMessage }) {
           !social.compact_buttons && "flex-col"
         ),
         children: [
-          ((_e = social == null ? void 0 : social.google) == null ? void 0 : _e.enable) ? /* @__PURE__ */ jsx(
+          ((_a = social == null ? void 0 : social.google) == null ? void 0 : _a.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: googleLabel,
@@ -5158,7 +5906,7 @@ function SocialAuthSection({ dividerMessage }) {
               onClick: () => handleSocialLogin("google")
             }
           ) : null,
-          ((_f = social == null ? void 0 : social.facebook) == null ? void 0 : _f.enable) ? /* @__PURE__ */ jsx(
+          ((_b = social == null ? void 0 : social.facebook) == null ? void 0 : _b.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: facebookLabel,
@@ -5166,7 +5914,7 @@ function SocialAuthSection({ dividerMessage }) {
               onClick: () => handleSocialLogin("facebook")
             }
           ) : null,
-          ((_g = social == null ? void 0 : social.twitter) == null ? void 0 : _g.enable) ? /* @__PURE__ */ jsx(
+          ((_c = social == null ? void 0 : social.twitter) == null ? void 0 : _c.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: twitterLabel,
@@ -5174,7 +5922,7 @@ function SocialAuthSection({ dividerMessage }) {
               onClick: () => handleSocialLogin("twitter")
             }
           ) : null,
-          ((_h = social == null ? void 0 : social.envato) == null ? void 0 : _h.enable) ? /* @__PURE__ */ jsx(
+          ((_d = social == null ? void 0 : social.envato) == null ? void 0 : _d.enable) ? /* @__PURE__ */ jsx(
             SocialLoginButton,
             {
               label: envatoLabel,
@@ -6145,7 +6893,7 @@ function Navbar(props) {
   const lightThemeVars = useLightThemeVariables();
   const showNotifButton = isLoggedIn && (notifications == null ? void 0 : notifications.integrated);
   color = color ?? (lightThemeVars == null ? void 0 : lightThemeVars["--be-navbar-color"]) ?? "primary";
-  darkModeColor = darkModeColor ?? (darkModeColor == null ? void 0 : darkModeColor["--be-navbar-color"]) ?? "bg-alt";
+  darkModeColor = darkModeColor ?? (darkThemeVars == null ? void 0 : darkThemeVars["--be-navbar-color"]) ?? "bg-alt";
   if (isDarkMode) {
     color = darkModeColor;
   }
@@ -6276,10 +7024,6 @@ function fetchValueLists(names, params) {
 const LanguageIcon = createSvgIcon(
   /* @__PURE__ */ jsx("path", { d: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z" }),
   "LanguageOutlined"
-);
-const KeyboardArrowDownIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" }),
-  "KeyboardArrowDownOutlined"
 );
 function useChangeLocale() {
   const { mergeBootstrapData: mergeBootstrapData2 } = useBootstrapData();
@@ -6413,18 +7157,11 @@ function ThemeSwitcher() {
     }
   );
 }
-function highlightCode(el) {
-  import("./assets/highlight-95c2906e.mjs").then(({ hljs }) => {
-    el.querySelectorAll("pre code").forEach((block) => {
-      hljs.highlightElement(block);
-    });
-  });
-}
 function CustomPageBody({ page }) {
   const bodyRef = useRef(null);
   useEffect(() => {
     if (bodyRef.current) {
-      highlightCode(bodyRef.current);
+      highlightAllCode(bodyRef.current);
     }
   }, []);
   return /* @__PURE__ */ jsx("div", { className: "px-16 md:px-24", children: /* @__PURE__ */ jsxs("div", { className: "custom-page-body prose mx-auto my-50 dark:prose-invert", children: [
@@ -6452,10 +7189,6 @@ function PageMetaTags({ query }) {
   }
   return ((_b = query.data) == null ? void 0 : _b.seo) ? /* @__PURE__ */ jsx(Helmet, { tags: query.data.seo }) : /* @__PURE__ */ jsx(DefaultMetaTags, {});
 }
-const ErrorIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" }),
-  "ErrorOutlined"
-);
 function PageErrorMessage() {
   return /* @__PURE__ */ jsx(
     IllustratedMessage,
@@ -6893,344 +7626,6 @@ function findMonthlyPrice(prices) {
     }
   });
 }
-const CancelFilledIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z" })
-);
-const WarningIcon = createSvgIcon(
-  /* @__PURE__ */ jsx("path", { d: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" }),
-  "WarningOutlined"
-);
-const TOOLTIP_COOLDOWN = 500;
-const tooltips = {};
-let globalWarmedUp = false;
-let globalWarmUpTimeout = null;
-let globalCooldownTimeout = null;
-const closeOpenTooltips = (tooltipId) => {
-  var _a;
-  for (const hideTooltipId in tooltips) {
-    if (hideTooltipId !== tooltipId) {
-      (_a = tooltips[hideTooltipId]) == null ? void 0 : _a.call(tooltips, true);
-      delete tooltips[hideTooltipId];
-    }
-  }
-};
-const Tooltip = forwardRef(
-  ({
-    children,
-    label,
-    placement = "top",
-    offset: offset2 = 10,
-    variant = "neutral",
-    delay = 1500,
-    isDisabled,
-    usePortal = true,
-    ...domProps
-  }, ref) => {
-    const { x, y, reference, strategy, arrowRef, arrowStyle, refs } = useFloatingPosition({
-      placement,
-      offset: offset2,
-      ref,
-      showArrow: true
-    });
-    const [isOpen, setIsOpen] = useState(false);
-    const tooltipId = useId();
-    const closeTimeout = useRef();
-    const showTooltip = () => {
-      clearTimeout(closeTimeout.current);
-      closeTimeout.current = void 0;
-      closeOpenTooltips(tooltipId);
-      tooltips[tooltipId] = hideTooltip;
-      globalWarmedUp = true;
-      setIsOpen(true);
-      if (globalWarmUpTimeout) {
-        clearTimeout(globalWarmUpTimeout);
-        globalWarmUpTimeout = null;
-      }
-      if (globalCooldownTimeout) {
-        clearTimeout(globalCooldownTimeout);
-        globalCooldownTimeout = null;
-      }
-    };
-    const hideTooltip = useCallback(
-      (immediate) => {
-        if (immediate) {
-          clearTimeout(closeTimeout.current);
-          closeTimeout.current = void 0;
-          setIsOpen(false);
-        } else if (!closeTimeout.current) {
-          closeTimeout.current = setTimeout(() => {
-            closeTimeout.current = void 0;
-            setIsOpen(false);
-          }, TOOLTIP_COOLDOWN);
-        }
-        if (globalWarmUpTimeout) {
-          clearTimeout(globalWarmUpTimeout);
-          globalWarmUpTimeout = null;
-        }
-        if (globalWarmedUp) {
-          if (globalCooldownTimeout) {
-            clearTimeout(globalCooldownTimeout);
-          }
-          globalCooldownTimeout = setTimeout(() => {
-            delete tooltips[tooltipId];
-            globalCooldownTimeout = null;
-            globalWarmedUp = false;
-          }, TOOLTIP_COOLDOWN);
-        }
-      },
-      [tooltipId]
-    );
-    const warmupTooltip = () => {
-      closeOpenTooltips(tooltipId);
-      tooltips[tooltipId] = hideTooltip;
-      if (!isOpen && !globalWarmUpTimeout && !globalWarmedUp) {
-        globalWarmUpTimeout = setTimeout(() => {
-          globalWarmUpTimeout = null;
-          globalWarmedUp = true;
-          showTooltip();
-        }, delay);
-      } else if (!isOpen) {
-        showTooltip();
-      }
-    };
-    const showTooltipWithWarmup = (immediate) => {
-      if (!immediate && delay > 0 && !closeTimeout.current) {
-        warmupTooltip();
-      } else {
-        showTooltip();
-      }
-    };
-    useEffect(() => {
-      return () => {
-        clearTimeout(closeTimeout.current);
-        const tooltip = tooltips[tooltipId];
-        if (tooltip) {
-          delete tooltips[tooltipId];
-        }
-      };
-    }, [tooltipId]);
-    useEffect(() => {
-      const onKeyDown = (e) => {
-        if (e.key === "Escape") {
-          hideTooltip(true);
-        }
-      };
-      if (isOpen) {
-        document.addEventListener("keydown", onKeyDown, true);
-        return () => {
-          document.removeEventListener("keydown", onKeyDown, true);
-        };
-      }
-    }, [isOpen, hideTooltip]);
-    const tooltipContent = /* @__PURE__ */ jsx(AnimatePresence, { children: isOpen && /* @__PURE__ */ jsxs(
-      m.div,
-      {
-        ...PopoverAnimation,
-        ref: refs.setFloating,
-        id: tooltipId,
-        role: "tooltip",
-        onPointerEnter: () => {
-          showTooltipWithWarmup(true);
-        },
-        onPointerLeave: () => {
-          hideTooltip();
-        },
-        className: clsx(
-          "z-tooltip my-4 max-w-240 break-words rounded px-8 py-4 text-xs text-white shadow",
-          variant === "positive" && "bg-positive",
-          variant === "danger" && "bg-danger",
-          variant === "neutral" && "bg-toast"
-        ),
-        style: {
-          position: strategy,
-          top: y ?? "",
-          left: x ?? ""
-        },
-        children: [
-          /* @__PURE__ */ jsx(
-            "div",
-            {
-              ref: arrowRef,
-              className: "absolute h-8 w-8 rotate-45 bg-inherit",
-              style: arrowStyle
-            }
-          ),
-          label
-        ]
-      }
-    ) });
-    return /* @__PURE__ */ jsxs(Fragment, { children: [
-      cloneElement(
-        children,
-        // pass dom props down to child element, in case tooltip is wrapped in menu trigger
-        mergeProps(
-          {
-            "aria-describedby": isOpen ? tooltipId : void 0,
-            ref: reference,
-            onPointerEnter: (e) => {
-              if (e.pointerType === "mouse") {
-                showTooltipWithWarmup();
-              }
-            },
-            onFocus: (e) => {
-              if (e.target.matches(":focus-visible")) {
-                showTooltipWithWarmup(true);
-              }
-            },
-            onPointerLeave: (e) => {
-              if (e.pointerType === "mouse") {
-                hideTooltip();
-              }
-            },
-            onPointerDown: () => {
-              hideTooltip(true);
-            },
-            onBlur: () => {
-              hideTooltip();
-            },
-            "aria-label": typeof label === "string" ? label : label.props.message
-          },
-          domProps
-        )
-      ),
-      usePortal ? rootEl && createPortal(tooltipContent, rootEl) : tooltipContent
-    ] });
-  }
-);
-function Chip(props) {
-  const {
-    onRemove,
-    disabled,
-    invalid,
-    errorMessage,
-    children,
-    className,
-    selectable = false,
-    radius = "rounded-full",
-    elementType = "div",
-    to,
-    onClick
-  } = props;
-  const chipRef = useRef(null);
-  const deleteButtonRef = useRef(null);
-  const focusManager = useFocusManager();
-  const handleKeyDown = (e) => {
-    switch (e.key) {
-      case "ArrowRight":
-      case "ArrowDown":
-        focusManager == null ? void 0 : focusManager.focusNext({ tabbable: true });
-        break;
-      case "ArrowLeft":
-      case "ArrowUp":
-        focusManager == null ? void 0 : focusManager.focusPrevious({ tabbable: true });
-        break;
-      case "Backspace":
-      case "Delete":
-        if (chipRef.current === document.activeElement) {
-          onRemove == null ? void 0 : onRemove();
-        }
-        break;
-    }
-  };
-  const handleClick = (e) => {
-    e.stopPropagation();
-    if (onClick) {
-      onClick(e);
-    } else {
-      chipRef.current.focus();
-    }
-  };
-  const sizeStyle2 = sizeClassNames(props);
-  let adornment = invalid || errorMessage != null ? /* @__PURE__ */ jsx(WarningIcon, { className: "text-danger", size: "sm" }) : props.adornment && cloneElement(props.adornment, {
-    size: sizeStyle2.adornment.size,
-    circle: true,
-    className: clsx(props.adornment.props, sizeStyle2.adornment.margin)
-  });
-  if (errorMessage && adornment) {
-    adornment = /* @__PURE__ */ jsx(Tooltip, { label: errorMessage, variant: "danger", children: adornment });
-  }
-  const Element = elementType;
-  return /* @__PURE__ */ jsxs(
-    Element,
-    {
-      tabIndex: selectable ? 0 : void 0,
-      ref: chipRef,
-      to,
-      onKeyDown: selectable ? handleKeyDown : void 0,
-      onClick: selectable ? handleClick : void 0,
-      className: clsx(
-        "relative flex flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none",
-        "min-w-0 max-w-full after:pointer-events-none after:absolute after:inset-0",
-        onClick && "cursor-pointer",
-        radius,
-        colorClassName(props),
-        sizeStyle2.chip,
-        !disabled && selectable && "hover:after:bg-black/5 focus:after:bg-black/10",
-        className
-      ),
-      children: [
-        adornment,
-        /* @__PURE__ */ jsx("div", { className: "flex-auto overflow-hidden overflow-ellipsis", children }),
-        onRemove && /* @__PURE__ */ jsx(
-          ButtonBase,
-          {
-            ref: deleteButtonRef,
-            className: clsx(
-              "text-black/30 dark:text-white/50",
-              sizeStyle2.closeButton
-            ),
-            onClick: (e) => {
-              e.stopPropagation();
-              onRemove();
-            },
-            tabIndex: -1,
-            children: /* @__PURE__ */ jsx(CancelFilledIcon, { className: "block", width: "100%", height: "100%" })
-          }
-        )
-      ]
-    }
-  );
-}
-function sizeClassNames({ size: size2, onRemove }) {
-  switch (size2) {
-    case "xs":
-      return {
-        adornment: { size: "xs", margin: "-ml-3" },
-        chip: clsx("pl-8 h-20 text-xs font-medium w-max", !onRemove && "pr-8"),
-        closeButton: "mr-4 w-14 h-14"
-      };
-    case "sm":
-      return {
-        adornment: { size: "xs", margin: "-ml-3" },
-        chip: clsx("pl-8 h-26 text-xs", !onRemove && "pr-8"),
-        closeButton: "mr-4 w-18 h-18"
-      };
-    case "lg":
-      return {
-        adornment: { size: "md", margin: "-ml-12" },
-        chip: clsx("pl-18 h-38 text-base", !onRemove && "pr-18"),
-        closeButton: "mr-6 w-24 h-24"
-      };
-    default:
-      return {
-        adornment: { size: "sm", margin: "-ml-6" },
-        chip: clsx("pl-12 h-32 text-sm", !onRemove && "pr-12"),
-        closeButton: "mr-6 w-22 h-22"
-      };
-  }
-}
-function colorClassName({ color }) {
-  switch (color) {
-    case "primary":
-      return `bg-primary text-on-primary`;
-    case "positive":
-      return `bg-positive-lighter text-positive-darker`;
-    case "danger":
-      return `bg-danger-lighter text-danger-darker`;
-    default:
-      return `bg-chip text-main`;
-  }
-}
 const FormattedCurrency = memo(
   ({ value, currency }) => {
     const formatter = useNumberFormatter({
@@ -7547,7 +7942,7 @@ const UpsellLabel = memo(({ products }) => {
   if (upsellPercentage <= 0) {
     return null;
   }
-  return /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsxs("span", { className: "text-positive-darker font-medium", children: [
+  return /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsxs("span", { className: "font-medium text-positive-darker", children: [
     " ",
     "(",
     /* @__PURE__ */ jsx(
@@ -7564,6 +7959,8 @@ function calcHighestUpsellPercentage(products) {
   if (!(products == null ? void 0 : products.length))
     return 0;
   const decreases = products.map((product) => {
+    if (product.hidden)
+      return 0;
     const monthly = findBestPrice("monthly", product.prices);
     const yearly = findBestPrice("yearly", product.prices);
     if (!monthly || !yearly)
@@ -8189,9 +8586,9 @@ function AccountSettingsSidenav() {
   var _a;
   const p = AccountSettingsId;
   const { hasPermission } = useAuth();
-  const { api, social } = useSettings();
+  const { api } = useSettings();
   const { auth } = useContext(SiteConfigContext);
-  const socialEnabled = (social == null ? void 0 : social.envato) || (social == null ? void 0 : social.google) || (social == null ? void 0 : social.facebook) || (social == null ? void 0 : social.twitter);
+  const allSocialsDisabled = useAllSocialLoginsDisabled();
   return /* @__PURE__ */ jsx("aside", { className: "sticky top-10 hidden flex-shrink-0 lg:block", children: /* @__PURE__ */ jsxs(List, { padding: "p-0", children: [
     (_a = auth.accountSettingsPanels) == null ? void 0 : _a.map((panel) => /* @__PURE__ */ jsx(
       Item,
@@ -8203,7 +8600,7 @@ function AccountSettingsSidenav() {
       panel.id
     )),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(PersonIcon, {}), panel: p.AccountDetails, children: /* @__PURE__ */ jsx(Trans, { message: "Account details" }) }),
-    socialEnabled && /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(LoginIcon, {}), panel: p.SocialLogin, children: /* @__PURE__ */ jsx(Trans, { message: "Social login" }) }),
+    !allSocialsDisabled && /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(LoginIcon, {}), panel: p.SocialLogin, children: /* @__PURE__ */ jsx(Trans, { message: "Social login" }) }),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(LockIcon, {}), panel: p.Password, children: /* @__PURE__ */ jsx(Trans, { message: "Password" }) }),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(PhonelinkLockIcon, {}), panel: p.TwoFactor, children: /* @__PURE__ */ jsx(Trans, { message: "Two factor authentication" }) }),
     /* @__PURE__ */ jsx(Item, { icon: /* @__PURE__ */ jsx(DevicesIcon, {}), panel: p.Sessions, children: /* @__PURE__ */ jsx(Trans, { message: "Active sessions" }) }),
@@ -8232,6 +8629,9 @@ function Item({ children, icon, isLast, panel }) {
   );
 }
 function SocialLoginPanel({ user }) {
+  if (useAllSocialLoginsDisabled()) {
+    return null;
+  }
   return /* @__PURE__ */ jsxs(
     AccountSettingsPanel,
     {
@@ -8951,6 +9351,7 @@ async function startUploading(upload, state) {
   if (options == null ? void 0 : options.restrictions) {
     const errorMessage = validateUpload(file, options.restrictions);
     if (errorMessage) {
+      console.log("errorMessage", errorMessage);
       state.updateFileUpload(file.id, {
         errorMessage,
         status: "failed",
@@ -8983,6 +9384,9 @@ async function startUploading(upload, state) {
       state.runQueue();
       timer.done();
       (_a2 = options == null ? void 0 : options.onError) == null ? void 0 : _a2.call(options, errorMessage, file);
+      if (options.showToastOnBackendError && errorMessage) {
+        toast.danger(errorMessage);
+      }
     },
     onSuccess: (entry) => {
       var _a2;
@@ -10072,6 +10476,7 @@ function ComboBox(props, ref) {
     listboxClassName,
     onEndAdornmentClick,
     autoFocusFirstItem = true,
+    focusLoopingMode,
     ...textFieldProps
   } = props;
   const listbox = useListbox(
@@ -10487,7 +10892,15 @@ function useDateFormatter(options) {
 const DateFormatPresets = {
   numeric: { year: "numeric", month: "2-digit", day: "2-digit" },
   short: { year: "numeric", month: "short", day: "2-digit" },
-  long: { month: "long", day: "2-digit", year: "numeric" }
+  long: { month: "long", day: "2-digit", year: "numeric" },
+  timestamp: {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  }
 };
 const FormattedDate = memo(
   ({ date, options, preset }) => {
@@ -10782,35 +11195,6 @@ function fetchStatus() {
 function setPasswordConfirmationStatus(confirmed) {
   queryClient.setQueryData(["password-confirmation-status"], { confirmed });
 }
-const useDialogStore = create()(
-  immer((set, get) => ({
-    dialog: null,
-    data: void 0,
-    resolveClosePromise: null,
-    openDialog: (dialog, data) => {
-      return new Promise((resolve) => {
-        set((state) => {
-          state.dialog = dialog;
-          state.data = data;
-          state.resolveClosePromise = resolve;
-        });
-      });
-    },
-    closeActiveDialog: (value) => {
-      var _a, _b;
-      (_b = (_a = get()).resolveClosePromise) == null ? void 0 : _b.call(_a, value);
-      set((state) => {
-        state.dialog = null;
-        state.data = void 0;
-        state.resolveClosePromise = null;
-      });
-    }
-  }))
-);
-const openDialog = useDialogStore.getState().openDialog;
-const closeDialog = (value) => {
-  useDialogStore.getState().closeActiveDialog(value);
-};
 function useConfirmPassword(form) {
   return useMutation({
     mutationFn: (payload) => confirm$1(payload),
@@ -10925,6 +11309,7 @@ function DangerZonePanel() {
           {
             variant: "flat",
             color: "danger",
+            disabled: confirmingPassword || deleteAccount2.isPending,
             onClick: () => {
               withConfirmedPassword(() => {
                 setConfirmDialogOpen(true);
@@ -11643,9 +12028,9 @@ function ContactSection() {
   ] });
 }
 const BillingPageRoutes = React.lazy(
-  () => import("./assets/billing-page-routes-452fd57e.mjs")
+  () => import("./assets/billing-page-routes-7117c4e2.mjs")
 );
-const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-ae4e6222.mjs"));
+const CheckoutRoutes = React.lazy(() => import("./assets/checkout-routes-1a4f252c.mjs"));
 const BillingRoutes = /* @__PURE__ */ jsxs(Fragment, { children: [
   /* @__PURE__ */ jsx(Route, { path: "/pricing", element: /* @__PURE__ */ jsx(PricingPage, {}) }),
   /* @__PURE__ */ jsx(
@@ -12043,11 +12428,11 @@ function DialogStoreOutlet() {
     }
   );
 }
-const AdminRoutes = React.lazy(() => import("./assets/admin-routes-cc06ec81.mjs").then((n) => n.Y));
+const AdminRoutes = React.lazy(() => import("./assets/admin-routes-c9ddfba6.mjs").then((n) => n.a1));
 const SwaggerApiDocs = React.lazy(
-  () => import("./assets/swagger-api-docs-page-4c89c83f.mjs")
+  () => import("./assets/swagger-api-docs-page-6fa913ed.mjs")
 );
-const SiteRoutes = React.lazy(() => import("./assets/site-routes-e2eea1b8.mjs"));
+const SiteRoutes = React.lazy(() => import("./assets/site-routes-70aa5b21.mjs"));
 function AppRoutes() {
   var _a;
   const { homepage, billing, notifications, require_email_confirmation, api } = useSettings();
@@ -12204,174 +12589,179 @@ async function takeScreenshot(request, response) {
 }
 console.log(`Starting SSR server on port ${port}...`);
 export {
-  createSvgIconFromTree as $,
-  onFormQueryError as A,
+  DoneAllIcon as $,
+  DialogBody as A,
   Button as B,
   CustomMenu as C,
   DialogTrigger as D,
-  useDateFormatter as E,
-  Form as F,
-  FormTextField as G,
-  CheckIcon as H,
+  ErrorIcon as E,
+  DialogFooter as F,
+  onFormQueryError as G,
+  useDateFormatter as H,
   IconButton as I,
-  CloseIcon as J,
-  Chip as K,
-  FormattedDate as L,
-  Tooltip as M,
+  Form as J,
+  KeyboardArrowLeftIcon as K,
+  FormTextField as L,
+  Chip as M,
   Navbar as N,
-  LoginIcon as O,
+  CheckIcon as O,
   ProgressBar as P,
-  ButtonBase as Q,
-  getInputFieldClassNames as R,
+  CloseIcon as Q,
+  FormattedDate as R,
   SelectForwardRef as S,
   Trans as T,
   Underlay as U,
-  FormImageSelector as V,
-  useValueLists as W,
-  DoneAllIcon as X,
-  List as Y,
-  ListItem as Z,
-  Skeleton as _,
+  Tooltip as V,
+  LoginIcon as W,
+  ButtonBase as X,
+  getInputFieldClassNames as Y,
+  FormImageSelector as Z,
+  useValueLists as _,
   useMediaQuery as a,
-  useAuth as a$,
-  FormSelect as a0,
-  Section as a1,
-  MixedText as a2,
-  FileUploadProvider as a3,
-  useAppearanceEditorMode as a4,
-  ProgressCircle as a5,
-  useNavigate as a6,
-  useBootstrapData as a7,
-  FullPageLoader as a8,
-  LinkStyle as a9,
-  UploadedFile as aA,
-  Disk as aB,
-  SettingsIcon as aC,
-  RadioGroup as aD,
-  Radio as aE,
-  openDialog as aF,
-  PageErrorMessage as aG,
-  ComboBoxForwardRef as aH,
-  openUploadWindow as aI,
-  UploadInputType as aJ,
-  PageMetaTags as aK,
-  WarningIcon as aL,
-  KeyboardArrowDownIcon as aM,
-  shallowEqual as aN,
-  useSelectedLocale as aO,
-  useThemeSelector as aP,
-  lazyLoader as aQ,
-  AuthRoute as aR,
-  useCustomPage as aS,
-  useCollator as aT,
-  loadFonts as aU,
-  NotFoundPage as aV,
-  Footer as aW,
-  useCookie as aX,
-  FacebookIcon as aY,
-  TwitterIcon as aZ,
-  LockIcon as a_,
-  SiteConfigContext as aa,
-  getBootstrapData as ab,
-  ExternalLink as ac,
-  MenuTrigger as ad,
-  Menu as ae,
-  Checkbox as af,
-  FormRadioGroup as ag,
-  FormRadio as ah,
-  DateFormatPresets as ai,
-  prettyBytes as aj,
-  useSocialLogin as ak,
-  useField as al,
-  Field as am,
-  useResendVerificationEmail as an,
-  useUser as ao,
-  useUploadAvatar as ap,
-  useRemoveAvatar as aq,
-  slugifyString as ar,
-  isAbsoluteUrl as as,
-  useProducts as at,
-  FormattedPrice as au,
-  PageStatus as av,
-  FormattedRelativeTime as aw,
-  useActiveUpload as ax,
-  useAutoFocus as ay,
-  validateUpload as az,
-  useIsMobileMediaQuery as b,
-  useImageSrc as b0,
-  useLocalStorage as b1,
-  FormattedCurrency as b2,
-  useDarkThemeVariables as b3,
-  useUserTimezone as b4,
-  createEventHandler as b5,
-  useIsDarkMode as b6,
-  ArrowDropDownIcon as b7,
-  AvatarPlaceholderIcon as b8,
-  useListbox as b9,
-  FileDownloadDoneIcon as bA,
-  ForumIcon as bB,
-  GroupAddIcon as bC,
-  LanguageIcon as bD,
-  LightModeIcon as bE,
-  LightbulbIcon as bF,
-  MenuIcon as bG,
-  NotificationsIcon as bH,
-  PaymentsIcon as bI,
-  PeopleIcon as bJ,
-  PhonelinkLockIcon as bK,
-  SmartphoneIcon as bL,
-  TabletIcon as bM,
-  elementToTree as bN,
-  EnvatoIcon as bO,
-  Listbox as ba,
-  Popover as bb,
-  useListboxKeyboardNavigation as bc,
-  clamp as bd,
-  rootEl as be,
-  MovieIcon as bf,
-  useImageSrcSet as bg,
-  PersonIcon as bh,
-  BillingCycleRadio as bi,
-  findBestPrice as bj,
-  removeFromLocalStorage as bk,
-  LocaleSwitcher as bl,
-  ProductFeatureList as bm,
-  ErrorIcon as bn,
-  useCallbackRef as bo,
-  AccountCircleIcon as bp,
-  AddAPhotoIcon as bq,
-  ApiIcon as br,
-  CheckBoxOutlineBlankIcon as bs,
-  CheckCircleIcon as bt,
-  ComputerIcon as bu,
-  DangerousIcon as bv,
-  DarkModeIcon as bw,
-  DevicesIcon as bx,
-  ErrorOutlineIcon as by,
-  ExitToAppIcon as bz,
+  closeDialog as a$,
+  List as a0,
+  ListItem as a1,
+  Skeleton as a2,
+  createSvgIconFromTree as a3,
+  FormSelect as a4,
+  Section as a5,
+  MixedText as a6,
+  FileUploadProvider as a7,
+  useAppearanceEditorMode as a8,
+  ProgressCircle as a9,
+  useProducts as aA,
+  FormattedPrice as aB,
+  KeyboardArrowDownIcon as aC,
+  PageStatus as aD,
+  SettingsIcon as aE,
+  FormattedRelativeTime as aF,
+  useActiveUpload as aG,
+  useAutoFocus as aH,
+  validateUpload as aI,
+  UploadedFile as aJ,
+  Disk as aK,
+  RadioGroup as aL,
+  Radio as aM,
+  PageErrorMessage as aN,
+  ComboBoxForwardRef as aO,
+  PageMetaTags as aP,
+  WarningIcon as aQ,
+  UnfoldLessIcon as aR,
+  UnfoldMoreIcon as aS,
+  shallowEqual as aT,
+  useSelectedLocale as aU,
+  useThemeSelector as aV,
+  lazyLoader as aW,
+  AuthRoute as aX,
+  useCustomPage as aY,
+  useCollator as aZ,
+  loadFonts as a_,
+  useNavigate as aa,
+  useBootstrapData as ab,
+  FullPageLoader as ac,
+  LinkStyle as ad,
+  SiteConfigContext as ae,
+  getBootstrapData as af,
+  ExternalLink as ag,
+  MenuTrigger as ah,
+  Menu as ai,
+  Checkbox as aj,
+  FormRadioGroup as ak,
+  FormRadio as al,
+  DateFormatPresets as am,
+  prettyBytes as an,
+  useSocialLogin as ao,
+  useField as ap,
+  Field as aq,
+  useResendVerificationEmail as ar,
+  useUser as as,
+  useUploadAvatar as at,
+  useRemoveAvatar as au,
+  openDialog as av,
+  openUploadWindow as aw,
+  UploadInputType as ax,
+  slugifyString as ay,
+  isAbsoluteUrl as az,
+  apiClient as b,
+  NotFoundPage as b0,
+  Footer as b1,
+  useCookie as b2,
+  FacebookIcon as b3,
+  TwitterIcon as b4,
+  LockIcon as b5,
+  useAuth as b6,
+  useImageSrc as b7,
+  FormattedCurrency as b8,
+  useDarkThemeVariables as b9,
+  DangerousIcon as bA,
+  DarkModeIcon as bB,
+  DevicesIcon as bC,
+  ErrorOutlineIcon as bD,
+  ExitToAppIcon as bE,
+  FileDownloadDoneIcon as bF,
+  ForumIcon as bG,
+  GroupAddIcon as bH,
+  LanguageIcon as bI,
+  LightModeIcon as bJ,
+  LightbulbIcon as bK,
+  MenuIcon as bL,
+  NotificationsIcon as bM,
+  PaymentsIcon as bN,
+  PeopleIcon as bO,
+  PhonelinkLockIcon as bP,
+  SmartphoneIcon as bQ,
+  TabletIcon as bR,
+  elementToTree as bS,
+  EnvatoIcon as bT,
+  useUserTimezone as ba,
+  createEventHandler as bb,
+  useIsDarkMode as bc,
+  ArrowDropDownIcon as bd,
+  AvatarPlaceholderIcon as be,
+  useListbox as bf,
+  Listbox as bg,
+  Popover as bh,
+  useListboxKeyboardNavigation as bi,
+  clamp as bj,
+  rootEl as bk,
+  MovieIcon as bl,
+  useImageSrcSet as bm,
+  PersonIcon as bn,
+  BillingCycleRadio as bo,
+  findBestPrice as bp,
+  removeFromLocalStorage as bq,
+  LocaleSwitcher as br,
+  ProductFeatureList as bs,
+  useCallbackRef as bt,
+  AccountCircleIcon as bu,
+  AddAPhotoIcon as bv,
+  ApiIcon as bw,
+  CheckBoxOutlineBlankIcon as bx,
+  CheckCircleIcon as by,
+  ComputerIcon as bz,
   createSvgIcon as c,
-  useNumberFormatter as d,
-  Item$1 as e,
-  useTrans as f,
+  useLocalStorage as d,
+  useIsMobileMediaQuery as e,
+  useNumberFormatter as f,
   getFromLocalStorage as g,
-  TextField as h,
-  SearchIcon as i,
-  StaticPageTitle as j,
-  showHttpErrorToast as k,
-  apiClient as l,
+  Item$1 as h,
+  useTrans as i,
+  TextField as j,
+  SearchIcon as k,
+  StaticPageTitle as l,
   message as m,
-  useDialogContext as n,
+  showHttpErrorToast as n,
   opacityAnimation as o,
-  ConfirmationDialog as p,
+  useDialogContext as p,
   queryClient as q,
-  IllustratedMessage as r,
+  ConfirmationDialog as r,
   setInLocalStorage as s,
   toast as t,
   useSettings as u,
-  SvgImage as v,
-  Dialog as w,
-  DialogHeader as x,
-  DialogBody as y,
-  DialogFooter as z
+  errorStatusIs as v,
+  IllustratedMessage as w,
+  SvgImage as x,
+  Dialog as y,
+  DialogHeader as z
 };
 //# sourceMappingURL=server-entry.mjs.map

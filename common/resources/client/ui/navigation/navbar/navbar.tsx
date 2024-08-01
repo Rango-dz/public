@@ -73,7 +73,7 @@ export function Navbar(props: NavbarProps) {
   const showNotifButton = isLoggedIn && notifications?.integrated;
   color = color ?? lightThemeVars?.['--be-navbar-color'] ?? 'primary';
   darkModeColor =
-    darkModeColor ?? darkModeColor?.['--be-navbar-color'] ?? 'bg-alt';
+    darkModeColor ?? darkThemeVars?.['--be-navbar-color'] ?? 'bg-alt';
 
   if (isDarkMode) {
     color = darkModeColor;

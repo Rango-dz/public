@@ -36,6 +36,11 @@ class UrlGenerator extends BaseUrlGenerator
         return "$titleUrl/season/{$episode['season_number']}/episode/{$episode['episode_number']}";
     }
 
+    public function video(array|Video $video): string
+    {
+        return $this->watch($video);
+    }
+
     public function watch(array|Video $video): string
     {
         return url("watch/{$video['id']}");
@@ -85,7 +90,7 @@ class UrlGenerator extends BaseUrlGenerator
         }
     }
 
-    public function image($path)
+    public function image(string|null $path): string|null
     {
         if ($path && !str_starts_with($path, 'http')) {
             return url($path);

@@ -4,6 +4,7 @@ namespace Common\Core\Policies;
 
 use App\Models\User;
 use Common\Core\Exceptions\AccessResponseWithAction;
+use Common\Core\Exceptions\AccessResponseWithPermission;
 use Common\Settings\Settings;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
@@ -73,6 +74,18 @@ abstract class BasePolicy
     {
         $model = $user ?: app('guestRole');
         return $model?->hasPermission($permission) ?? false;
+    }
+
+    protected function authorizePermission(
+        ?User $user,
+        string $permission,
+    ): AccessResponseWithPermission {
+        return new AccessResponseWithPermission(
+            $this->hasPermission($user, $permission),
+            $permission,
+            '',
+            403,
+        );
     }
 
     protected function parseNamespace(

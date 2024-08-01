@@ -55,6 +55,7 @@ export interface SiteConfigContextValue {
   };
   admin: {
     ads: AdConfig[];
+    channelsDocsLink?: string;
   };
   demo: {
     loginPageDefaults: 'singleAccount' | 'randomAccount';

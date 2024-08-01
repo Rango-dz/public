@@ -8,6 +8,7 @@ use Config;
 use Exception;
 use Illuminate\Support\Arr;
 use Socialite;
+use Str;
 
 class TwitterLoginValidator implements SettingsValidator
 {
@@ -59,8 +60,15 @@ class TwitterLoginValidator implements SettingsValidator
      */
     private function getErrorMessage(Exception $e)
     {
-        if (\Str::contains($e->getMessage(), 'code="415"')) {
-            return ['twitter_group' => 'Site url is not present in "Callback URL" field on your twitter app.'];
+        if (Str::contains($e->getMessage(), 'code="415"')) {
+            return [
+                'twitter_group' =>
+                    'Site url is not present in "Callback URL" field on your twitter app.',
+            ];
+        }
+
+        if ($e->getMessage()) {
+            return ['twitter_group' => $e->getMessage()];
         }
 
         return $this->getDefaultError();

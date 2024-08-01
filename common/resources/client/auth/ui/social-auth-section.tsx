@@ -27,6 +27,7 @@ import {useSettings} from '../../core/settings/use-settings';
 import {MessageDescriptor} from '@common/i18n/message-descriptor';
 import clsx from 'clsx';
 import {EnvatoIcon} from '@common/icons/social/envato';
+import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
 
 const googleLabel = message('Continue with google');
 const facebookLabel = message('Continue with facebook');
@@ -43,13 +44,7 @@ export function SocialAuthSection({dividerMessage}: SocialAuthSectionProps) {
   const {loginWithSocial, requestingPassword, setIsRequestingPassword} =
     useSocialLogin();
 
-  const allSocialsDisabled =
-    !social?.google?.enable &&
-    !social?.facebook?.enable &&
-    !social?.twitter?.enable &&
-    !social?.envato?.enable;
-
-  if (allSocialsDisabled) {
+  if (useAllSocialLoginsDisabled()) {
     return null;
   }
 

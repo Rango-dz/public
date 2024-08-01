@@ -52,6 +52,8 @@ class StoreCredits
      */
     private function generatePivotRecords($originalMediaItems)
     {
+        // need to remove series, otherwise it will attach all guest starts to main series, because
+        // tmdb API does not specify whether credit belongs to series, season or episode.
         $originalMediaItems = $this->filterOutSeries($originalMediaItems);
         $dbMediaItems = $this->insertOrRetrieveMediaItems($originalMediaItems);
 

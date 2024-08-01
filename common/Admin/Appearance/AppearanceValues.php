@@ -18,7 +18,7 @@ class AppearanceValues
     {
         // split values into db settings and appearance specific settings, to avoid naming collisions
         $values = [
-            'settings' => app(Settings::class)->getUnflattened(),
+            'settings' => settings()->getAllForFrontendForm(),
             'appearance' => [],
         ];
 

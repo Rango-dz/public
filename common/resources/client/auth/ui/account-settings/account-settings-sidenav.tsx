@@ -12,6 +12,7 @@ import {DevicesIcon} from '@common/icons/material/Devices';
 import {useAuth} from '@common/auth/use-auth';
 import {useSettings} from '@common/core/settings/use-settings';
 import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
 
 export enum AccountSettingsId {
   AccountDetails = 'account-details',
@@ -28,11 +29,10 @@ export function AccountSettingsSidenav() {
   const p = AccountSettingsId;
 
   const {hasPermission} = useAuth();
-  const {api, social} = useSettings();
+  const {api} = useSettings();
   const {auth} = useContext(SiteConfigContext);
 
-  const socialEnabled =
-    social?.envato || social?.google || social?.facebook || social?.twitter;
+  const allSocialsDisabled = useAllSocialLoginsDisabled();
 
   return (
     <aside className="sticky top-10 hidden flex-shrink-0 lg:block">
@@ -49,7 +49,7 @@ export function AccountSettingsSidenav() {
         <Item icon={<PersonIcon />} panel={p.AccountDetails}>
           <Trans message="Account details" />
         </Item>
-        {socialEnabled && (
+        {!allSocialsDisabled && (
           <Item icon={<LoginIcon />} panel={p.SocialLogin}>
             <Trans message="Social login" />
           </Item>

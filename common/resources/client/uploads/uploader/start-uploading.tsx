@@ -14,7 +14,7 @@ import {message} from '../../i18n/message';
 
 export async function startUploading(
   upload: FileUpload,
-  state: FileUploadState
+  state: FileUploadState,
 ): Promise<UploadStrategy | null> {
   const settings = getBootstrapData().settings;
   const options = upload.options;
@@ -24,6 +24,7 @@ export async function startUploading(
   if (options?.restrictions) {
     const errorMessage = validateUpload(file, options.restrictions);
     if (errorMessage) {
+      console.log('errorMessage', errorMessage);
       state.updateFileUpload(file.id, {
         errorMessage,
         status: 'failed',
@@ -59,6 +60,9 @@ export async function startUploading(
       state.runQueue();
       timer.done();
       options?.onError?.(errorMessage, file);
+      if (options.showToastOnBackendError && errorMessage) {
+        toast.danger(errorMessage);
+      }
     },
     onSuccess: entry => {
       state.updateFileUpload(file.id, {
@@ -109,7 +113,7 @@ const HundredMB = 100 * OneMB;
 
 const chooseUploadStrategy = (
   file: UploadedFile,
-  config: UploadStrategyConfig
+  config: UploadStrategyConfig,
 ) => {
   const settings = getBootstrapData().settings;
   const disk = config.metadata?.disk || Disk.uploads;

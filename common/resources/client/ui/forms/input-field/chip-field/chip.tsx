@@ -90,7 +90,10 @@ export function Chip(props: ChipProps) {
       cloneElement(props.adornment, {
         size: sizeStyle.adornment.size,
         circle: true,
-        className: clsx(props.adornment.props, sizeStyle.adornment.margin),
+        className: clsx(
+          props.adornment.props.className,
+          sizeStyle.adornment.margin,
+        ),
       })
     );
 

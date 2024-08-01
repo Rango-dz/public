@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Channel;
-use Common\Channels\GenerateChannelsFromConfig;
+use App\Services\ChannelPresets;
 use Common\Database\Seeds\DefaultPagesSeeder;
 use Illuminate\Database\Seeder;
 
@@ -19,10 +19,7 @@ class DatabaseSeeder extends Seeder
             !config('common.site.demo') &&
             Channel::where('type', 'channel')->count() === 0
         ) {
-            $homepageChannel = (new GenerateChannelsFromConfig())->execute([
-                resource_path('defaults/channels/shared-channels.json'),
-                resource_path('defaults/channels/default-channels.json'),
-            ]);
+            $homepageChannel = (new ChannelPresets())->apply('database');
             settings()->save([
                 'homepage.type' => 'channels',
                 'homepage.value' => $homepageChannel->id,

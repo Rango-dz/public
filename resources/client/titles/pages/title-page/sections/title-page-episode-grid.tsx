@@ -4,7 +4,7 @@ import {SiteSectionHeading} from '@app/titles/site-section-heading';
 import {Trans} from '@common/i18n/trans';
 import {ContentGridLayout} from '@app/channels/content-grid/content-grid-layout';
 import {EpisodePoster} from '@app/episodes/episode-poster/episode-poster';
-import {Link} from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import {getWatchLink} from '@app/videos/watch-page/get-watch-link';
 import {Episode} from '@app/titles/models/episode';
 import {Title} from '@app/titles/models/title';
@@ -33,7 +33,10 @@ interface Props {
   showSeasonSelector?: boolean;
 }
 export function TitlePageEpisodeGrid({data, label, showSeasonSelector}: Props) {
-  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const {season} = useParams();
+  const [selectedSeason, setSelectedSeason] = useState<number>(
+    season ? parseInt(season) : 1,
+  );
   const query = useSeasonEpisodes(
     data.episodes,
     {
@@ -46,7 +49,7 @@ export function TitlePageEpisodeGrid({data, label, showSeasonSelector}: Props) {
       defaultOrderBy: 'episode_number',
       defaultOrderDir: 'asc',
       titleId: data.title.id,
-    }
+    },
   );
   const {isInitialLoading, items, sortDescriptor, setSortDescriptor} = query;
 

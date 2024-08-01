@@ -14,6 +14,7 @@ class Invoice extends Model
         'id' => 'integer',
         'subscription_id' => 'integer',
         'paid' => 'boolean',
+        'notified' => 'boolean',
     ];
 
     const MODEL_TYPE = 'invoice';

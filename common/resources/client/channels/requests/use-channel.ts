@@ -45,9 +45,13 @@ export function useChannel(
 
 export function channelQueryKey(
   slugOrId: number | string,
-  params?: Record<string, string | null>,
+  params?: Record<string, string | number | null>,
 ) {
-  return ['channel', `${slugOrId}`, params];
+  const key: any[] = ['channel', `${slugOrId}`];
+  if (params) {
+    key.push(params);
+  }
+  return key;
 }
 
 export function channelEndpoint(slugOrId: number | string) {

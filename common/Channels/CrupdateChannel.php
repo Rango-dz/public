@@ -3,9 +3,7 @@
 namespace Common\Channels;
 
 use App\Models\Channel;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class CrupdateChannel
 {
@@ -24,7 +22,7 @@ class CrupdateChannel
             'name' => $params['name'],
             'public' => $params['public'] ?? true,
             'internal' => $params['internal'] ?? false,
-            'type' => $params['type'] ?? $channel->type ?? 'channel',
+            'type' => $params['type'] ?? ($channel->type ?? 'channel'),
             'description' => $params['description'] ?? null,
             // merge old config so config that is not in crupdate channel form is not lost
             'config' => array_merge(
@@ -46,33 +44,6 @@ class CrupdateChannel
                 ]),
             )
             ->save();
-
-        if (
-            $channel->config['contentType'] === 'manual' &&
-            ($channelContent = Arr::get($params, 'content.data'))
-        ) {
-            // detach old channelables
-            DB::table('channelables')
-                ->where('channel_id', $channel->id)
-                ->delete();
-
-            $pivots = collect($channelContent)
-                ->map(function ($item, $i) use ($channel) {
-                    return [
-                        'channel_id' => $channel->id,
-                        'channelable_id' => $item['id'],
-                        'channelable_type' => $item['model_type'],
-                        'created_at' => $item['created_at'] ?? now(),
-                        'order' => $i,
-                    ];
-                })
-                ->filter(function ($item) use ($channel) {
-                    // channels should not be attached to themselves
-                    return $item['channelable_type'] !== Channel::MODEL_TYPE ||
-                        $item['channelable_id'] !== $channel->id;
-                });
-            DB::table('channelables')->insert($pivots->toArray());
-        }
 
         return $channel;
     }

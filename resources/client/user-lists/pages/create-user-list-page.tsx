@@ -34,6 +34,7 @@ export function CreateUserListPage() {
         <Trans message="New list" />
       </StaticPageTitle>
       <CrupdateResourceLayout
+        submitButtonText={<Trans message="Create" />}
         backButton={
           <IconButton elementType={Link} relative="path" to="../">
             <ArrowBackIcon />

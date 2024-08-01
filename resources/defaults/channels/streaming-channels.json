@@ -2,8 +2,8 @@
   {
     "slug": "homepage",
     "name": "Homepage",
-    "internal": false,
-    "description": null,
+    "internal": true,
+    "presetDescription": "The homepage of the site.",
     "type": "channel",
     "public": true,
     "config": {
@@ -17,7 +17,8 @@
       "layout": "list",
       "restriction": null,
       "hideTitle": true,
-      "lockSlug": true
+      "lockSlug": true,
+      "presetId": "streamingHomepage"
     },
     "nestedChannels": [
       "trending-movies",
@@ -41,7 +42,7 @@
     "slug": "trending-movies",
     "name": "Trending movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports currently trending movies from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -53,7 +54,8 @@
       "layout": "grid",
       "restriction": null,
       "autoUpdateMethod": "mostPopular",
-      "hideTitle": true
+      "hideTitle": true,
+      "presetId": "streamingTrendingMovies"
     },
     "created_at": "2023-07-16T11:50:32.000000Z",
     "updated_at": "2023-07-16T11:52:11.000000Z",
@@ -63,7 +65,7 @@
     "slug": "kids-and-family-movies",
     "name": "Kids and family movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'kids-and-family' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -75,7 +77,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 10751,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingKidsAndFamilyMovies"
     },
     "created_at": "2023-07-16T11:24:08.000000Z",
     "updated_at": "2023-07-16T11:29:42.000000Z",
@@ -85,7 +88,7 @@
     "slug": "comedy-movies",
     "name": "Romantic comedy movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'rom-com' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -97,7 +100,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 9799,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingRomanticComedyMovies"
     },
     "created_at": "2023-07-16T11:32:17.000000Z",
     "updated_at": "2023-07-16T11:36:45.000000Z",
@@ -107,7 +111,7 @@
     "slug": "science-fiction-movies",
     "name": "Science fiction movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'sci-fi' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -119,7 +123,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 878,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingScienceFictionMovies"
     },
     "created_at": "2023-07-16T11:38:15.000000Z",
     "updated_at": "2023-07-16T11:39:43.000000Z",
@@ -129,7 +134,7 @@
     "slug": "horror-movies",
     "name": "Horror movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'horror' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -141,7 +146,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 27,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingHorrorMovies"
     },
     "created_at": "2023-07-16T11:40:04.000000Z",
     "updated_at": "2023-07-16T11:40:11.000000Z",
@@ -151,7 +157,7 @@
     "slug": "documentaries",
     "name": "Documentaries",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports documentaries from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -163,7 +169,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 99,
-      "autoUpdateMethod": "latestVideos"
+      "autoUpdateMethod": "latestVideos",
+      "presetId": "streamingDocumentaries"
     },
     "created_at": "2023-07-16T11:42:13.000000Z",
     "updated_at": "2023-07-16T11:53:38.000000Z",
@@ -173,7 +180,7 @@
     "slug": "crime-tv-shows",
     "name": "Crime TV shows",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports TV shows with 'crime' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -185,7 +192,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 80,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingCrimeTvShows"
     },
     "created_at": "2023-07-16T11:47:36.000000Z",
     "updated_at": "2023-07-16T11:48:22.000000Z",
@@ -195,7 +203,7 @@
     "slug": "music-movies",
     "name": "Music movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'music' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -207,7 +215,8 @@
       "layout": "grid",
       "restriction": "genre",
       "restrictionModelId": 10402,
-      "autoUpdateMethod": "latestVideos"
+      "autoUpdateMethod": "latestVideos",
+      "presetId": "streamingMusicMovies"
     },
     "created_at": "2023-07-16T11:55:41.000000Z",
     "updated_at": "2023-07-16T12:06:34.000000Z",
@@ -217,7 +226,7 @@
     "slug": "supernatural-tv",
     "name": "Supernatural TV",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports TV shows with 'supernatural' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -229,7 +238,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 6152,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingSupernaturalTv"
     },
     "created_at": "2023-07-16T11:58:17.000000Z",
     "updated_at": "2023-07-16T11:58:37.000000Z",
@@ -239,7 +249,7 @@
     "slug": "superhero-movies",
     "name": "Superhero movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'superhero' genre from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -251,7 +261,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 9715,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingSuperheroMovies"
     },
     "created_at": "2023-07-16T12:00:05.000000Z",
     "updated_at": "2023-07-16T12:00:19.000000Z",
@@ -261,7 +272,7 @@
     "slug": "tv-shows-based-on-books",
     "name": "TV shows based on books",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports TV shows with 'based-on-book' keyword from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -273,7 +284,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "autoUpdateMethod": "latestVideos",
-      "restrictionModelId": 818
+      "restrictionModelId": 818,
+      "presetId": "streamingTvShowsBasedOnBooks"
     },
     "created_at": "2023-07-16T12:02:07.000000Z",
     "updated_at": "2023-07-16T12:02:16.000000Z",
@@ -283,7 +295,7 @@
     "slug": "disaster-movies",
     "name": "Disaster movies",
     "internal": false,
-    "description": null,
+    "presetDescription": "Periodically imports movies with 'disaster' keyword from themoviedb",
     "type": "channel",
     "public": true,
     "config": {
@@ -295,7 +307,8 @@
       "layout": "grid",
       "restriction": "keyword",
       "restrictionModelId": 189411,
-      "autoUpdateMethod": "discover"
+      "autoUpdateMethod": "discover",
+      "presetId": "streamingDisasterMovies"
     },
     "created_at": "2023-07-16T12:05:02.000000Z",
     "updated_at": "2023-07-16T12:06:27.000000Z",

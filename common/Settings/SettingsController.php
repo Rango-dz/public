@@ -14,14 +14,14 @@ class SettingsController extends BaseController
     public function __construct(
         protected Request $request,
         protected Settings $settings,
-        protected DotEnvEditor $dotEnv,
     ) {
     }
 
     public function index()
     {
         $this->authorize('index', Setting::class);
-        $envSettings = $this->dotEnv->load('.env');
+
+        $envSettings = (new DotEnvEditor())->load();
         $envSettings['newAppUrl'] = app(AppUrl::class)->newAppUrl;
         $envSettings[
             'connectedGmailAccount'
@@ -36,7 +36,7 @@ class SettingsController extends BaseController
 
         return [
             'server' => $envSettings,
-            'client' => $this->settings->getUnflattened(true),
+            'client' => $this->settings->getAllForFrontendForm(),
         ];
     }
 
@@ -44,8 +44,8 @@ class SettingsController extends BaseController
     {
         $this->authorize('update', Setting::class);
 
-        $clientSettings = $this->cleanValues($this->request->get('client'));
         $serverSettings = $this->cleanValues($this->request->get('server'));
+        $clientSettings = $this->cleanValues($this->request->get('client'));
 
         // need to handle files before validating
         $this->handleFiles();
@@ -60,7 +60,7 @@ class SettingsController extends BaseController
         }
 
         if ($serverSettings) {
-            $this->dotEnv->write($serverSettings);
+            (new DotEnvEditor())->write($serverSettings);
         }
 
         if ($clientSettings) {
@@ -79,11 +79,14 @@ class SettingsController extends BaseController
         if (!$config) {
             return [];
         }
-        $config = json_decode($config, true);
+
+        $config = json_decode($config);
+        $config = settings()->castToArrayPreserveEmptyObjects($config);
+
         foreach ($config as $key => $value) {
             $config[$key] = is_string($value) ? trim($value) : $value;
         }
-        return $config;
+        return (array) $config;
     }
 
     private function handleFiles()

@@ -26,11 +26,28 @@ export function ContentModelField({config, className, exclude}: Props) {
         ) {
           (setValue as any)('config.contentType', 'manual');
         }
-        setValue('config.autoUpdateMethod', modelConfig.autoUpdateMethods?.[0]);
+
+        // sync auto update config
+        const firstAutoUpdateMethod = modelConfig.autoUpdateMethods?.[0];
+        setValue('config.autoUpdateMethod', firstAutoUpdateMethod);
+        setValue(
+          'config.autoUpdateProvider',
+          firstAutoUpdateMethod
+            ? config.autoUpdateMethods[firstAutoUpdateMethod]?.providers[0]
+            : undefined,
+        );
+
+        // sync restrictions
+        setValue('config.restriction', null);
+        setValue('config.restrictionModelId', null);
+
+        // sync order
         setValue(
           'config.contentOrder',
           modelConfig.sortMethods[0] || 'channelables.order:asc',
         );
+
+        // sync layout
         setValue('config.layout', modelConfig.layoutMethods[0]);
       }}
     >

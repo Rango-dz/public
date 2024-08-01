@@ -28,7 +28,11 @@ class PaginatePeople
 
         $datasource = new Datasource($builder, $params);
 
-        if (!Arr::get($params, 'order')) {
+        // prevent duplicate items when ordering by columns that are not
+        // guaranteed to be unique (name, popularity, age etc.)
+        $datasource->secondaryOrderCol = 'id';
+
+        if (!Arr::get($params, 'order') && !Arr::get($params, 'orderBy')) {
             $datasource->order = [
                 'col' => 'popularity',
                 'dir' => 'desc',

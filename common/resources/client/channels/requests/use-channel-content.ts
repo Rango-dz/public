@@ -8,41 +8,62 @@ import {
 import {PaginatedBackendResponse} from '@common/http/backend-response/pagination-response';
 import {useRef} from 'react';
 import {useChannelQueryParams} from '@common/channels/use-channel-query-params';
+import {useSearchParams} from 'react-router-dom';
 
 interface Response<T extends ChannelContentItem = ChannelContentItem>
   extends PaginatedBackendResponse<T> {}
 
+interface Options {
+  paginate?: boolean;
+}
+
 export function useChannelContent<
   T extends ChannelContentItem = ChannelContentItem,
->(channel: Channel<T>) {
-  const queryParams = useChannelQueryParams(channel);
+>(
+  channel: Channel<T>,
+  params?: Record<string, string> | null,
+  options?: Options,
+) {
+  const [searchParams] = useSearchParams();
+  const queryParams = useChannelQueryParams(channel, params);
+  if (options?.paginate) {
+    queryParams.page = searchParams.get('page') || '1';
+  }
   const queryKey = channelQueryKey(channel.id, queryParams);
   const initialQueryKey = useRef(hashKey(queryKey)).current;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: channelQueryKey(channel.id, queryParams),
-    queryFn: () => fetchChannelContent<T>(channel.id, queryParams),
+    queryFn: () => fetchChannelContent<T>(channel, queryParams),
     placeholderData: keepPreviousData,
     initialData: () => {
       if (hashKey(queryKey) === initialQueryKey) {
-        return channel.content?.data;
+        return channel.content;
       }
       return undefined;
     },
   });
+
+  return {
+    ...query,
+    queryKey,
+  };
 }
 
 function fetchChannelContent<T extends ChannelContentItem = ChannelContentItem>(
-  slugOrId: number | string,
+  channel: Channel<T>,
   params: any,
 ) {
   return apiClient
-    .get<Response<T>>(channelEndpoint(slugOrId), {
+    .get<Response<T>>(channelEndpoint(channel.id), {
       params: {
         ...params,
-        paginate: 'simple',
+        paginate:
+          channel.config.paginationType === 'lengthAware'
+            ? 'lengthAware'
+            : 'simple',
         returnContentOnly: 'true',
       },
     })
-    .then(response => response.data.pagination.data);
+    .then(response => response.data.pagination);
 }

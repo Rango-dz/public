@@ -21,19 +21,20 @@ class LoadChannelContent
         Channel $parent = null,
     ): ?AbstractPaginator {
         $params['perPage'] = $params['perPage'] ?? 50;
+        $params['paginate'] = $this->resolvePaginateType($channel, $params);
         if (!isset($params['orderBy']) && !isset($params['order'])) {
             $params['order'] = Arr::get($channel->config, 'contentOrder');
         }
 
         if (
-            $channel->shouldRestrictContent() &&
-            Arr::get($params, 'loader') !== 'editChannelPage'
+            $channel->shouldRestrictContent()
+            // Arr::get($params, 'loader') !== 'editChannelPage'
         ) {
             $this->applyRestriction($channel, $params, $parent);
             // If restriction could not be loaded bail. This is used to cancel content loading and return 404,
             // if, for example, loading genre channel, but specified genre does not exist.
             if (!$channel->restriction) {
-                return new Paginator([], 15);
+                return new Paginator([], 50);
             }
         }
 
@@ -149,5 +150,24 @@ class LoadChannelContent
                 ]) ?:
                 $channel->name;
         }
+    }
+
+    protected function resolvePaginateType(
+        Channel $channel,
+        array $params,
+    ): string {
+        if (isset($params['paginate'])) {
+            return $params['paginate'];
+        }
+
+        if (isset($channel->config['paginationType'])) {
+            return match ($channel->config['paginationType']) {
+                'lengthAware' => 'lengthAware',
+                // simple and infinite scroll
+                default => 'simple',
+            };
+        }
+
+        return 'simple';
     }
 }

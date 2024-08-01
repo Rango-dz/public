@@ -7,14 +7,24 @@ import {InfoDialogTrigger} from '@common/ui/overlays/dialog/info-dialog-trigger/
 import {Link} from 'react-router-dom';
 import {ChannelsDatatableColumns} from '@common/admin/channels/channels-datatable-columns';
 import {ConfirmationDialog} from '@common/ui/overlays/dialog/confirmation-dialog';
-import {DialogTrigger} from '@common/ui/overlays/dialog/dialog-trigger';
-import {Tooltip} from '@common/ui/tooltip/tooltip';
-import {IconButton} from '@common/ui/buttons/icon-button';
-import {useResetChannelsToDefault} from '@common/admin/channels/requests/use-reset-channels-to-default';
+import {useApplyChannelPreset} from '@common/admin/channels/requests/use-apply-channel-preset';
 import {useDialogContext} from '@common/ui/overlays/dialog/dialog-context';
-import {RestartAltIcon} from '@common/icons/material/RestartAlt';
 import {DataTablePage} from '@common/datatable/page/data-table-page';
 import {DeleteSelectedItemsAction} from '@common/datatable/page/delete-selected-items-action';
+import {useDataTable} from '@common/datatable/page/data-table-context';
+import {Channel} from '@common/channels/channel';
+import {Menu, MenuTrigger} from '@common/ui/navigation/menu/menu-trigger';
+import {Button} from '@common/ui/buttons/button';
+import {Item} from '@common/ui/forms/listbox/item';
+import {KeyboardArrowDownIcon} from '@common/icons/material/KeyboardArrowDown';
+import {openDialog} from '@common/ui/overlays/store/dialog-store';
+import {ChannelsDocsLink} from '@common/admin/channels/channels-docs-link';
+
+interface ChannelPresetConfig {
+  preset: string;
+  name: string;
+  description: string;
+}
 
 export function ChannelsDatatablePage() {
   return (
@@ -22,10 +32,12 @@ export function ChannelsDatatablePage() {
       endpoint="channel"
       title={<Trans message="Channels" />}
       headerContent={<InfoTrigger />}
+      headerItemsAlign="items-center"
       queryParams={{type: 'channel'}}
       columns={ChannelsDatatableColumns}
       actions={<Actions />}
       selectedActions={<DeleteSelectedItemsAction />}
+      cellHeight="h-52"
       emptyStateMessage={
         <DataTableEmptyStateMessage
           image={playlist}
@@ -40,30 +52,44 @@ export function ChannelsDatatablePage() {
 function InfoTrigger() {
   return (
     <InfoDialogTrigger
-      title={<Trans message="Channels" />}
       body={
-        <Trans message="Channels are used to display either all content of specific type or manually cured content. They can be shown as separate page or nested." />
+        <Fragment>
+          <Trans message="Channels are used to create pages that show various content on the site." />
+          <ChannelsDocsLink className="mt-14" />
+        </Fragment>
       }
     />
   );
 }
 
 function Actions() {
+  const {query} = useDataTable<Channel, {presets: ChannelPresetConfig[]}>();
   return (
     <Fragment>
-      <DialogTrigger type="modal">
-        <Tooltip label={<Trans message="Reset channels" />}>
-          <IconButton
-            variant="outline"
-            color="primary"
-            className="flex-shrink-0"
-            size="sm"
-          >
-            <RestartAltIcon />
-          </IconButton>
-        </Tooltip>
-        <ResetChannelsDialog />
-      </DialogTrigger>
+      <MenuTrigger
+        onItemSelected={preset => openDialog(ApplyPresetDialog, {preset})}
+      >
+        <Button
+          variant="outline"
+          color="primary"
+          size="sm"
+          endIcon={<KeyboardArrowDownIcon />}
+          disabled={!query.data?.presets.length}
+        >
+          <Trans message="Apply preset" />
+        </Button>
+        <Menu>
+          {query.data?.presets.map(preset => (
+            <Item
+              key={preset.preset}
+              value={preset.preset}
+              description={<Trans message={preset.description} />}
+            >
+              <Trans message={preset.name} />
+            </Item>
+          ))}
+        </Menu>
+      </MenuTrigger>
       <DataTableAddItemButton elementType={Link} to="new">
         <Trans message="Add new channel" />
       </DataTableAddItemButton>
@@ -71,21 +97,24 @@ function Actions() {
   );
 }
 
-function ResetChannelsDialog() {
+interface ApplyPresetDialogProps {
+  preset: string;
+}
+function ApplyPresetDialog({preset}: ApplyPresetDialogProps) {
   const {close} = useDialogContext();
-  const resetChannels = useResetChannelsToDefault();
+  const resetChannels = useApplyChannelPreset();
   return (
     <ConfirmationDialog
       isLoading={resetChannels.isPending}
       onConfirm={() => {
-        resetChannels.mutate(undefined, {onSuccess: () => close()});
+        resetChannels.mutate({preset}, {onSuccess: () => close()});
       }}
       isDanger
-      title={<Trans message="Reset channels" />}
+      title={<Trans message="Apply preset" />}
       body={
-        <Trans message="Are you sure you want to reset channels to default ones? This will delete any manually created channels and any configuration changes made to them." />
+        <Trans message="Are you sure you want to apply this channel preset? This will delete all current channels and leave only channels from the selected preset." />
       }
-      confirm={<Trans message="Reset" />}
+      confirm={<Trans message="Apply" />}
     />
   );
 }
